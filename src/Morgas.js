@@ -662,7 +662,7 @@
 				};
 				instance.getPatch=function(patch)
 				{
-					return this.patches[patch.prototype.patchID];
+					return this.patches[patch.patchID||patch.prototype.patchID];
 				};
 			}
 			if(!instance.hasPatch(this))

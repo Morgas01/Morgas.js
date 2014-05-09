@@ -243,6 +243,7 @@
 			{
 				this.groups[i].values={};
 			}
+			this.values.length=0;
 		},
 		destroy:function()
 		{
@@ -300,7 +301,7 @@
 	{
 		//start in the middle
 		var length=(order?order:source).length
-		var jump=Math.ceil(length>>>1);
+		var jump=Math.ceil(length/2);
 		var i=jump;
 		var lastJump=null;
 		while(jump/*!=0||NaN||null*/&&i>0&&i<=length&&!(jump==1&&lastJump==-1))
@@ -308,7 +309,7 @@
 			lastJump=jump;
 			var compare=order?source[order[i-1]] : source[i-1];
 			//jump half the size in direction of this sort			(if equals jump 1 to conserv the order)
-			jump=Math.ceil(Math.abs(jump)>>>1)*Math.sign(sort(item,compare)) ||1;
+			jump=Math.ceil(Math.abs(jump)/2)*Math.sign(sort(item,compare)) ||1;
 			i+=jump;
 		}
 		i=Math.min(Math.max(i-1,0),length);
