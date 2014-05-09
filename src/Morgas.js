@@ -28,10 +28,12 @@
 		};
 		µ.hasModule=function(key)
 		{
-			return key in modules;
+			return !!modules[key];
 		};
 		µ.getModule=function(key)
 		{
+			if(!modules[key])
+				µ.debug("module "+key+" is not defined\n use µ.hasModule to check for existence",0);
 			return modules[key];
 		};
 	})();
@@ -69,7 +71,10 @@
 	 */
 	µ.shortcut=function(map,context,target)
 	{
-		var target=target||{};
+		if(!target)
+		{
+			target={};
+		}
 		for(var m in map){(function(path,key)
 		{
 			var value=null;
@@ -106,7 +111,11 @@
 	 */
 	µ.debug=function(msg,verbose)
 	{
-		if(µ.debug.verbose>=(verbose||0))
+		if(!verbose)
+		{
+			verbose=0;
+		}
+		if(µ.debug.verbose>=verbose)
 		{
 			if(typeof msg == "function")
 				msg=msg();
@@ -154,10 +163,14 @@
 	 */
 	µ.Callback=function callback(callb,scope,args,sliceFrom,sliceTo)
 	{
+		if(!sliceFrom)
+		{
+			sliceFrom=0;
+		}
 		args=(args instanceof Array)?args:(args!==undefined)?[args]:[];
 		return function()
 		{
-			callb.apply(scope,[].concat(this,args,args.slice.call(arguments,0)).slice(sliceFrom||0,sliceTo));
+			callb.apply(scope,[].concat(this,args,args.slice.call(arguments,0)).slice(sliceFrom,sliceTo));
 		};
 	};
 	SMOD("Callback",µ.Callback);
@@ -282,7 +295,11 @@
 					if(fn==all[i])
 						return null;
 				}
-				switch(typeof type!="string"||type.toLowerCase())
+				if(type)
+				{
+					type=type.toLowerCase();
+				}
+				switch(type)
 				{
 					case "first":
 						this.listeners.unshift(fn);
@@ -641,11 +658,11 @@
 				instance.patches={};
 				instance.hasPatch=function(patch)
 				{
-					return this.getPatch(patch)!=null;
+					return this.getPatch(patch)!==undefined;
 				};
 				instance.getPatch=function(patch)
 				{
-					return this.patches[patch.patchID||patch.prototype.patchID];
+					return this.patches[patch.prototype.patchID];
 				};
 			}
 			if(!instance.hasPatch(this))

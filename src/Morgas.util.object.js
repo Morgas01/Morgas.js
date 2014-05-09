@@ -97,7 +97,10 @@
 	 */
 	that.iterate=function(any,func,backward,isObject,scope)
 	{
-		scope=scope||window;
+		if(!scope)
+		{
+			scope=window;
+		}
 		if(any.length>0&&!isObject)
 		{
 			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
@@ -190,11 +193,44 @@
 		return false;
 	};
 	
+	/** uniquify
+	 * Creates a copy of {arr} without duplicates.
+	 * Values will be converted into strings via {fn}(value)
+	 * or value+"" to create an ID.
+	 */
+	that.uniquify=function(arr,fn)
+	{
+		var values={};
+		for(var i=0;i<arr.length;i++)
+		{
+			var id=arr[i];
+			if(fn)
+			{
+				id=fn(id);
+			}
+			values[id]=arr[i];
+		}
+		if(fn)
+		{
+			var rtn=[];
+			for(var i in values)
+			{
+				rtn.push(values[i]);
+			}
+			return rtn;
+		}
+		else
+		{
+			return Object.keys(values);
+		}
+	};
+	
 	SMOD("goPath",that.goPath);
 	SMOD("Iterator",that.Iterator);
 	SMOD("iterate",that.iterate);
 	SMOD("iterateAsync",that.iterateAsync);
 	SMOD("find",that.find);
 	SMOD("equals",that.equals);
+	SMOD("uniquify",that.uniquify);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule);

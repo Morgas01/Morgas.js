@@ -239,9 +239,9 @@
 		}
 	});
 	REL.TYPES={
-		"PARENT"	:"PARENT",
-		"FRIEND"	:"FRIEND",
-		"CHILD"		:"CHILD"
+		"PARENT"	:-1,
+		"FRIEND"	:0,
+		"CHILD"		:1
 	};
 	SMOD("DBRel");
 	
