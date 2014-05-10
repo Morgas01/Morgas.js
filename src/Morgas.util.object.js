@@ -121,6 +121,11 @@
 			}
 		}
 	};
+	/** iterateAsync
+	 * As iterate but puts a timeout between the iteration steps
+	 * 
+	 * returns: µ.Detached
+	 */
 	that.iterateAsync=function(any,func,backward,isObject,scope)
 	{
 		if(!scope)
