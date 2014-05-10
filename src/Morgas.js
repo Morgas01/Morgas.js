@@ -57,6 +57,26 @@
 	µ.bind=Function.bind.call.bind(Function.bind);
 	SMOD("bind",µ.bind);
 	
+	/** rescope
+	 * faster than bind but only changes the scope.
+	 */
+	µ.rescope=function(fn,scope)
+	{
+		return function()
+		{
+			fn.apply(scope,arguments);
+		}
+	};
+	µ.rescope.all=function(keys,scope)
+	{	
+		keys=keys||Object.keys(scope);
+		for(var i=0;i<keys.length;i++)
+		{
+			scope[keys[i]]=µ.rescope(scope[keys[i]],scope);
+		}
+	};
+	SMOD("rescope",µ.rescope);
+	
 	/** shortcut
 	 * creates an object that will evaluate its values defined in {map} on its first call.
 	 * when {context} is provided and {map.value} is not a function it will treated as a path from {context}
