@@ -434,16 +434,13 @@
 		{
 			this.state=true;
 			this.lastArgs=arguments;
-			return this.fire();
-		},
-		fire:function()
-		{
-			var rtn=null;
-			if(!this.stateDisabled&&this.state)
+
+			var rtn=false;
+			if(!this.stateDisabled)
 			{
 				this.disabled=false;
-				rtn=LISTENER.prototype.fire.apply(this,this.lastArgs);
-				this.disabled=true;
+				rtn=this.fire.apply(this,this.lastArgs);
+				this.disabled=true
 			}
 			return rtn;
 		},
