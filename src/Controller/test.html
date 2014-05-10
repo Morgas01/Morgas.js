@@ -1,0 +1,21 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Morgas.Controller.js - Test</title>
+		<meta charset="UTF-8">
+		<script type="text/javascript" src="../Morgas.js"></script>
+		<script type="text/javascript" src="Morgas.Controller.js"></script>
+		<script type="text/javascript">
+			function logController()
+			{
+				document.getElementById("logger").value=this;
+			}
+			var controller=new Morgas.Controller.Keyboard();
+			controller.addListener("changed",logController)
+			
+		</script>
+	</head>
+	<body>
+		<textarea id="logger" style="width: 60%;height:50%;"></textarea>
+	</body>
+</html>
