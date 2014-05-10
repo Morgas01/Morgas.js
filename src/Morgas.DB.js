@@ -6,18 +6,22 @@
 	 * Database Classes
 	 *
 	 */
-	var BASE=GMOD("Base");
+
+	var SC=GMOD("shortcut")({
+		debug:"debug",
+		det:"Detache"
+	});
 	
 	var DB=µ.DB=µ.DB||{};
 	
 	var DBC,TRAN,STMT,DBOBJECT,REL,FIELD;
 	
-	DBC=DB.Connector=µ.Class(BASE,
+	DBC=DB.Connector=µ.Class(
 	{
 		init:function()
 		{
 			this.superInit(BASE);
-			µ.detacheAll(this,["save","load","delete","saveChildren","loadChildren","saveFriends","loadFriends","destroy"]);
+			SC.det.detacheAll(this,["save","load","delete","saveChildren","loadChildren","saveFriends","loadFriends","destroy"]);
 		},
 		
 		save:function(detached,objs)

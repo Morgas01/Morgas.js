@@ -121,7 +121,37 @@
 			}
 		}
 	};
-	/** iterateAsync
+	that.iterateAsync=function(any,func,backward,isObject,scope)
+	{
+		if(!scope)
+		{
+			scope=window;
+		}
+		return new µ.Detached(function()
+		{
+			var it=new that.Iterator(any,backward,isObject);
+			if(!it.hasNext())
+			{
+				this.complete();
+			}
+			else
+			{
+				setTimeout(function iterateStep()
+				{
+					func.call(scope,it.next());
+					if(!it.hasNext())
+					{
+						this.complete();
+					}
+					else
+					{
+						setTimeout(iterateStep, 0);
+					}
+				},0)
+			}
+		});
+	};
+	/** iterateDetached
 	 * As iterate but deferres the call of {func} with µ.Detached.
 	 * May not be called in iterated order.
 	 *
@@ -132,7 +162,7 @@
 	 *
 	 * returns: µ.Detached
 	 */
-	that.iterateAsync=function(any,func,backward,isObject,scope)
+	that.iterateDetached=function(any,func,backward,isObject,scope)
 	{
 		var wait=[];
 		that.iterate(any,function(obj,index)
@@ -229,6 +259,7 @@
 	SMOD("Iterator",that.Iterator);
 	SMOD("iterate",that.iterate);
 	SMOD("iterateAsync",that.iterateAsync);
+	SMOD("iterateDetached",that.iterateDetached);
 	SMOD("find",that.find);
 	SMOD("equals",that.equals);
 	SMOD("uniquify",that.uniquify);

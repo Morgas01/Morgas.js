@@ -157,7 +157,7 @@
 	});
 	DET.WAIT={};
 	SMOD("Detached",DET);
-	µ.detache=function(fn,scope)
+	DET.detache=function(fn,scope)
 	{
 		scope=scope||window
 		return function()
@@ -178,13 +178,13 @@
 			})
 		}
 	};
-	µ.detacheAll=function(scope,keys)
+	DET.detacheAll=function(scope,keys)
 	{
 		keys=[].concat(keys);
 		for(var i=0;i<keys.length;i++)
 		{
 			var fn=scope[keys[i]];
-			scope[keys[i]]=µ.detache(fn,scope);
+			scope[keys[i]]=DET.detache(fn,scope);
 		}
 	};
 })(Morgas,Morgas.setModule,Morgas.getModule)

@@ -1,7 +1,7 @@
 (function(µ,GMOD){
 	module("Detached");
 	var DET=GMOD("Detached");
-	var _det=µ.detache;
+	var _det=DET.detache;
 	
 	asyncTest("call",function()
 	{

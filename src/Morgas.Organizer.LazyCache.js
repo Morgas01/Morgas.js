@@ -12,15 +12,15 @@
 	var SC=GMOD("shortcut")({
 		it:"iterate",
 		debug:"debug",
+		det:"Detache"
 	});
-	SC.dtAll=µ.detacheAll;
 	
 	 var LC=ORG.LazyCache=µ.Class(ORG,
 	 {
 		init:function(dbClass,connector)
 		{
 			this.superInit(ORG);
-			SC.dtAll(this,["get","getUnique"]);
+			SC.det.detacheAll(this,["get","getUnique"]);
 			
 			this.dbClass=dbClass;
 			this.connector=connector;
