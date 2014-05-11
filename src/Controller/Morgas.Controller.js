@@ -99,7 +99,7 @@
 		},
 		toJSON:function()
 		{
-			return {direction:this.getDirection8(),x:this.x,y:this.y,angle:this.getAngle()};
+			return {direction:this.getDirection8(),x:this.x,y:this.y,angle:this.getAngle().toPrecision(4)};
 		}
 		
 	});
