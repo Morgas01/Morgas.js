@@ -451,7 +451,7 @@
 			var doFire=this.state&&!this.stateDisabled;
 			if(doFire)
 			{
-				fn.apply(this,this.lastArgs);
+				fn.apply(this.lastArgs[0],Array.prototype.slice.call(this.lastArgs,1));
 			}
 			if(!(doFire&&typeof type=="string"&&type.toLowerCase()=="once"))
 			{
