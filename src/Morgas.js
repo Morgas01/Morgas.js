@@ -543,7 +543,7 @@
 			event.type=name;
 			if(this.listeners[name])
 			{
-				return this.listeners[nameArr[i]].fire(this,event);
+				return this.listeners[name].fire(this,event);
 			}
 			return undefined
 		},
