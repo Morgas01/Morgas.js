@@ -361,7 +361,7 @@
 					if(this.listeners[i]==fn)
 					{
 						this.listeners.splice(i,1);
-						if(this.fireIndex!=null&&i<=this.fireIndex)
+						if(this.fireIndex!==null&&i<=this.fireIndex)
 						{
 							this.fireIndex--;
 						}
@@ -391,20 +391,22 @@
 			}
 			return rtn;
 		},
-		fire:function fire(scope/*,args...*/)
+		fire:function fire(scope,event)
 		{
+			event=event||{};
+			event.source=scope;
 			if(!this.disabled)
 			{
 				this.fireIndex=0;
 				var abort=false;
 				while(!abort&&this.fireIndex<this.listeners.length)
 				{
-					abort=false===this.listeners[this.fireIndex++].apply(scope,[].slice.call(arguments,1));
+					abort=false===this.listeners[this.fireIndex++].call(scope,event);
 				}
 				this.fireIndex=null;
 				while(this.listenOnce.length>0)
 				{
-					this.listenOnce.shift().apply(scope,[].slice.call(arguments,1));
+					this.listenOnce.shift().call(scope,event);
 				}
 				return abort;
 			}
@@ -430,7 +432,7 @@
 		},
 		setDisabled:function setDisabled(bool){this.stateDisabled=bool===true;},
 		isDisabled:function isDisabled(){return this.stateDisabled;},
-		setState:function setState(/*scope,args...*/)
+		setState:function setState(/*scope,event*/)
 		{
 			this.state=true;
 			this.lastArgs=arguments;
@@ -506,7 +508,7 @@
 			for(var i=0;i<typeArr.length;i++)
 			{
 				var name_type=typeArr[i].split(this.rNameopt);
-				if(this.listeners[name_type[0]]!=null)
+				if(this.listeners[name_type[0]]!==undefined)
 				{
 					this.listeners[name_type[0]].addListeners(fnarr,name_type[1]);
 				}
@@ -528,27 +530,22 @@
 				for(var i=0;i<nameArr.length;i++)
 				{
 					var name=nameArr[i];
-					if(this.listeners[name]!=null)
+					if(this.listeners[name]!==undefined)
 					{
 						this.listeners[name].removeListeners(fnarr);
 					}
 				}
 			}
 		},
-		fire:function fire(names/*,args...*/)
+		fire:function fire(name,event)
 		{
-			var nameArr=names.split(this.rNames);
-			var rtns=[];
-			var rtn;
-			for(var i=0;i<nameArr.length;i++)
+			event=event||{};
+			event.type=name;
+			if(this.listeners[nameArr[i]])
 			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null)
-					rtn=lstnr.fire.apply(lstnr,[].concat(this,[].slice.call(arguments,0)));
-				else
-					rtn=null;
-				rtns.push(rtn);
+				return this.listeners[nameArr[i]].fire(this,event);
 			}
+			return undefined
 		},
 		setDisabled:function setDisabled(names,bool)
 		{
@@ -572,15 +569,16 @@
 			}
 			return rtn;
 		},
-		setState:function setState(names/*,args...*/)
+		setState:function setState(name,event)
 		{
-			var nameArr=names.split(this.rNames);
-			for(var i=0;i<nameArr.length;i++)
+			event=event||{};
+			event.type=name;
+			var lstnr=this.listeners[nameArr[i]];
+			if (lstnr&&lstnr instanceof STATELISTENER)
 			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null&&lstnr instanceof STATELISTENER)
-					lstnr.setState.apply(lstnr,[].concat(this,[].slice.call(arguments,0)));
+				return lstnr.setState(this,event);
 			}
+			return undefined;
 		},
 		resetState:function resetState(names)
 		{
