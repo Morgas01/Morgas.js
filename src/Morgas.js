@@ -541,7 +541,7 @@
 		{
 			event=event||{};
 			event.type=name;
-			if(this.listeners[nameArr[i]])
+			if(this.listeners[name])
 			{
 				return this.listeners[nameArr[i]].fire(this,event);
 			}
@@ -573,7 +573,7 @@
 		{
 			event=event||{};
 			event.type=name;
-			var lstnr=this.listeners[nameArr[i]];
+			var lstnr=this.listeners[name];
 			if (lstnr&&lstnr instanceof STATELISTENER)
 			{
 				return lstnr.setState(this,event);
