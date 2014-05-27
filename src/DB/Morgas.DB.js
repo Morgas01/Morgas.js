@@ -80,7 +80,7 @@
 			throw new Error("abstract Class DB.Connector");
 		}
 	});
-	SMOD("DBConn");
+	SMOD("DBConn",DBC);
 	
 	DBOBJECT=DB.Object=µ.Class(
 	{
@@ -218,7 +218,7 @@
 			return rtn;
 		}
 	});
-	SMOD("DBObj");
+	SMOD("DBObj",DBOBJECT);
 	
 	REL=DB.Relation=µ.Class(
 	{
@@ -244,7 +244,7 @@
 		"FRIEND"	:0,
 		"CHILD"		:1
 	};
-	SMOD("DBRel");
+	SMOD("DBRel",REL);
 	
 	FIELD=DB.Field=µ.Class(
 	{
@@ -318,5 +318,5 @@
 		"BLOB"		:5,
 		"JSON"		:6
 	};
-	SMOD("DBField");
+	SMOD("DBField",FIELD);
 })(Morgas,Morgas.setModule,Morgas.getModule);
