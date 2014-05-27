@@ -20,7 +20,6 @@
 	{
 		init:function()
 		{
-			this.superInit(BASE);
 			SC.det.detacheAll(this,["save","load","delete","saveChildren","loadChildren","saveFriends","loadFriends","destroy"]);
 		},
 		
@@ -83,7 +82,7 @@
 	});
 	SMOD("DBConn");
 	
-	DBOBJECT=DB.Object=µ.Class(BASE,
+	DBOBJECT=DB.Object=µ.Class(
 	{
 		objectType:null,
 		init:function(param)
@@ -91,9 +90,7 @@
 			param=param||{};
 			if(this.objectType==null)
 				throw "DB.Object: objectType not defined";
-			
-			this.superInit(BASE);
-			
+						
 			this.fields={};
 			
 			this.relations={};
@@ -223,7 +220,7 @@
 	});
 	SMOD("DBObj");
 	
-	REL=DB.Relation=µ.Class(BASE,
+	REL=DB.Relation=µ.Class(
 	{
 		init:function(relatedClass,type,targetRelationName,fieldName)
 		{
@@ -249,12 +246,11 @@
 	};
 	SMOD("DBRel");
 	
-	FIELD=DB.Field=µ.Class(BASE,
+	FIELD=DB.Field=µ.Class(
 	{
 		init:function(type,value,options)
 		{
 			//this.name ?
-			this.superInit(BASE);
 			this.type=type;
 		  /*this.value=*/this.fromDBValue(value);
 			this.options=options||{};	// depends on connector
