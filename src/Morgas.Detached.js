@@ -28,10 +28,6 @@
 			if(this.fn.length>0&&!wait)
 				this._start();
 		},
-		getResult:function()
-		{
-			return this.args.slice(0);
-		},
 		error:function(fn,stay)
 		{
 			fn=[].concat(fn);

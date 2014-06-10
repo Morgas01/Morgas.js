@@ -20,7 +20,7 @@
 	{
 		init:function()
 		{
-			SC.det.detacheAll(this,["save","load","delete","saveChildren","loadChildren","saveFriends","loadFriends","destroy"]);
+			SC.det.detacheAll(this,["save","load","delete","saveChildren","saveFriends","destroy"]);
 		},
 		
 		save:function(detached,objs)
@@ -63,19 +63,39 @@
 		{
 			throw new Error("abstract Class DB.Connector");
 		},
-		loadChildren:function(detached,childClass,obj)
-		{
-			throw new Error("abstract Class DB.Connector");
-		},
 		saveFriends:function(detached,obj,relationName)
 		{
 			throw new Error("abstract Class DB.Connector");
 		},
-		loadFriends:function(detached,friendClass,obj)
+		destroy:function()
 		{
 			throw new Error("abstract Class DB.Connector");
 		},
-		destroy:function()
+		
+		loadParent:function(obj,relationName)
+		{
+			var relation=obj.relations[relationName];
+			var parentClass=rel.relatedClass;
+			var fieldName=relation.fieldName;
+			return this.load(parentClass,{ID:obj.getValueOf(fieldName)}).then(function(result)
+			{
+				var parent=result[0];
+				parent.addChild(obj);
+				this.complete(parent);
+			});
+		},
+		loadChildren:function(obj,relationName,pattern)
+		{
+			var relation=obj.relations[relationName];
+			var childClass=rel.relatedClass;
+			var fieldName=relation.fieldName;
+			return this.load(parentClass,{ID:obj.getValueOf(fieldName)}).then(function(children)
+			{
+				obj.addChildren(children)
+				this.complete(children);
+			});
+		},
+		loadFriends:function(obj,relationName,pattern)
 		{
 			throw new Error("abstract Class DB.Connector");
 		}
