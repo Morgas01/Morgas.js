@@ -64,7 +64,7 @@
 	{
 		return function()
 		{
-			fn.apply(scope,arguments);
+			return fn.apply(scope,arguments);
 		}
 	};
 	µ.rescope.all=function(keys,scope)
@@ -243,7 +243,6 @@
 			if(arguments[0]!==_EXTEND)
 			{
 				this.init.apply(this,arguments);
-				delete this.init;
 				if(this instanceof LISTENERS)
 					this.setState(".created");
 			}
@@ -626,12 +625,12 @@
 	 * 
 	 * To create a new patch do sth. like this
 	 * 
-	 * var myPatch=itm.Class(itm.patch,
+	 * var myPatch=µ.Class(µ.patch,
 	 * {
 	 * 		patchID:"myPatchID",
 	 * 		patch:function(param,noListeners)
 	 * 		{
-	 * 			this.superPatch(itm.patch);//call super.patch // in case of itm.Patch its not necessary 
+	 * 			this.superPatch(µ.patch);//call super.patch // in case of µ.Patch its not necessary 
 	 * 			//your constructor after instance is created
 	 * 		}
 	 * }
@@ -641,7 +640,7 @@
 	 * 
 	 * If you want to override the init function do it like this:
 	 * 
-	 * var myPatch=itm.Class(mySuperPatch,
+	 * var myPatch=µ.Class(mySuperPatch,
 	 * {
 	 * 		patchID:"myPatchID",
 	 * 		init:function(instance,param)
