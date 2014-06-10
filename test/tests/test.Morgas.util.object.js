@@ -77,15 +77,15 @@
 		ok(SC.eq(pattern.func,pattern.func),"function 1");
 		ok(!SC.eq(function(){},pattern.func),"function 2");
 		ok(SC.eq(pattern.arr,pattern.arr),"array 1");
-		ok(SC.eq([1,"4",1,4,2,1,3,5,6,2,3,7],pattern.arr),"array 2");
-		ok(!SC.eq([1,4,1,4,2,1,3,5,6,2,3,7],pattern.arr),"array 3");
+		ok(!SC.eq([1,4,1,4,2,1,3,5,6,2,3,7],pattern.arr),"array 2");
+		ok(SC.eq(7,pattern.arr),"array 3");
 		ok(SC.eq({
 			string:"string",
 			regExp:"regExp",
 			num:4,
 			func:pattern.func,
 			obj:{recrusive:true},
-			arr:[1,"4",1,4,2,1,3,5,6,2,3,7],
+			arr:3,
 			anything:"more will be ignored",
 		},pattern),"obj");
 	});
