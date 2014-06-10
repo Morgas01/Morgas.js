@@ -201,23 +201,30 @@
 	 * Matches {obj} against {pattern}.
 	 * Returns: Boolean
 	 *
-	 * Matches strictly (===) exept for null and RegExp.
-	 * While null value is weakly matched (==) RegExp try to 
-	 * strictly match an then returns .test()
+	 * Matches strictly (===) and RegExp, Array, and Object.
+	 * 
+	 * RegExp: try to match strictly match and
+	 * then return pattern.test(obj)
 	 *
-	 * Match is performed recursively.
+	 * Array: try to match strictly match and
+	 * then return pattern.indexOf(obj)!==-1
+	 *
+	 * Object: recurse.
 	 *
 	 */
 	that.equals=function(obj,pattern)
 	{
-		if(obj==null)
-			return false;
 		if(obj===pattern)
 			return true;
+		if(!obj)
+			return false;
 		if(pattern instanceof RegExp)
 			return pattern.test(obj);
-		if(typeof pattern=="object")
+		if(typeof pattern==="object")
 		{
+			if(typeof obj!=="object"&&Array.isArray(pattern))
+				return pattern.indexOf(obj)!==-1;
+
 			for(var i in pattern)
 			{
 				if(!that.equals(obj[i],pattern[i]))
