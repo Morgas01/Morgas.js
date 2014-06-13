@@ -63,4 +63,26 @@
 			this.complete()
 		})
 	});
+	
+	asyncTest("when all",function()
+	{
+		new DET([function()
+		{
+			this.complete("Hello")
+		},function()
+		{
+			this.complete("Detached")
+		},function()
+		{
+			this.complete("World")
+		},function()
+		{
+			this.complete("!")
+		}])
+		.complete(function(){
+			strictEqual("Hello Detached World !",Array.prototype.join.call(arguments," "));
+			start();
+			this.complete();
+		})
+	});
 })(Morgas,Morgas.getModule);
