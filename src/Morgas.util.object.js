@@ -59,11 +59,33 @@
 		},
 		getIndex:function()
 		{
-			return index;
+			return this.index;
 		},
 		hasNext:function()
 		{
-			return this.keys!=null ? this.keys.length>0 : (this.backward ? this.index>=0 : this.index<this.source.length);
+			if(this.keys!=null)
+			{
+				return this.keys.length>0;
+			}
+			else
+			{
+				if(this.index===undefined&&this.source.length>0)
+				{
+					return true;
+				}
+				else if (this.backward&&this.index>=0)
+				{
+					return true
+				}
+				else if(this.index<this.source.length)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
 		},
 		next:function()
 		{
@@ -73,7 +95,14 @@
 			}
 			else
 			{
-				this.index+=(this.backward ? -1 : 1);
+				if(this.index===undefined)
+				{
+					this.index=(this.backward ? this.source.length-1 : 0);
+				}
+				else
+				{
+					this.index+=(this.backward ? -1 : 1);
+				}
 			}
 			
 			var rtn=this.value();
@@ -87,8 +116,9 @@
 		},
 		destroy:function()
 		{
-			this.source=this.backward=this.keys=this.index=null;
-			this.getIndex=this.next=µ.constantFunctions.ndef();
+			this.source=this.backward=this.keys=null;
+			this.next=µ.constantFunctions.ndef;
+			this.hasNext=µ.constantFunctions.f;
 		}
 	});
 	/** iterate
@@ -126,63 +156,50 @@
 	 * 
 	 * returns: µ.Detached
 	 */
-	that.iterateAsync=function(any,func,backward,isObject,scope)
+	that.iterateAsync=function(any,func,backward,isObject,scope,chunk)
 	{
 		if(!scope)
 		{
 			scope=window;
 		}
-		return new µ.Detached(function()
+		if(!chunk)
 		{
+			chunk=that.iterateAsync.chunk;
+		}
+		return new DET(function()
+		{
+			var signal=this;
 			var it=new that.Iterator(any,backward,isObject);
 			if(!it.hasNext())
 			{
-				this.complete();
+				signal.complete();
 			}
 			else
 			{
-				setTimeout(function iterateStep()
+				var interval=setInterval(function iterateStep()
 				{
-					func.call(scope,it.next());
-					if(!it.hasNext())
+					try
 					{
-						this.complete();
+						for(var i=0;i<chunk&&it.hasNext();i++)
+						{
+							func.call(scope,it.next(),it.getIndex());
+						}
+						if(!it.hasNext())
+						{
+							signal.complete();
+							clearInterval(interval);
+						}
 					}
-					else
+					catch (e)
 					{
-						setTimeout(iterateStep, 0);
+						signal.error(e);
 					}
 				},0)
 			}
 		});
 	};
-	/** iterateDetached
-	 * As iterate but deferres the call of {func} with µ.Detached.
-	 * May not be called in iterated order.
-	 *
-	 * If a Thenable (typeof rtn.then =="function") is returned 
-	 * the next iteration waits for it to finish.
-	 *
-	 * throw an error to break the iteration.
-	 *
-	 * returns: µ.Detached
-	 */
-	that.iterateDetached=function(any,func,backward,isObject,scope)
-	{
-		var wait=[];
-		that.iterate(any,function(obj,index)
-		{
-			var _scope=this;
-			wait.push(new µ.Detached(function()
-			{
-				var rtn=func.call(_scope,obj,index);
-				if(rtn&&typeof rtn.then =="function")
-					return rtn;
-				this.complete();
-			}));
-		},backward,isObject,scope);
-		return new µ.Detached(wait);
-	};
+	that.iterateAsync.chunk=1E4;
+	
 	/** find
 	 * Iterates over {source}.
 	 * Returns an Array of {pattern} matching values 
@@ -201,10 +218,14 @@
 	 * Matches {obj} against {pattern}.
 	 * Returns: Boolean
 	 *
-	 * Matches strictly (===) and RegExp, Array, and Object.
+	 * Matches strictly (===) and RegExp, function, Array, and Object.
 	 * 
 	 * RegExp: try to match strictly match and
 	 * then return pattern.test(obj)
+	 * 
+	 * function: try to match strictly match and
+	 * then if obj is not a function test it with
+	 * the pattern function and return its result
 	 *
 	 * Array: try to match strictly match and
 	 * then return pattern.indexOf(obj)!==-1
@@ -220,6 +241,13 @@
 			return false;
 		if(pattern instanceof RegExp)
 			return pattern.test(obj);
+		if(typeof pattern==="function")
+		{
+			if(typeof obj==="function")
+				return false;
+			else
+				return pattern(obj);
+		}
 		if(typeof pattern==="object")
 		{
 			if(typeof obj!=="object"&&Array.isArray(pattern))
