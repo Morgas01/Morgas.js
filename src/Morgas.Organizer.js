@@ -53,10 +53,73 @@
 				}
 			},false,false,this);
 		},
+		remove:function(value)
+		{
+			var valuesIndex=this.values.indexOf(value);
+			if(valuesIndex!==-1)
+			{
+				for(var i in this.filters)
+				{
+					var index=this.filters[i].values.indexOf(valuesIndex);
+					if(index!==-1)
+					{
+						this.filters[i].values.splice(index,1);
+					}
+				}
+				for(var i in this.maps)
+				{
+					var map=this.maps[i].values;
+					var keys=Object.keys(map);
+					for(var i=0;i<keys.length;i++)
+					{
+						if(map[keys[i]]===value)
+						{
+							delete map[keys[i]];
+							break;
+						}
+					}
+				}
+				for(var i in this.groups)
+				{
+					var group=this.groups[i].values;
+					var keys=Object.keys(group);
+					for(var i=0;i<keys.length;i++)
+					{
+						var index=group[keys[i]].indexOf(valuesIndex)
+						if(index!==-1)
+						{
+							group[keys[i]].splice(index,1);
+							break;
+						}
+					}
+				}
+				delete this.values[valuesIndex];
+			}
+		},
+		_removeType:function(type,name)
+		{
+			delete this[type][name];
+		},
+		clear:function()
+		{
+			for(var i in this.filters)
+			{
+				this.filters[i].values.length=0;
+			}
+			for(var i in this.maps)
+			{
+				this.maps[i].values={};
+			}
+			for(var i in this.groups)
+			{
+				this.groups[i].values={};
+			}
+			this.values.length=0;
+		},
 		
 		map:function(mapName,fn)
 		{
-			if(typeof fn=="string")
+			if(typeof fn==="string")
 				fn=ORG._pathWrapper(fn);
 			this.maps[mapName]={fn:fn,values:{}};
 			for(var i=0;i<this.values.length;i++)
@@ -102,6 +165,10 @@
 				return Object.keys(this.maps[mapName].values);
 			return [];
 		},
+		removeMap:function(mapName)
+		{
+			this._removeType("maps",mapName);
+		},
 		
 		filter:function(filterName,filterFn,sortFn)
 		{
@@ -114,7 +181,7 @@
 					filterFn=ORG.filterPattern(filterFn);
 					break;
 			}
-			if(typeof sortFn=="string")
+			if(typeof sortFn==="string")
 				sortFn=ORG.pathSort(sortFn);
 			this.filters[filterName]={filterFn:filterFn,sortFn:sortFn,values:[]};
 			for(var i=0;i<this.values.length;i++)
@@ -166,10 +233,14 @@
 				return this.filters[filterName].values.length;
 			return 0;
 		},
+		removeFilter:function(filterName)
+		{
+			this._removeType("filters",filterName);
+		},
 		
 		group:function(groupName,groupFn)
 		{
-			if(typeof groupFn=="string")
+			if(typeof groupFn==="string")
 				groupFn=ORG._pathWrapper(groupFn);
 			this.groups[groupName]={values:{},fn:groupFn};
 			if(groupFn)
@@ -229,22 +300,11 @@
 				return Object.keys(this.groups[groupName].values);
 			return [];
 		},
-		clear:function()
+		removeGroup:function(groupName)
 		{
-			for(var i in this.filters)
-			{
-				this.filters[i].values.length=0;
-			}
-			for(var i in this.maps)
-			{
-				this.maps[i].values={};
-			}
-			for(var i in this.groups)
-			{
-				this.groups[i].values={};
-			}
-			this.values.length=0;
+			this._removeType("groups",groupName);
 		},
+		
 		destroy:function()
 		{
 			this.values=this.filters=this.maps=this.groups=null;
@@ -258,25 +318,21 @@
 			return SC.path(obj,path);
 		}
 	};
-	//ASC
-	ORG.sort=function(obj,obj2)
+	ORG.sort=function(obj,obj2,DESC)
 	{
-		return (obj>obj2)?1:(obj<obj2)?-1:0;
+		return (DESC?-1:1)*(obj>obj2)?1:(obj<obj2)?-1:0;
 	};
-	//ASC
-	ORG.pathSort=function(path)
+	ORG.pathSort=function(path,DESC)
 	{
+		path=path.split(",");
 		return function(obj,obj2)
 		{
-			return ORG.sort(SC.path(obj,path),SC.path(obj2,path));
-		}
-	};
-	//DESC
-	ORG.pathSort2=function(path)
-	{
-		return function(obj,obj2)
-		{
-			return ORG.sort(SC.path(obj2,path),SC.path(obj,path));
+			var rtn=0;
+			for(var i=0;i<path.length&&rtn===0;i++)
+			{
+				rtn=ORG.sort(SC.path(obj,path[i]),SC.path(obj2,path[i]),DESC)
+			}
+			return rtn;
 		}
 	};
 	ORG.filterPattern=function(pattern)
@@ -304,7 +360,7 @@
 		var jump=Math.ceil(length/2);
 		var i=jump;
 		var lastJump=null;
-		while(jump/*!=0||NaN||null*/&&i>0&&i<=length&&!(jump==1&&lastJump==-1))
+		while(jump/*!=0||NaN||null*/&&i>0&&i<=length&&!(jump===1&&lastJump===-1))
 		{
 			lastJump=jump;
 			var compare=order?source[order[i-1]] : source[i-1];

@@ -21,4 +21,11 @@
 	
 	WR(srcDir+"Morgas.NodePatch.js");
 	WR(testDir+"test.Morgas.NodePatch.js");
+	
+	
+	WR(srcDir+"DB/Morgas.DB.js");
+	WR(testDir+"test.Morgas.DB.js");
+
+	WR(srcDir+"DB/Morgas.DB.ObjectConnector_organizer.js");
+	WR(testDir+"test.Morgas.DB.ObjectConnector.js");
 })()

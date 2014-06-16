@@ -12,12 +12,34 @@
 			this.complete();
 		});
 	});
-	
+
 	asyncTest("on complete",function()
 	{
 		new DET(function(){this.complete("some arg");}).complete(function(arg)
 		{
 			strictEqual(arg,"some arg");
+			start();
+			this.complete();
+		});
+	});
+	
+	asyncTest("chain",function()
+	{
+		new DET(function()
+		{
+			this.complete("this");
+		})
+		.complete(function(arg)
+		{
+			return new DET(function(){this.complete(arg+" is")})
+			.complete(function(arg)
+			{
+				this.complete(arg+" chaining");
+			})
+		})
+		.complete(function(arg)
+		{
+			strictEqual(arg,"this is chaining");
 			start();
 			this.complete();
 		});

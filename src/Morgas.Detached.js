@@ -16,7 +16,11 @@
 		return function(resolve,reject)
 		{
 			try {
-				return fn.apply({complete:resolve,error:reject},args)
+				var p=fn.apply({complete:resolve,error:reject},args);
+				if(p&&typeof p.then==="function")
+				{
+					p.then(resolve,reject);
+				}
 			} catch (e) {
 				SC.debug(e,1);
 				reject(e);
@@ -39,6 +43,7 @@
 			this.onError=[];
 			this.onComplete=[];
 			this.status=0;
+			this.args=undefined;
 			
 			if(this.fn.length>0&&!wait)
 				this._start();
@@ -55,7 +60,8 @@
 			var _self=this;
 			Promise.all(this.fn).then(function(args)
 			{
-				this.status=1;
+				_self.args=args;
+				_self.status=1;
 				while(_self.onComplete.length>0)
 				{
 					_self.onComplete.shift()._start(args);
@@ -64,6 +70,7 @@
 			},
 			function()
 			{
+				this.args=arguments;
 				_self.status=-1;
 				while(_self.onError.length>0)
 				{
@@ -115,6 +122,20 @@
 	});
 	DET.WAIT={};
 	SMOD("Detached",DET);
+	DET.complete=function()
+	{
+		var d=new DET(DET.WAIT);
+		d.status=1;
+		d.args=arguments;
+		return d;
+	};
+	DET.error=function()
+	{
+		var d=new DET(DET.WAIT);
+		d.status=-1;
+		d.args=arguments;
+		return d;
+	};
 	DET.detache=function(fn,scope)
 	{
 		scope=scope||window

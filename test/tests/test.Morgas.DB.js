@@ -4,8 +4,12 @@
 	REL=GMOD("DBRel");
 	var testObject=µ.Class(DBObj,{
 		objectType:"testObject",
-		init:function()
+		init:function(param)
 		{
+			param=param||{};
+			
+			this.superInit(DBObj,param);
+			
 			this.addField("testInt",	FIELD.TYPES.INT		,param.testInt		);
 			this.addField("testDouble",	FIELD.TYPES.DOUBLE	,param.testDouble	);
 			this.addField("testBool",	FIELD.TYPES.BOOL	,param.testBool		);
@@ -14,7 +18,7 @@
 //			this.addField("testBlob",	FIELD.TYPES.BLOB	,param.testBlob		);
 			this.addField("testDate",	FIELD.TYPES.DATE	,param.testDate 	);
 
-			this.addField("testParent_ID",FIELD.TYPES.INT,param.testInt);
+			this.addField("testParent_ID",FIELD.TYPES.INT);
 
 			this.addRelation("parentRel",	testObject,	REL.TYPES.PARENT,	"childRel",	"testParent_ID");
 			this.addRelation("childRel",	testObject,	REL.TYPES.CHILD,	"parentRel"	);
@@ -42,59 +46,107 @@
 		
 		obj1.addChild("childRel",obj2);
 		obj2.addFriend("friendRel",obj3);
-		
-		var p=dbConn.save(obj1)
-		.then(function()
+		var p;
+		asyncTest("save single",function()
 		{
-			return dbConn.save([obj2,obj3]);
-		},µ.debug)
-		.then(function()
+			p=dbConn.save(obj1);
+			p.then(function()
+			{
+				ok(true);
+				start();
+			},µ.debug);
+		});
+		asyncTest("save multiple",function()
 		{
-			return dbConn.saveFriends(obj2,"friendRel");
-		},µ.debug)
-		.then(function()
+			p=p.then(function()
+			{
+				obj1.setValueOf("testDouble",1.2);
+				return dbConn.save([obj1,obj2,obj3]);
+			},µ.debug);
+			p.then(function()
+			{
+				ok(true);
+				start();
+			},µ.debug);
+		});
+		asyncTest("save friends",function()
 		{
-			return dbConn.load(testObject,{testInt:10}).then(function(result)
+			p=p.then(function()
 			{
-				deepEqual(obj1.toJSON(),result[0].toJSON(),"load single via int");
-			},µ.debug)
-		},µ.debug)
-		.then(function()
+				return dbConn.saveFriends(obj2,"friendRel");
+			},µ.debug);
+			p.then(function()
+			{
+				ok(true);
+				start();
+			},µ.debug);
+		});
+		asyncTest("load single via int",function()
 		{
-			return dbConn.load(testObject,{testString:"testString"}).then(function(result)
+			p=p.then(function()
 			{
-				deepEqual(obj1.toJSON(),result[0].toJSON(),"load multiple via string (1)");
-				deepEqual(obj2.toJSON(),result[1].toJSON(),"load multiple via string (2)");
-			},µ.debug)
-		},µ.debug)
-		.then(function()
+				return dbConn.load(testObject,{testInt:10}).then(function(result)
+				{
+					deepEqual(obj1.toJSON(),result[0].toJSON(),"load single via int");
+					this.complete();
+				},µ.debug)
+			},µ.debug);
+			p.then(function()
+			{
+				ok(true);
+				start();
+			},µ.debug);
+		});
+		asyncTest("load multiple via string",function()
 		{
-			var o1,o2,o3
-			return dbConn.load(testObject,{testString:"testString2"}).then(function(result)
+			p=p.then(function()
 			{
-				o3=result[0];
-				deepEqual(obj3.toJSON(),o3.toJSON(),"load single via string");
-				return dbConn.loadFriends(o3,"friendRel",{testInt:20});
-			},µ.debug)
-			.then(function(result)
+				return dbConn.load(testObject,{testString:"testString"}).then(function(result)
+				{
+					deepEqual(obj1.toJSON(),result[0].toJSON(),"load multiple via string (1)");
+					deepEqual(obj2.toJSON(),result[1].toJSON(),"load multiple via string (2)");
+					this.complete();
+				},µ.debug)
+			},µ.debug);
+			p.then(function()
 			{
-				o2=result[0];
-				deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
-				return dbConn.loadParent(o2,"parentRel");
-			},µ.debug)
-			.then(function(result)
+				ok(true);
+				start();
+			},µ.debug);
+		});
+		asyncTest("load relations",function()
+		{
+			p=p.then(function()
 			{
-				o1=result[0];
-				deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
-			},µ.debug)
-		},µ.debug);
+				var o1,o2,o3
+				return dbConn.load(testObject,{testString:"testString2"}).then(function(result)
+				{
+					o3=result[0];
+					deepEqual(obj3.toJSON(),o3.toJSON(),"load single via string");
+					return dbConn.loadFriends(o3,"friendRel",{testInt:20});
+				},µ.debug)
+				.then(function(result)
+				{
+					o2=result[0];
+					deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
+					return dbConn.loadParent(o2,"parentRel");
+				},µ.debug)
+				.then(function(result)
+				{
+					o1=result;
+					deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
+					this.complete();
+				},µ.debug)
+			},µ.debug);
+			p.then(function()
+			{
+				ok(true);
+				start();
+			},µ.debug);
+		});
 		if(extra)
 		{
 			p=p.then(extra,µ.debug)
 		}
-		p.then(function()
-		{
-			start();
-		},µ.debug)
 	};
 })(Morgas,Morgas.getModule);

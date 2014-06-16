@@ -9,7 +9,7 @@
 
 	var SC=GMOD("shortcut")({
 		debug:"debug",
-		det:"Detache"
+		det:"Detached"
 	});
 	
 	var DB=µ.DB=µ.DB||{};
@@ -20,76 +20,102 @@
 	{
 		init:function()
 		{
-			SC.det.detacheAll(this,["save","load","delete","saveChildren","saveFriends","destroy"]);
+			SC.det.detacheAll(this,["save","load","delete","destroy"]);
 		},
 		
-		save:function(detached,objs)
+		save:function(signal,objs)
 		{
 			/*
-			objs=[].concat(objs)
-			for(var i=0;i<objs.length;i++)
-			{
-			}
+			objs=[].concat(objs);
+			var sortedObjs=DBC.sortObjs(objs);
 			*/
 			throw new Error("abstract Class DB.Connector");
 		},
-		load:function(detached,objClass,pattern)
+		load:function(signal,objClass,pattern)
 		{
 			throw new Error("abstract Class DB.Connector");
 		},
-		"delete":function(detached,objClass,toDelete)
+		"delete":function(signal,objClass,toDelete)
 		{
 			/*
-			//make toDelete a Pattern from Number, DB.Object or Array
-			if(typeof toDelete=="number" || toDelete instanceof DB.Object)
-			{
-				toDelete=[toDelete];
-			}
-			if(toDelete instanceof Array)
-			{
-				for(var i=0;i<toDelete.length;i++)
-				{
-					if(toDelete[i] instanceof DB.Object)
-					{
-						toDelete[i]=toDelete[i].getID();
-					}
-				}
-				toDelete={ID:toDelete};
-			}
+			toDelete=DBC.getDeletePattern(toDelete);
 			*/
-			throw new Error("abstract Class DB.Connector");
-		},
-		saveChildren:function(detached,obj,relationName)
-		{
-			throw new Error("abstract Class DB.Connector");
-		},
-		saveFriends:function(detached,obj,relationName)
-		{
 			throw new Error("abstract Class DB.Connector");
 		},
 		destroy:function()
 		{
 			throw new Error("abstract Class DB.Connector");
 		},
+		saveChildren:function(obj,relationName)
+		{
+			return this.save(obj.getChildren(relationName));
+		},
+		getFriendTableName:function(objType,relationName,friendType,friendRelationName)
+		{
+			return [objType,relationName,friendType,friendRelationName].sort().join("_")
+		},
+		saveFriends:function(obj,relationName)
+		{	
+			var rel=obj.relations[relationName],
+				friends=obj.friends[relationName];
+			if(!friends)
+			{
+				SC.debug("no friends in relation "+relationName+" found",2);
+				return new SC.det.complete(false);
+			}
+			var fRel=friends[0].relations[rel.targetRelationName],
+				id=obj.getID();
+			if(id==null)
+			{
+				SC.debug("friend id is null",2);
+				return new SC.det.complete(false);
+			}
+			var fids=[];
+			for(var i=0;i<friends.length;i++)
+			{
+				var fid=friends[i].getID();
+				if(fid!=null)
+					fids.push(fid);
+			}
+			if(fids.length===0)
+			{
+				SC.debug("no friend with friend id found");
+				return new SC.det.complete(false);
+			}
+			var tableName=this.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
+				idName=obj.objectType+"_ID",
+				fidName=friends[0].objectType+"_ID",
+				toSave=[];
+			if (rel.relatedClass===fRel.relatedClass)
+			{
+				fidName+=2;
+			}
+			for(var i=0;i<fids.length;i++)
+			{
+				toSave.push(new DBFRIEND(tableName,idName,id,fidName,fids[i]));
+			}
+			return this.save(toSave);
+		},
 		
 		loadParent:function(obj,relationName)
 		{
-			var relation=obj.relations[relationName];
-			var parentClass=rel.relatedClass;
-			var fieldName=relation.fieldName;
+			var relation=obj.relations[relationName],
+				parentClass=relation.relatedClass,
+				fieldName=relation.fieldName;
 			return this.load(parentClass,{ID:obj.getValueOf(fieldName)}).then(function(result)
 			{
 				var parent=result[0];
-				parent.addChild(obj);
+				parent.addChild(relationName,obj);
 				this.complete(parent);
 			});
 		},
 		loadChildren:function(obj,relationName,pattern)
 		{
-			var relation=obj.relations[relationName];
-			var childClass=rel.relatedClass;
-			var fieldName=relation.fieldName;
-			return this.load(parentClass,{ID:obj.getValueOf(fieldName)}).then(function(children)
+			var relation=obj.relations[relationName],
+				childClass=rel.relatedClass,
+				fieldName=relation.fieldName;
+			pattern[fieldName]=this.getID();
+			return this.load(childClass,pattern).then(function(children)
 			{
 				obj.addChildren(children)
 				this.complete(children);
@@ -97,9 +123,91 @@
 		},
 		loadFriends:function(obj,relationName,pattern)
 		{
-			throw new Error("abstract Class DB.Connector");
+			var _self=this,
+				rel=obj.relations[relationName],
+				friendClass=rel.relatedClass,
+				fRel=new friendClass().relations[rel.targetRelationName],
+				id=obj.objectType+"_ID",
+				fid=friendClass.prototype.objectType+"_ID",
+				type=this.getFriendTableName(obj.objectType,relationName,friendClass.prototype.objectType,rel.targetRelationName),
+				fPattern={};
+			
+			if (rel.relatedClass===fRel.relatedClass)
+			{
+				fid+=2;
+			}
+			fPattern[id]=obj.getID();
+			var friendship=DBFRIEND.Generator(type,id,fid);
+			
+			var p=this.load(friendship,fPattern)
+			
+			if (rel.relatedClass===fRel.relatedClass)
+			{
+				p=p.then(function(results)
+				{
+					var signal=this;
+					fPattern[fid]=fPattern[id];
+					delete fPattern[id];
+					_self.load(friendship,fPattern).then(function(results2)
+					{
+						for(var i=0;i<results2.length;i++)
+						{
+							var t=results2[i].fields[id].value;
+							results2[i].fields[id].value=results2[i].fields[fid].value;
+							results2[i].fields[fid].value=t;
+						}
+						signal.complete(results.concat(results2));
+					},SC.debug);
+				},SC.debug)
+			}
+			return p.then(function(results)
+			{
+				pattern.ID=results.map(function(val)
+				{
+					return val.fields[fid].value;
+				});
+				return _self.load(friendClass,pattern);
+			},SC.debug);
 		}
 	});
+
+	DBC.sortObjs=function(objs)
+	{
+		var rtn={friend:{},fresh:{},preserved:{}};
+		for(var i=0;i<objs.length;i++)
+		{
+			var obj=objs[i],
+			type=(obj instanceof DBFRIEND ? "friend" :(obj.getID()===undefined ? "fresh" : "preserved")),
+			objType=obj.objectType;
+			
+			if(rtn[type][objType]===undefined)
+			{
+				rtn[type][objType]=[];
+			}
+			rtn[type][objType].push(obj);
+		}
+		return rtn;
+	}
+	//make toDelete a Pattern from Number, DB.Object or Array
+	DBC.getDeletePattern=function(toDelete)
+	{
+		if(typeof toDelete=="number" || toDelete instanceof DB.Object)
+		{
+			toDelete=[toDelete];
+		}
+		if(toDelete instanceof Array)
+		{
+			for(var i=0;i<toDelete.length;i++)
+			{
+				if(toDelete[i] instanceof DB.Object)
+				{
+					toDelete[i]=toDelete[i].getID();
+				}
+			}
+			toDelete={ID:toDelete};
+		}
+		return toDelete;
+	};
 	SMOD("DBConn",DBC);
 	
 	DBOBJECT=DB.Object=µ.Class(
@@ -201,51 +309,56 @@
 		{
 			return this._get(this.friends,relationName);
 		},
-		//TODO friends
-		toJSON:function(children,friends)
+		toJSON:function()
 		{
-			var rtn={fields:{}};
+			var rtn={};
 			for(var f in this.fields)
 			{
-				rtn.fields[f]=this.getValueOf(f);
-			}
-			if(children>0)
-			{
-				rtn.children={};
-				for(var c in this.children)
-				{
-					var rtnc=rtn.children[c]=[];
-					var children=this.children[c];
-					for(var i=0;i<children.length;i++)
-					{
-						rtnc.push(children[i].toJSON(children-1,friends));
-					}
-				}
-			}
-			if(friends>0)
-			{
-				rtn.friends={};
-				for(var f in this.friends)
-				{
-					var rtnf=rtn.friends[f]=[];
-					var friends=this.friends[f];
-					for(var i=0;i<friends.length;i++)
-					{
-						rtnf.push(friends[i].toJSON(children,friends-1));
-					}
-				}
+				rtn[f]=this.fields[f].toJSON(f);
 			}
 			return rtn;
+		},
+		fromJSON:function(jsonObject)
+		{
+			for(var i in this.fields)
+			{
+				if(jsonObject[i]!==undefined)
+				{
+					this.fields[i].fromJSON(jsonObject[i]);
+				}
+			}
 		}
 	});
 	SMOD("DBObj",DBOBJECT);
+	
+	var DBFRIEND=DB.Firendship=µ.Class(
+	{
+		init:function(type,fieldName1,value1,fieldName2,value2)
+		{
+			this.objectType=type;
+			this.fields={};
+			this.fields[fieldName1]=new FIELD(FIELD.TYPES.INT,value1);
+			this.fields[fieldName2]=new FIELD(FIELD.TYPES.INT,value2);
+		},
+		toJSON:DBOBJECT.prototype.toJSON,
+		fromJSON:DBOBJECT.prototype.fromJSON
+	});
+	DBFRIEND.Generator=function(type,fieldname1,fieldname2)
+	{
+		return µ.Class(DBFRIEND,
+		{
+			objectType:type,
+			init:function(){
+				this.superInit(DBFRIEND,type,fieldname1,null,fieldname2,null);
+			}
+		});
+	};
+	SMOD("DBFriend",DBFRIEND);
 	
 	REL=DB.Relation=µ.Class(
 	{
 		init:function(relatedClass,type,targetRelationName,fieldName)
 		{
-			//this.name ?
-			type=type.toUpperCase();
 			if(fieldName==null)
 			{
 				if(type==REL.TYPES.PARENT)
@@ -270,9 +383,8 @@
 	{
 		init:function(type,value,options)
 		{
-			//this.name ?
 			this.type=type;
-		  /*this.value=*/this.fromDBValue(value);
+			this.value=value;
 			this.options=options||{};	// depends on connector
 		},
 		setValue:function(val)
@@ -286,47 +398,49 @@
 			{
 				case FIELD.TYPES.DATE:
 					var date=this.getValue();
-					if(date==null)
-						return null;
-					return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds();
+					if(date instanceof Date)
+						return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds();
 				default:
 					return this.getValue();
 			}
-			return null;
 		},
-		toDBValue:function()
+		fromJSON:function(jsonObj)
 		{
 			switch(this.type)
 			{
 				case FIELD.TYPES.DATE:
-					return this.toJSON();
-				case FIELD.TYPES.JSON:
-					return JSON.stringify(this.getValue());
+					this.value=new Date(Date.UTC.apply(Date,jsonObj.split(",")))
+					break;
 				default:
-					return this.getValue();
+					this.value=jsonObj;
 			}
-			return null;
 		},
-		fromDBValue:function(val)
+		toString:function()
 		{
-			if(typeof val=="string")
+			return JSON.stringify(this);
+		},
+		fromString:function(val)
+		{
+			switch(this.type)
 			{
-				switch(this.type)
-				{
-					case FIELD.TYPES.DATE:
-						this.value=new Date(Date.UTC.apply(Date,val.split(",")))
-						break;
-					case FIELD.TYPES.JSON:
-						this.value=JSON.parse(val);
-						break;
-					default:
-						this.value=val;
-				}
+				case FIELD.TYPES.BOOL:
+					this.value=!!(~~val);
+					break;
+				case FIELD.TYPES.INT:
+					this.value=~~val;
+					break;
+				case FIELD.TYPES.DOUBLE:
+					this.value=1*val;
+					break;
+				case FIELD.TYPES.DATE:
+					this.fromJSON(JSON.parse(val));
+					break;
+				case FIELD.TYPES.STRING:
+				case FIELD.TYPES.JSON:
+				default:
+					this.value=JSON.parse(val);
+					break;
 			}
-			else if(val!==undefined)
-				this.value=val;
-			else
-				this.value=null;
 		}
 	});
 	FIELD.TYPES={
@@ -335,8 +449,8 @@
 		"DOUBLE"	:2,
 		"STRING"	:3,
 		"DATE"		:4,
-		"BLOB"		:5,
-		"JSON"		:6
+		"JSON"		:5,
+		"BLOB"		:6
 	};
 	SMOD("DBField",FIELD);
 })(Morgas,Morgas.setModule,Morgas.getModule);
