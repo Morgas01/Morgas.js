@@ -52,6 +52,7 @@
 					this.groups[groupName].values[groupKey].push(index);
 				}
 			},false,false,this);
+			return this;
 		},
 		remove:function(value)
 		{
@@ -95,6 +96,7 @@
 				}
 				delete this.values[valuesIndex];
 			}
+			return this;
 		},
 		_removeType:function(type,name)
 		{
@@ -115,6 +117,7 @@
 				this.groups[i].values={};
 			}
 			this.values.length=0;
+			return this;
 		},
 		
 		map:function(mapName,fn)
@@ -168,6 +171,7 @@
 		removeMap:function(mapName)
 		{
 			this._removeType("maps",mapName);
+			return this;
 		},
 		
 		filter:function(filterName,filterFn,sortFn)
@@ -236,6 +240,7 @@
 		removeFilter:function(filterName)
 		{
 			this._removeType("filters",filterName);
+			return this;
 		},
 		
 		group:function(groupName,groupFn)
@@ -303,6 +308,7 @@
 		removeGroup:function(groupName)
 		{
 			this._removeType("groups",groupName);
+			return this;
 		},
 		
 		destroy:function()
