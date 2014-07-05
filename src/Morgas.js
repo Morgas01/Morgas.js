@@ -397,17 +397,17 @@
 			if(!this.disabled)
 			{
 				this.fireIndex=0;
-				var abort=false;
-				while(!abort&&this.fireIndex<this.listeners.length)
+				var run=true;
+				while(run&&this.fireIndex<this.listeners.length)
 				{
-					abort=false===this.listeners[this.fireIndex++].call(scope,event);
+					run=false!==this.listeners[this.fireIndex++].call(scope,event);
 				}
 				this.fireIndex=null;
 				while(this.listenOnce.length>0)
 				{
 					this.listenOnce.shift().call(scope,event);
 				}
-				return abort;
+				return run;
 			}
 			return null;
 		},
