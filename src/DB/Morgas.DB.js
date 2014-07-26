@@ -327,6 +327,10 @@
 					this.fields[i].fromJSON(jsonObject[i]);
 				}
 			}
+		},
+		toString:function()
+		{
+			return JSON.stringifythis);
 		}
 	});
 	SMOD("DBObj",DBOBJECT);

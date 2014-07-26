@@ -396,13 +396,21 @@
 			event.source=scope;
 			if(!this.disabled)
 			{
+				var oldFireIndex=this.fireIndex;
 				this.fireIndex=0;
 				var run=true;
 				while(run&&this.fireIndex<this.listeners.length)
 				{
 					run=false!==this.listeners[this.fireIndex++].call(scope,event);
 				}
-				this.fireIndex=null;
+				if(oldFireIndex)
+				{
+					this.fireIndex=oldFireIndex;
+				}
+				else
+				{
+					this.fireIndex=null;
+				}
 				while(this.listenOnce.length>0)
 				{
 					this.listenOnce.shift().call(scope,event);
