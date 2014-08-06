@@ -330,7 +330,7 @@
 		},
 		toString:function()
 		{
-			return JSON.stringifythis);
+			return JSON.stringify(this);
 		}
 	});
 	SMOD("DBObj",DBOBJECT);

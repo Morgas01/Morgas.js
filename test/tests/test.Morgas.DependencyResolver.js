@@ -1,0 +1,25 @@
+(function(){
+	module("DependencyResolver");
+	var dr=new (µ.getModule("DepRes"))({
+		a:true,
+		aa:"a",
+		ab:["a","b"],
+		ba:["b","a"]
+	});
+	test("simple",function()
+	{
+		deepEqual(dr.resolve("aa"),["a","aa"],"single");
+		deepEqual(dr.resolve(["aa","ab","ba"]),["a","aa","b","ab","ba"],"multiple");
+	});
+
+	test("added",function()
+	{
+		dr.addConfig({
+			b:true,
+			cc:["ab","c"],
+			abcc:["a","b","cc"],
+		})
+		deepEqual(dr.resolve("abcc"),["a","b","ab","c","cc","abcc"]);
+	});
+	
+})();

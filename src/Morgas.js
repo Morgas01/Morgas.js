@@ -160,6 +160,7 @@
 				break;
 			case 2:
 				console.info(msg);
+				break;
 			case 3:
 			default:
 				console.log(msg);
