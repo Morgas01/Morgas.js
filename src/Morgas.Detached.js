@@ -141,7 +141,7 @@
 		scope=scope||window
 		return function()
 		{
-			var args=[].slice.call(arguments,0);
+			var args=Array.slice.call(arguments,0);
 			return new DET(function()
 			{
 				args.unshift(this);

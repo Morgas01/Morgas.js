@@ -122,6 +122,7 @@
 		ocon=ocon||OCON.prototype;
 		ocon.dbs=JSON.Parse(localStorage.getItem(name));
 	};
-	
+
 	SMOD("ObjectConnector",OCON);
+	SMOD("OCon",OCON);
 })(Morgas,Morgas.setModule,Morgas.getModule);

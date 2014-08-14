@@ -124,9 +124,12 @@
 	/** iterate
 	 * Iterates over {any} calling {func} with {scope} in {backward} order.
 	 * {isObject} declares {any} as an Object with a length property.
+	 * 
+	 * returns Array of {func} results
 	 */
 	that.iterate=function(any,func,backward,isObject,scope)
 	{
+		var rtn=[];
 		if(!scope)
 		{
 			scope=window;
@@ -135,7 +138,7 @@
 		{
 			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
-				func.call(scope,any[i],i);
+				rtn.push(func.call(scope,any[i],i));
 			}
 		}
 		else
@@ -147,9 +150,10 @@
 			}
 			for(var i=0;i<k.length;i++)
 			{
-				func.call(scope,any[k[i]],k[i]);
+				rtn.push(func.call(scope,any[k[i]],k[i]));
 			}
 		}
+		return rtn;
 	};
 	/** iterateAsync
 	 * As iterate but puts a timeout between the iteration steps
@@ -299,7 +303,6 @@
 	SMOD("Iterator",that.Iterator);
 	SMOD("iterate",that.iterate);
 	SMOD("iterateAsync",that.iterateAsync);
-	SMOD("iterateDetached",that.iterateDetached);
 	SMOD("find",that.find);
 	SMOD("equals",that.equals);
 	SMOD("uniquify",that.uniquify);

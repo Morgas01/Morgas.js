@@ -18,6 +18,7 @@
 	
 	DBC=DB.Connector=µ.Class(
 	{
+		/* override these */
 		init:function()
 		{
 			SC.det.detacheAll(this,["save","load","delete","destroy"]);
@@ -38,7 +39,7 @@
 		"delete":function(signal,objClass,toDelete)
 		{
 			/*
-			toDelete=DBC.getDeletePattern(toDelete);
+			var toDelete=DBC.getDeletePattern(toDelete);
 			*/
 			throw new Error("abstract Class DB.Connector");
 		},
@@ -46,6 +47,8 @@
 		{
 			throw new Error("abstract Class DB.Connector");
 		},
+		
+		/* these should be same for everyone*/
 		saveChildren:function(obj,relationName)
 		{
 			return this.save(obj.getChildren(relationName));
