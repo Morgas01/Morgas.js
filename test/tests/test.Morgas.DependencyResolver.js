@@ -4,7 +4,7 @@
 		a:true,
 		aa:"a",
 		ab:["a","b"],
-		ba:["b","a"]
+		ba:{deps:["b","a"]}
 	});
 	test("simple",function()
 	{

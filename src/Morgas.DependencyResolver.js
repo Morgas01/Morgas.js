@@ -30,14 +30,20 @@
 			items=[].concat(items);
 			while(list.length>0)
 			{
-				var	resolved=true;
-				if(this.config[list[0]]===undefined)
+				var	resolved=true,
+				conf=this.config[list[0]];
+				if(conf===undefined)
 				{
 					µ.debug("DependencyResolver.resolve: "+list[0]+" is undefined", 2);
 				}
-				else if(this.config[list[0]]!==true)
+				else if(conf!==true&&(typeof conf!=="object"||Array.isArray(conf)||conf.deps!==undefined))
 				{
-					var deps=this.config[list[0]]=[].concat(this.config[list[0]]);
+					var deps=conf;
+					if(typeof deps==="object"&&!Array.isArray(conf))
+					{
+						deps=deps.deps;
+					}
+					var deps=[].concat(deps);
 					for(var i=0;i<deps.length;i++)
 					{
 						var dep=deps[i];
