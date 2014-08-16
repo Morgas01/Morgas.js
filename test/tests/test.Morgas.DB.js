@@ -25,6 +25,7 @@
 			this.addRelation("friendRel",	testObject,	REL.TYPES.FRIEND,	"friendRel"	);
 		}
 	});
+	//TODO reoder assert parameters (1<->2)
 	window.DBTest=function(dbConn,extra)
 	{
 		var obj1=new testObject({
@@ -87,7 +88,7 @@
 			{
 				return dbConn.load(testObject,{testInt:10}).then(function(result)
 				{
-					deepEqual(obj1.toJSON(),result[0].toJSON(),"load single via int");
+					deepEqual(obj1.toJSON(),result[0]&&result[0].toJSON(),"load single via int");
 					this.complete();
 				},µ.debug)
 			},µ.debug);
@@ -103,8 +104,8 @@
 			{
 				return dbConn.load(testObject,{testString:"testString"}).then(function(result)
 				{
-					deepEqual(obj1.toJSON(),result[0].toJSON(),"load multiple via string (1)");
-					deepEqual(obj2.toJSON(),result[1].toJSON(),"load multiple via string (2)");
+					deepEqual(obj1.toJSON(),result[0]&&result[0].toJSON(),"load multiple via string (1)");
+					deepEqual(obj2.toJSON(),result[1]&&result[1].toJSON(),"load multiple via string (2)");
 					this.complete();
 				},µ.debug)
 			},µ.debug);
@@ -144,6 +145,7 @@
 				start();
 			},µ.debug);
 		});
+		//TODO deletion
 		if(extra)
 		{
 			p=p.then(extra,µ.debug)

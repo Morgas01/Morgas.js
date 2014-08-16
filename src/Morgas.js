@@ -47,7 +47,8 @@
 		"nul":function(){return null},
 		"f":function(){return false},
 		"t":function(){return true;},
-		"zero":function(){return 0;}
+		"zero":function(){return 0;},
+		"boolean":function(val){return !!val}
 	};
 	
 	/** bind

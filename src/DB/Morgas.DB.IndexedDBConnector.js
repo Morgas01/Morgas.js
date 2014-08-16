@@ -6,8 +6,7 @@
 	 * DB.Connector for simple Javascript object
 	 *
 	 */
-	var DBC	=GMOD("DBConn"),
-	REL		=GMOD("DBRel"),
+	var DBC=GMOD("DBConn"),
 	SC=GMOD("shortcut")({
 		det:"Detached",
 		unique:"uniquify",
@@ -29,7 +28,7 @@
 		save:function(signal,objs)
 		{
 			objs=[].concat(objs);
-			var sortedObjs=DBC.sortObjs(objs);
+			var sortedObjs=ICON.sortObjs(objs);
 			var classNames=Object.keys(sortedObjs);
 			this._open(classNames).then(function(db)
 			{
@@ -48,27 +47,36 @@
 					};
 					
 					var store = trans.objectStore(objectType);
-					for(var i=0;i<objects.length;i++)
+					SC.it(objects,function(object,i)
 					{
-						var req=store.add(objects[i].toJSON());
+						var obj=object.toJSON(),
+						method="put";
+						if(obj.ID===undefined)
+						{
+							delete obj.ID;
+							method="add";
+						}
+						var req=store[method](obj);
 						req.onerror=function(event){µ.debug(event,0)};
 						req.onsuccess=function(event)
 						{
 							µ.debug(event, 3);
-							objects[i].setID(req.result.ID);
+							object.setID&&object.setID(req.result);//if (!(object instanceof DBFRIEND)) {object.setID(req.result)} 
 						}
-					}
+					});
 				},false,true));
+				db.close();
 				signal.complete(new SC.det(transactions));
 				this.complete();
 			},signal.error);
 		},
 		load:function(signal,objClass,pattern)
 		{
-			this.open().then(function(db)
+			this._open().then(function(db)
 			{
 				if(!db.objectStoreNames.contains(objClass.prototype.objectType))
 				{
+					db.close();
 					signal.complete([]);
 				}
 				else
@@ -78,11 +86,12 @@
 					trans.onerror=function(event)
 					{
 						µ.debug(event,0);
+						db.close();
 						signal.error(event);
 					};
 
-					var store = trans.objectStore(objectType);
-					if(typeof pattern.ID!=="number"|| Array.isArray(pattern.ID))
+					var store = trans.objectStore(objClass.prototype.objectType);
+					if(typeof pattern.ID==="number"|| Array.isArray(pattern.ID))
 					{
 						var reqs=SC.it([].concat(pattern.ID),SC.det.detache(function(rSignal,ID)
 						{
@@ -95,17 +104,19 @@
 							req.onsuccess=function(event)
 							{
 								µ.debug(event, 3);
-								if(SC.eq(req.result))
+								if(SC.eq(req.result,pattern))
 								{
 									var inst=new objClass();
 									inst.fromJSON(req.result);
 									rSignal.complete(inst);
 								}
+								rSignal.complete(undefined);
 							}
 						}));
 						new SC.det(reqs).then(function()
 						{
-							signal.complete(SC.find(arguments,pattern,true));
+							db.close();
+							signal.complete(Array.filter(arguments,µ.constantFunctions.boolean));
 							this.complete();
 						},µ.debug);
 					}
@@ -116,13 +127,14 @@
 						req.onerror=function(event)
 						{
 							µ.debug(event,0);
+							db.close();
 							signal.error(event);
 						}
 						req.onsuccess=function(event)
 						{
 							if(req.result)
 							{
-								if(SC.eq(req.result.value))
+								if(SC.eq(req.result.value,pattern))
 								{
 									var inst=new objClass();
 									inst.fromJSON(req.result.value);
@@ -132,6 +144,7 @@
 							}
 							else
 							{
+								db.close();
 								signal.complete(rtn);
 							}
 						}
@@ -142,13 +155,14 @@
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
-			this.open().then(function(db)
+			this._open().then(function(db)
 			{
 				var trans=db.transaction(objClass.prototype.objectType,"readonly");
 				
 				trans.onerror=function(event)
 				{
 					µ.debug(event,0);
+					db.close();
 					signal.error(event);
 				};
 
@@ -166,13 +180,14 @@
 					req.onerror=function(event)
 					{
 						µ.debug(event,0);
+						db.close();
 						signal.error(event);
 					}
 					req.onsuccess=function(event)
 					{
 						if(req.result)
 						{
-							if(SC.eq(req.result.value))
+							if(SC.eq(req.result.value,toDelete))
 							{
 								ids.push(req.result.key);
 							}
@@ -206,11 +221,15 @@
 				}));
 				new SC.det(reqs).then(function()
 				{
+					db.close();
 					signal.complete(SC.find(arguments,pattern,true));
 					this.complete();
 				},µ.debug);
 				this.complete();
-			},signal.error);
+			},function(event){
+				db.close();
+				signal.error(event,0);
+			});
 		},
 		destroy:function()
 		{
@@ -220,13 +239,15 @@
 		{
 			var _self=this;
 			var req=indexedDB.open(this.name);
-			req.onerror=signal.error;
+			req.onerror=function(event){
+				signal.error(event,0);
+			};
 			req.onsuccess=function()
 			{
 				var toCreate=[],
 				db=req.result,
-				version=req.result.verion;
-				for(var i=0;i<classNames.length;i++)
+				version=req.result.version;
+				for(var i=0;classNames&&i<classNames.length;i++)
 				{
 					if(!db.objectStoreNames.contains(classNames[i]))
 					{
@@ -239,9 +260,10 @@
 				}
 				else
 				{
-					db.close();
 					var req2=indexedDB.open(_self.name,version+1);
-					req2.onerror=signal.error;
+					req2.onerror=function(event){
+						signal.error(event,0);
+					};
 					req2.onupgradeneeded=function()
 					{
 						for(var i=0;i<toCreate.length;i++)
@@ -254,6 +276,7 @@
 						_self.version=req2.result.version;
 						signal.complete(req2.result);
 					}
+					db.close();
 				}
 			}
 		}
