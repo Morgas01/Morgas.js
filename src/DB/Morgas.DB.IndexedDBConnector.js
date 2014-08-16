@@ -11,7 +11,9 @@
 	SC=GMOD("shortcut")({
 		det:"Detached",
 		unique:"uniquify",
-		it:"iterate"
+		it:"iterate",
+		eq:"equals",
+		find:"find"
 	});
 	
 	var ICON=µ.Class(DBC,{
@@ -20,7 +22,6 @@
 		{
 			this.superInit(DBC);
 			this.name=dbName;
-			this.version=null;
 
 			SC.det.detacheAll(this,["_open"]);
 		},
@@ -59,20 +60,156 @@
 					}
 				},false,true));
 				signal.complete(new SC.det(transactions));
+				this.complete();
 			},signal.error);
 		},
 		load:function(signal,objClass,pattern)
 		{
-			this.opened.then(function(event)
+			this.open().then(function(db)
 			{
-				
+				if(!db.objectStoreNames.contains(objClass.prototype.objectType))
+				{
+					signal.complete([]);
+				}
+				else
+				{
+					var trans=db.transaction(objClass.prototype.objectType,"readonly");
+					
+					trans.onerror=function(event)
+					{
+						µ.debug(event,0);
+						signal.error(event);
+					};
+
+					var store = trans.objectStore(objectType);
+					if(typeof pattern.ID!=="number"|| Array.isArray(pattern.ID))
+					{
+						var reqs=SC.it([].concat(pattern.ID),SC.det.detache(function(rSignal,ID)
+						{
+							var req=store.get(ID);
+							req.onerror=function(event)
+							{
+								µ.debug(event,0);
+								rSignal.complete(undefined);
+							}
+							req.onsuccess=function(event)
+							{
+								µ.debug(event, 3);
+								if(SC.eq(req.result))
+								{
+									var inst=new objClass();
+									inst.fromJSON(req.result);
+									rSignal.complete(inst);
+								}
+							}
+						}));
+						new SC.det(reqs).then(function()
+						{
+							signal.complete(SC.find(arguments,pattern,true));
+							this.complete();
+						},µ.debug);
+					}
+					else
+					{
+						var rtn=[],
+						req=store.openCursor();
+						req.onerror=function(event)
+						{
+							µ.debug(event,0);
+							signal.error(event);
+						}
+						req.onsuccess=function(event)
+						{
+							if(req.result)
+							{
+								if(SC.eq(req.result.value))
+								{
+									var inst=new objClass();
+									inst.fromJSON(req.result.value);
+									rtn.push(inst);
+								}
+								req.result["continue"]();
+							}
+							else
+							{
+								signal.complete(rtn);
+							}
+						}
+					}
+				}
+				this.complete();
 			},signal.error);
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
-			this.opened.then(function(event)
+			this.open().then(function(db)
 			{
-				var toDelete=DBC.getDeletePattern(toDelete);
+				var trans=db.transaction(objClass.prototype.objectType,"readonly");
+				
+				trans.onerror=function(event)
+				{
+					µ.debug(event,0);
+					signal.error(event);
+				};
+
+				var store = trans.objectStore(objectType);
+				if(typeof toDelete==="number"||toDelete instanceof objClass||Array.isArray)
+				{
+					var ids=DBC.getDeletePattern(toDelete).ID;
+					this.complete({store:store,ids:ids});
+				}
+				else
+				{
+					var _self=this,
+					ids=[];
+					req=store.openCursor();
+					req.onerror=function(event)
+					{
+						µ.debug(event,0);
+						signal.error(event);
+					}
+					req.onsuccess=function(event)
+					{
+						if(req.result)
+						{
+							if(SC.eq(req.result.value))
+							{
+								ids.push(req.result.key);
+							}
+							req.result["continue"]();
+						}
+						else
+						{
+							_self.complete({store:store,ids:ids});
+						}
+					}
+				}
+				
+			},signal.error).then(function(data)
+			{
+				var store=data.store,
+				ids=data.ids;
+				
+				var reqs=SC.it(ids,SC.det.detache(function(rSignal,ID)
+				{
+					var req=store["delete"](ID);
+					req.onerror=function(event)
+					{
+						µ.debug(event,0);
+						rSignal.complete(ID);
+					}
+					req.onsuccess=function(event)
+					{
+						µ.debug(event, 3);
+						rSignal.complete();
+					}
+				}));
+				new SC.det(reqs).then(function()
+				{
+					signal.complete(SC.find(arguments,pattern,true));
+					this.complete();
+				},µ.debug);
+				this.complete();
 			},signal.error);
 		},
 		destroy:function()
@@ -87,8 +224,8 @@
 			req.onsuccess=function()
 			{
 				var toCreate=[],
-				db=req.result;
-				_self.version=req.result.verion;
+				db=req.result,
+				version=req.result.verion;
 				for(var i=0;i<classNames.length;i++)
 				{
 					if(!db.objectStoreNames.contains(classNames[i]))
@@ -103,7 +240,7 @@
 				else
 				{
 					db.close();
-					var req2=indexedDB.open(_self.name,_self.version+1);
+					var req2=indexedDB.open(_self.name,version+1);
 					req2.onerror=signal.error;
 					req2.onupgradeneeded=function()
 					{

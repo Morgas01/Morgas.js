@@ -208,13 +208,13 @@
 	 * Iterates over {source}.
 	 * Returns an Array of {pattern} matching values 
 	 */
-	that.find=function(source,pattern)
+	that.find=function(source,pattern,onlyValues)
 	{
 		var rtn=[];
 		that.iterate(source,function(value,index)
 		{
 			if(that.equals(value,pattern))
-			rtn.push({value:value,index:index});
+			rtn.push(onlyValues?value:{value:value,index:index});
 		});
 		return rtn;
 	};
