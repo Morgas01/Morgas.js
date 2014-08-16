@@ -26,7 +26,7 @@
 	WR(srcDir+"DB/Morgas.DB.js");
 	WR(testDir+"test.Morgas.DB.js");
 
-	WR(srcDir+"DB/Morgas.DB.ObjectConnector_organizer.js");
+	WR(srcDir+"DB/Morgas.DB.ObjectConnector.js");
 	WR(testDir+"test.Morgas.DB.ObjectConnector.js");
 
 	WR(srcDir+"Morgas.DependencyResolver.js");

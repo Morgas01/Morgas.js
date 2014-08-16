@@ -7,122 +7,145 @@
 	 *
 	 */
 	var DBC		=GMOD("DBConn");
-	var REL		=GMOD("DBRel");
+	var ORG		=GMOD("Organizer");
+	
+	var SC=GMOD("shortcut")({
+		eq:"equals",
+		find:"find"
+	});
 	
 	var OCON;
 	
 	OCON=DBC.ObjectConnector=µ.Class(DBC,
 	{
-		db:{},// {"objectType":{"id":"DB.Object"}}
-		init:function(db,detached)
+		db:new ORG().group("objectType","objectType"),
+		init:function(local)
 		{
-			this.detached=detached!==false;
-			if(this.detached)
-				this.superInit(DBC);
-			this.db=db||this.db;
-		},
-		save:function(detached,objs)
-		{
-			objs=[].concat(objs)
-			for(var i=0;i<objs.length;i++)
+			this.superInit(DBC);
+			if(!local)
 			{
-				var obj=objs[i];
-				if(this.db[obj.objectType]==null)
+				this.db=new ORG().group("objectType","objectType");
+			}
+		},
+		save:function(signal,objs)
+		{
+			objs=[].concat(objs);
+			var sortedObjs=DBC.sortObjs(objs);
+			for(var objectType in sortedObjs.fresh)
+			{
+				var objs=sortedObjs.fresh[objectType],
+				ids=this._getNextID(objectType);
+				for(var i=0;i<objs.length;i++)
 				{
-					this.db[obj.objectType]={};
+					var id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
+					objs[i].setID(id);
+					this.db.add([{objectType:objs[i].objectType,fields:objs[i].toJSON()}]);
 				}
-				var table=this.db[obj.objectType];
-				if(obj.getID()==null)
-				{
-					obj.setID(this.getNextID(table));
-				}
-				table[obj.getID()]=obj.toJSON().fields;
 			}
-			detached.complete(this);
-			return this;
-		},
-		load:function(detached,objClass,pattern)
-		{
-			var rtn=[];
-			var entries=µ.util.object.find(this.db[objClass.prototype.objectType],pattern)
-			for(var i=0;i<entries.length;i++)
+
+			for(var objectType in sortedObjs.preserved)
 			{
-				rtn.push(new objClass(entries[i].value));
-			}
-			detached.complete(rtn);
-			return rtn;
-		},
-		loadChildren:function(detached,childClass,obj)
-		{
-			var rel=obj.getRelation(REL.TYPES.PARENT,childClass);
-			var pattern={};
-			pattern[rel.fieldName]=obj.getID();
-			if(this.detached)
-			{
-				this.load(childClass,pattern).done(function(children)
+				var objs=sortedObjs.preserved[objectType],
+				group=this.db.getGroupValue("objectType",objectType);
+				for(var i=0;i<objs.length;i++)
 				{
-					obj.addChildren(children);
-					detached.complete(this);
-				});
-			}
-			else
-			{
-				obj.addChildren(this.load(childClass,pattern));
-				return this;
-			}
-		},
-		loadFriends:function(detached,friendClass,obj)
-		{
-			throw new Error("abstract Class DB.Connector");
-		},
-		"delete":function(detached,objClass,objs_pattern)
-		{
-			objs_pattern=[].concat(objs_pattern);
-			for(var i=0;i<objs_pattern.length;i++)
-			{
-				if(objs_pattern[i] instanceof DB.Object&&objs_pattern[i].getID()!=null)
-				{
-					delete this.db[objs_pattern.objectType][objs_pattern[i].getID()];
-				}
-				else if (objs_pattern[i]!=null&&objClass!=null)
-				{
-					var entries=µ.util.object.find(this.db[objClass.prototype.objectType],objs_pattern[i])
-					for(var f=0;f<entries.length;f++)
+					var found=SC.find(group,{fields:{ID:objs[i].getID()}});
+					if(found.length>0)
 					{
-						delete this.db[objClass.prototype.objectType][entries[f].index];
+						found[0].value.fields=objs[i].toJSON();
 					}
 				}
 			}
-			detached.complete(this);
-			return this;
+
+			for(var objectType in sortedObjs.friend)
+			{
+				var objs=sortedObjs.friend[objectType],
+				group=this.db.getGroupValue("objectType",objectType),
+				newFriends=[];
+				for(var i=0;i<objs.length;i++)
+				{
+					var json={fields:objs[i].toJSON()};
+					var found=SC.find(group,json);
+					if(found.length===0)
+					{
+						json.objectType=objs[i].objectType
+						newFriends.push(json);
+					}
+				}
+				this.db.add(newFriends);
+			}
+			signal.complete();
+		},
+		load:function(signal,objClass,pattern,sort,DESC)
+		{
+			var values=this.db.getGroupValue("objectType",objClass.prototype.objectType),
+			rtn=[];
+			
+			if(sort)
+			{
+				sort=ORG.pathSort("fields."+sort+".value",DESC);
+			}
+			
+			for(var i=0;i<values.length;i++)
+			{
+				if(SC.eq(values[i].fields,pattern))
+				{
+					var instance=new objClass();
+					instance.fromJSON(values[i].fields);
+					if(sort)
+					{
+						rtn.splice(ORG.getOrderIndex(instance,rtn,sort),0,instance);
+					}
+					else
+					{
+						rtn.push(instance);
+					}
+				}
+			}
+			signal.complete(rtn);
+		},
+		"delete":function(signal,objClass,toDelete)
+		{
+			toDelete={objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(toDelete)};
+			var filterKey=JSON.stringify(toDelete),
+			values=this.db.filter(filterKey,toDelete).getFilter(filterKey);
+			for(var i=0;i<values.length;i++)
+			{
+				this.db.remove(values[i]);
+			}
+			this.db.removeFilter(filterKey);
+			signal.complete();
 		},
 		destroy:function()
 		{
-			this.db=this.detached=null;
-		},
-		getNextID:function(table)
-		{
-			var id=0;
-			while(id in table)
+			if(this.db!==OCON.prototype.db)
 			{
-				id++;
+				this.db.clear();
 			}
-			return id;
+			this.db=null;
+			this.save=this.load=this["delete"]=µ.constantFunctions.ndef;
+		},
+		_getNextID:function(objectType)
+		{
+			var rtn=[],
+			group=this.db.getGroupValue("objectType",objectType);
+			var i=0;
+			for(;group.length>0;i++)
+			{
+				var found=SC.find(group,{fields:{ID:i}});
+				if(found.length===0)
+				{
+					rtn.push(i);
+				}
+				else
+				{
+					group.splice(found[0].index,1);
+				}
+			}
+			rtn.push(i);
+			return rtn;
 		}
 	});
-	OCON.PersistDBS=function(ocon,name)
-	{
-		name=name||"ObjectConnectorDBS";
-		var dbs=ocon.dbs||OCON.prototype.dbs;
-		localStorage.setItem(name,JSON.stringify(dbs));
-	};
-	OCON.LoadDBS=function(ocon,name)
-	{
-		name=name||"ObjectConnectorDBS";
-		ocon=ocon||OCON.prototype;
-		ocon.dbs=JSON.Parse(localStorage.getItem(name));
-	};
-
+	
 	SMOD("ObjectConnector",OCON);
-	SMOD("OCon",OCON);
 })(Morgas,Morgas.setModule,Morgas.getModule);
