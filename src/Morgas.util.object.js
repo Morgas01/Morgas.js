@@ -241,7 +241,7 @@
 	{
 		if(obj===pattern)
 			return true;
-		if(!obj)
+		if(obj===undefined||obj===null)
 			return false;
 		if(pattern instanceof RegExp)
 			return pattern.test(obj);

@@ -39,7 +39,7 @@
 		"delete":function(signal,objClass,toDelete)
 		{
 			/*
-			var toDelete=DBC.getDeletePattern(toDelete);
+			var toDelete=DBC.getDeletePattern(objClass,toDelete);
 			*/
 			throw new Error("abstract Class DB.Connector");
 		},
@@ -53,12 +53,8 @@
 		{
 			return this.save(obj.getChildren(relationName));
 		},
-		getFriendTableName:function(objType,relationName,friendType,friendRelationName)
+		saveFriendships:function(obj,relationName)
 		{
-			return [objType,relationName,friendType,friendRelationName].sort().join("_")
-		},
-		saveFriends:function(obj,relationName)
-		{	
 			var rel=obj.relations[relationName],
 				friends=obj.friends[relationName];
 			if(!friends)
@@ -85,7 +81,7 @@
 				SC.debug("no friend with friend id found");
 				return new SC.det.complete(false);
 			}
-			var tableName=this.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
+			var tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
 				idName=obj.objectType+"_ID",
 				fidName=friends[0].objectType+"_ID",
 				toSave=[];
@@ -132,7 +128,7 @@
 				fRel=new friendClass().relations[rel.targetRelationName],
 				id=obj.objectType+"_ID",
 				fid=friendClass.prototype.objectType+"_ID",
-				type=this.getFriendTableName(obj.objectType,relationName,friendClass.prototype.objectType,rel.targetRelationName),
+				type=DBC.getFriendTableName(obj.objectType,relationName,friendClass.prototype.objectType,rel.targetRelationName),
 				fPattern={};
 			
 			if (rel.relatedClass===fRel.relatedClass)
@@ -171,6 +167,59 @@
 				});
 				return _self.load(friendClass,pattern);
 			},SC.debug);
+		},
+		deleteFriendships:function(obj,relationName)
+		{
+			var rel=obj.relations[relationName],
+				friends=obj.friends[relationName];
+			if(!friends)
+			{
+				SC.debug("no friends in relation "+relationName+" found",2);
+				return new SC.det.complete(false);
+			}
+			var fRel=friends[0].relations[rel.targetRelationName],
+				id=obj.getID();
+			if(id==null)
+			{
+				SC.debug("friend id is null",2);
+				return new SC.det.complete(false);
+			}
+			var fids=[];
+			for(var i=0;i<friends.length;i++)
+			{
+				var fid=friends[i].getID();
+				if(fid!=null)
+					fids.push(fid);
+			}
+			if(fids.length===0)
+			{
+				SC.debug("no friend with friend id found");
+				return new SC.det.complete(false);
+			}
+			var tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
+				idName=obj.objectType+"_ID",
+				fidName=friends[0].objectType+"_ID",
+				toDelete=[];
+			if (rel.relatedClass===fRel.relatedClass)
+			{
+				fidName+=2;
+				var pattern={};
+				pattern[idName]=fids;
+				pattern[fidName]=id;
+				toDelete.push(pattern);
+			}
+			var pattern={};
+			pattern[idName]=id;
+			pattern[fidName]=fids;
+			toDelete.push(pattern);
+			
+			var wait=[],
+			fClass=DBFRIEND.Generator(tableName,idName,fidName);
+			for(var i=0;i<toDelete.length;i++)
+			{
+				wait.push(this["delete"](fClass,toDelete[i]));
+			}
+			return new SC.det(wait)
 		}
 	});
 
@@ -192,17 +241,18 @@
 		return rtn;
 	}
 	//make toDelete a Pattern from Number, DB.Object or Array
-	DBC.getDeletePattern=function(toDelete)
+	DBC.getDeletePattern=function(objClass,toDelete)
 	{
-		if(typeof toDelete=="number" || toDelete instanceof DB.Object)
+		var type=typeof toDelete;
+		if(type==="number" || toDelete instanceof DB.Object)
 		{
 			toDelete=[toDelete];
 		}
-		if(toDelete instanceof Array)
+		if(Array.isArray(toDelete))
 		{
 			for(var i=0;i<toDelete.length;i++)
 			{
-				if(toDelete[i] instanceof DB.Object)
+				if(toDelete[i] instanceof objClass)
 				{
 					toDelete[i]=toDelete[i].getID();
 				}
@@ -210,6 +260,10 @@
 			toDelete={ID:toDelete};
 		}
 		return toDelete;
+	};
+	DBC.getFriendTableName=function(objType,relationName,friendType,friendRelationName)
+	{
+		return [objType,relationName,friendType,friendRelationName].sort().join("_");
 	};
 	SMOD("DBConn",DBC);
 	

@@ -25,7 +25,6 @@
 			this.addRelation("friendRel",	testObject,	REL.TYPES.FRIEND,	"friendRel"	);
 		}
 	});
-	//TODO reoder assert parameters (1<->2)
 	window.DBTest=function(dbConn,extra)
 	{
 		var obj1=new testObject({
@@ -39,10 +38,12 @@
 		obj2=new testObject({
 			testInt:20,
 			testString:"testString",
+			testBool:true
 		}),
 		obj3=new testObject({
 			testInt:30,
 			testString:"testString2",
+			testBool:true
 		});
 		
 		obj1.addChild("childRel",obj2);
@@ -53,7 +54,7 @@
 			p=dbConn.save(obj1);
 			p.then(function()
 			{
-				ok(true);
+				notEqual(obj1.getID(),undefined,"ID generated");
 				start();
 			},µ.debug);
 		});
@@ -66,15 +67,17 @@
 			},µ.debug);
 			p.then(function()
 			{
-				ok(true);
+				notEqual(obj1.getID(),undefined,"ID generated");
+				notEqual(obj2.getID(),undefined,"ID generated");
+				notEqual(obj3.getID(),undefined,"ID generated");
 				start();
 			},µ.debug);
 		});
-		asyncTest("save friends",function()
+		asyncTest("save friendships",function()
 		{
 			p=p.then(function()
 			{
-				return dbConn.saveFriends(obj2,"friendRel");
+				return dbConn.saveFriendships(obj2,"friendRel");
 			},µ.debug);
 			p.then(function()
 			{
@@ -88,14 +91,12 @@
 			{
 				return dbConn.load(testObject,{testInt:10}).then(function(result)
 				{
-					deepEqual(obj1.toJSON(),result[0]&&result[0].toJSON(),"load single via int");
+					deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load single via int");
+					equal(result.length,1,"result count");
 					this.complete();
+
+					start();
 				},µ.debug)
-			},µ.debug);
-			p.then(function()
-			{
-				ok(true);
-				start();
 			},µ.debug);
 		});
 		asyncTest("load multiple via string",function()
@@ -104,28 +105,20 @@
 			{
 				return dbConn.load(testObject,{testString:"testString"}).then(function(result)
 				{
-					deepEqual(obj1.toJSON(),result[0]&&result[0].toJSON(),"load multiple via string (1)");
-					deepEqual(obj2.toJSON(),result[1]&&result[1].toJSON(),"load multiple via string (2)");
+					deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load multiple via string (1)");
+					deepEqual(result[1]&&result[1].toJSON(),obj2.toJSON(),"load multiple via string (2)");
+					equal(result.length,2,"result count");
 					this.complete();
+					start();
 				},µ.debug)
-			},µ.debug);
-			p.then(function()
-			{
-				ok(true);
-				start();
 			},µ.debug);
 		});
 		asyncTest("load relations",function()
 		{
 			p=p.then(function()
 			{
-				var o1,o2,o3
-				return dbConn.load(testObject,{testString:"testString2"}).then(function(result)
-				{
-					o3=result[0];
-					deepEqual(obj3.toJSON(),o3.toJSON(),"load single via string");
-					return dbConn.loadFriends(o3,"friendRel",{testInt:20});
-				},µ.debug)
+				var o1,o2
+				return dbConn.loadFriends(obj3,"friendRel",{testInt:20})
 				.then(function(result)
 				{
 					o2=result[0];
@@ -137,15 +130,53 @@
 					o1=result;
 					deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
 					this.complete();
+					start();
 				},µ.debug)
 			},µ.debug);
-			p.then(function()
+		});
+		asyncTest("deleteFriendships",function()
+		{
+			p=p.then(function()
 			{
-				ok(true);
-				start();
+				return dbConn.deleteFriendships(obj2,"friendRel")
+				.then(function()
+				{
+					return dbConn.loadFriends(obj3,"friendRel",{testInt:20});
+				},µ.debug)
+				.then(function(result)
+				{
+					strictEqual(result.length,0,"firendship deleted");
+					this.complete();
+					start();
+				},µ.debug)
 			},µ.debug);
 		});
-		//TODO deletion
+		asyncTest("delete",function()
+		{
+			p=p.then(function()
+			{
+				return dbConn["delete"](testObject,obj1)
+				.then(function()
+				{
+					return dbConn.load(testObject,{testInt:10});
+				},µ.debug)
+				.then(function(result)
+				{
+					strictEqual(result.length,0,"deleted Object");
+					return dbConn["delete"](testObject,{testBool:true});
+				},µ.debug)
+				.then(function()
+				{
+					return dbConn.load(testObject,{testBool:true});
+				},µ.debug)
+				.then(function(result)
+				{
+					strictEqual(result.length,0,"deleted pattern");
+					this.complete();
+					start();
+				},µ.debug)
+			},µ.debug);
+		});
 		if(extra)
 		{
 			p=p.then(extra,µ.debug)

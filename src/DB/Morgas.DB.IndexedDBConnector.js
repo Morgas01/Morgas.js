@@ -12,7 +12,10 @@
 		unique:"uniquify",
 		it:"iterate",
 		eq:"equals",
-		find:"find"
+		find:"find",
+		
+		DBObj:"DBObj",
+		DBFriend:"DBFriend"
 	});
 	
 	var ICON=µ.Class(DBC,{
@@ -81,25 +84,29 @@
 				}
 				else
 				{
-					var trans=db.transaction(objClass.prototype.objectType,"readonly");
-					
+					var trans=db.transaction(objClass.prototype.objectType,"readonly"),
+					rtn=[];
 					trans.onerror=function(event)
 					{
 						µ.debug(event,0);
 						db.close();
 						signal.error(event);
 					};
+					trans.oncomplete=function()
+					{
+						db.close();
+						signal.complete(rtn);
+					}
 
 					var store = trans.objectStore(objClass.prototype.objectType);
 					if(typeof pattern.ID==="number"|| Array.isArray(pattern.ID))
 					{
-						var reqs=SC.it([].concat(pattern.ID),SC.det.detache(function(rSignal,ID)
+						var reqs=SC.it([].concat(pattern.ID),function(ID)
 						{
 							var req=store.get(ID);
 							req.onerror=function(event)
 							{
 								µ.debug(event,0);
-								rSignal.complete(undefined);
 							}
 							req.onsuccess=function(event)
 							{
@@ -108,22 +115,14 @@
 								{
 									var inst=new objClass();
 									inst.fromJSON(req.result);
-									rSignal.complete(inst);
+									rtn.push(inst);
 								}
-								rSignal.complete(undefined);
 							}
-						}));
-						new SC.det(reqs).then(function()
-						{
-							db.close();
-							signal.complete(Array.filter(arguments,µ.constantFunctions.boolean));
-							this.complete();
-						},µ.debug);
+						});
 					}
 					else
 					{
-						var rtn=[],
-						req=store.openCursor();
+						var req=store.openCursor();
 						req.onerror=function(event)
 						{
 							µ.debug(event,0);
@@ -142,11 +141,6 @@
 								}
 								req.result["continue"]();
 							}
-							else
-							{
-								db.close();
-								signal.complete(rtn);
-							}
 						}
 					}
 				}
@@ -155,33 +149,42 @@
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
-			this._open().then(function(db)
+			var _self=this,
+			objectType=objClass.prototype.objectType,
+			collectingIDs=null;
+			if(typeof toDelete==="number"||toDelete instanceof SC.DBObj||toDelete instanceof SC.DBFriend||Array.isArray(toDelete))
 			{
-				var trans=db.transaction(objClass.prototype.objectType,"readonly");
-				
-				trans.onerror=function(event)
+				var ids=DBC.getDeletePattern(objClass,toDelete).ID;
+				collectingIDs=SC.det.complete(ids);
+			}
+			else
+			{
+				collectingIDs=this._open().then(function(db)
 				{
-					µ.debug(event,0);
-					db.close();
-					signal.error(event);
-				};
+					var _collectingSelf=this,
+					ids=[],
+					trans=db.transaction(objectType,"readonly");
+					trans.onerror=function(event)
+					{
+						µ.debug(event,0);
+						db.close();
+						signal.error(event);
+						_collectingSelf.error(event);
+					};
+					trans.oncomplete=function()
+					{
+						db.close();
+						_collectingSelf.complete(ids);
+					}
 
-				var store = trans.objectStore(objectType);
-				if(typeof toDelete==="number"||toDelete instanceof objClass||Array.isArray)
-				{
-					var ids=DBC.getDeletePattern(toDelete).ID;
-					this.complete({store:store,ids:ids});
-				}
-				else
-				{
-					var _self=this,
-					ids=[];
+					var store = trans.objectStore(objectType);
 					req=store.openCursor();
 					req.onerror=function(event)
 					{
 						µ.debug(event,0);
 						db.close();
 						signal.error(event);
+						_collectingSelf.error(event);
 					}
 					req.onsuccess=function(event)
 					{
@@ -193,42 +196,56 @@
 							}
 							req.result["continue"]();
 						}
-						else
-						{
-							_self.complete({store:store,ids:ids});
-						}
 					}
-				}
-				
-			},signal.error).then(function(data)
+					
+				},signal.error)
+			}
+			collectingIDs.then(function(ids)
 			{
-				var store=data.store,
-				ids=data.ids;
-				
-				var reqs=SC.it(ids,SC.det.detache(function(rSignal,ID)
+				if(ids.length>0)
 				{
-					var req=store["delete"](ID);
-					req.onerror=function(event)
+					return _self._open().then(function(db)
 					{
-						µ.debug(event,0);
-						rSignal.complete(ID);
-					}
-					req.onsuccess=function(event)
-					{
-						µ.debug(event, 3);
-						rSignal.complete();
-					}
-				}));
-				new SC.det(reqs).then(function()
+						var trans=db.transaction(objClass.prototype.objectType,"readwrite");
+						trans.onerror=function(event)
+						{
+							µ.debug(event,0);
+							db.close();
+							signal.error(event);
+						};
+						var store = trans.objectStore(objectType);
+						
+						var reqs=SC.it(ids,SC.det.detache(function(rSignal,ID)
+						{
+							var req=store["delete"](ID);
+							req.onerror=function(event)
+							{
+								µ.debug(event,0);
+								rSignal.complete(ID);
+							}
+							req.onsuccess=function(event)
+							{
+								µ.debug(event, 3);
+								rSignal.complete();
+							}
+						}));
+						return new SC.det(reqs).then(function()
+						{
+							db.close();
+							signal.complete(Array.slice(arguments));
+							this.complete();
+						},µ.debug);
+					});
+				}
+				else
 				{
-					db.close();
-					signal.complete(SC.find(arguments,pattern,true));
+					signal.complete(false);
 					this.complete();
-				},µ.debug);
-				this.complete();
+				}
 			},function(event){
 				db.close();
 				signal.error(event,0);
+				this.complete();
 			});
 		},
 		destroy:function()

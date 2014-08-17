@@ -106,7 +106,7 @@
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
-			toDelete={objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(toDelete)};
+			toDelete={objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)};
 			var filterKey=JSON.stringify(toDelete),
 			values=this.db.filter(filterKey,toDelete).getFilter(filterKey);
 			for(var i=0;i<values.length;i++)
