@@ -9,7 +9,9 @@
 	var util=µ.util=µ.util||{};
 	
 	//shortcut
-	var DET=GMOD("Detached");
+	var SC=GMOD("shortcut")({
+		DET:"Detached"
+	});
 	
 	var that=util.object={};
 	/** goPath
@@ -138,7 +140,7 @@
 		{
 			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
-				rtn.push(func.call(scope,any[i],i));
+				rtn.push(func.call(scope,any[i],i),false);
 			}
 		}
 		else
@@ -150,7 +152,7 @@
 			}
 			for(var i=0;i<k.length;i++)
 			{
-				rtn.push(func.call(scope,any[k[i]],k[i]));
+				rtn.push(func.call(scope,any[k[i]],k[i],true));
 			}
 		}
 		return rtn;
@@ -170,7 +172,7 @@
 		{
 			chunk=that.iterateAsync.chunk;
 		}
-		return new DET(function()
+		return new SC.DET(function()
 		{
 			var signal=this;
 			var it=new that.Iterator(any,backward,isObject);

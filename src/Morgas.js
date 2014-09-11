@@ -78,6 +78,44 @@
 	};
 	SMOD("rescope",µ.rescope);
 	
+	/** proxy
+	 * proxy methods from source to target.
+	 */
+	µ.proxy=function(source,listOrMapping,target)
+	{
+		var isKey=false,
+		isGetter=false;
+		switch(typeof source)
+		{
+			case "string":
+				isKey=true;
+				break;
+			case "function":
+				isGetter=true;
+				break;
+		}
+		GMOD("iterate")(listOrMapping,function(value,index,isObject)
+		{
+			var sKey=(isObject?index:value),
+			tKey=value,
+			fn=null;
+			if(isKey)
+			{
+				fn=function(){this[source][sKey].apply(this,arguments)};
+			}
+			else if (isGetter)
+			{
+				fn=function(){source.call(this)[sKey].apply(this,arguments);};
+			}
+			else
+			{
+				fn=function(){source[sKey].apply(this,arguments)};
+			}
+			target[tKey]=fn;
+		});
+	}
+	SMOD("proxy",µ.proxy);
+	
 	/** shortcut
 	 * creates an object that will evaluate its values defined in {map} on its first call.
 	 * when {context} is provided and {map.value} is not a function it will treated as a path from {context}
