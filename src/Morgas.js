@@ -101,19 +101,19 @@
 			fn=null;
 			if(isKey)
 			{
-				fn=function(){this[source][sKey].apply(this,arguments)};
+				fn=function(){this[source][sKey].apply(this[source],arguments)};
 			}
 			else if (isGetter)
 			{
-				fn=function(){source.call(this)[sKey].apply(this,arguments);};
+				fn=function(){source.call(this)[sKey].apply(source,arguments);};
 			}
 			else
 			{
-				fn=function(){source[sKey].apply(this,arguments)};
+				fn=function(){source[sKey].apply(source,arguments)};
 			}
 			target[tKey]=fn;
 		});
-	}
+	};
 	SMOD("proxy",µ.proxy);
 	
 	/** shortcut
@@ -192,7 +192,7 @@
 		switch(verbose)
 		{
 			case 0:
-				console.error(msg)
+				console.error(msg);
 				break;
 			case 1:
 				console.warn(msg);
