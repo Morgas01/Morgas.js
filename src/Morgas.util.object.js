@@ -34,7 +34,7 @@
 	
 	/** iterator
 	 * Iterates stepwise over {any} in {backward} order.
-	 * {isObject} declares {any} as an Object with a length property. 
+	 * {isObject} declares {any} as a Map or Array. 
 	 */
 	that.Iterator=µ.Class({
 		init:function(any,backward,isObject)

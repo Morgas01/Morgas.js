@@ -45,8 +45,17 @@
 			this.status=0;
 			this.args=undefined;
 			
-			if(this.fn.length>0&&!wait)
-				this._start();
+			if(!wait)
+			{
+				if(this.fn.length===0)
+				{
+					this.status=1;
+				}
+				else
+				{
+					this._start();
+				}
+			}
 		},
 		_start:function(args)
 		{
@@ -124,14 +133,13 @@
 	SMOD("Detached",DET);
 	DET.complete=function()
 	{
-		var d=new DET(DET.WAIT);
-		d.status=1;
+		var d=new DET();
 		d.args=arguments;
 		return d;
 	};
 	DET.error=function()
 	{
-		var d=new DET(DET.WAIT);
+		var d=new DET();
 		d.status=-1;
 		d.args=arguments;
 		return d;

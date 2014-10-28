@@ -22,6 +22,16 @@
 			this.complete();
 		});
 	});
+
+	asyncTest("on complete no args",function()
+	{
+		new DET().complete(function()
+		{
+			ok(true);
+			start();
+			this.complete();
+		});
+	});
 	
 	asyncTest("chain",function()
 	{
