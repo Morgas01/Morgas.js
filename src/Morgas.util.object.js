@@ -301,6 +301,60 @@
 		}
 	};
 	
+	/**
+	 * set input values from object
+	 * path in object is defined by data-path attribute
+	 * key in object is defined by data-field attribute
+	 * @param inputs[] input Nodes
+	 * @param {object} source
+	 */
+	that.setInputValues=function(inputs,source)
+	{
+		for(var i=0;i<inputs.length;i++)
+		{
+			var path=(inputs[i].dataset.path||"")+inputs[i].dataset.field;
+			var value=that.goPath(source, path);
+			if(inputs[i].type==="checkbox")
+			{
+				inputs[i].checked=!!value;
+			}
+			else
+			{
+				inputs[i].value=value;
+			}
+		}
+	};
+
+	/**
+	 * collect input values into object
+	 * path in object is defined by data-path attribute
+	 * key in object is defined by data-field attribute
+	 * @param inputs[] input Nodes
+	 * @param {object} target
+	 */
+	that.getInputValues=function(inputs,target)
+	{
+		for(var i=0;i<inputs.length;i++)
+		{
+			var t=target;
+			if(inputs[i].dataset.path)
+			{
+				t=that.goPath(t, inputs[i].dataset.path);
+			}
+			if(t!==null)
+			{
+				if(inputs[i].type==="checkbox")
+				{
+					t[inputs[i].dataset.field]=inputs[i].checked;
+				}
+				else
+				{
+					t[inputs[i].dataset.field]=inputs[i].value;
+				}
+			}
+		}
+	};
+	
 	SMOD("goPath",that.goPath);
 	SMOD("Iterator",that.Iterator);
 	SMOD("iterate",that.iterate);
@@ -308,5 +362,7 @@
 	SMOD("find",that.find);
 	SMOD("equals",that.equals);
 	SMOD("uniquify",that.uniquify);
+	SMOD("setInputValues",that.setInputValues);
+	SMOD("getInputValues",that.getInputValues);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule);
