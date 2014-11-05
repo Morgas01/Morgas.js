@@ -17,8 +17,8 @@
 		dr.addConfig({
 			b:true,
 			cc:["ab","c"],
-			abcc:["a","b","cc"],
-		})
+			abcc:["a","b","cc"]
+		});
 		deepEqual(dr.resolve("abcc"),["a","b","ab","c","cc","abcc"]);
 	});
 	

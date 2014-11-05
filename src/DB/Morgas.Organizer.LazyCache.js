@@ -57,7 +57,7 @@
 					}
 					else
 					{
-						toAdd.push(value)
+						toAdd.push(value);
 						rtn.push(value)
 					}
 				}
@@ -114,7 +114,7 @@
 		},
 		_load:function(pattern,signals,single,force)
 		{
-			SC.debug(["LazyCache._load:",arguments],3)
+			SC.debug(["LazyCache._load:",arguments],3);
 			var _self=this;
 			this.connector.load(this.dbClass,pattern).then(function(results)
 			{
@@ -128,7 +128,7 @@
 			},function(e)
 			{
 				SC.debug(e,1);
-				var signal
+				var signal;
 				while(signal=signals.shift())
 				{
 					signal.complete(single?undefined:[]);

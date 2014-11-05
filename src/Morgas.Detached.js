@@ -9,7 +9,7 @@
 	
 	var SC=GMOD("shortcut")({
 		debug:"debug"
-	})
+	});
 	
 	var wrapFunction=function(fn,args)
 	{
@@ -26,7 +26,7 @@
 				reject(e);
 			}
 		}
-	}
+	};
 	
 	 var DET=µ.Detached=µ.Class(
 	 {
@@ -35,7 +35,7 @@
 		*/
 		init:function(fn)
 		{
-			var wait=fn===DET.WAIT
+			var wait=fn===DET.WAIT;
 			if(wait)
 				fn=arguments[1];
 				
@@ -146,7 +146,7 @@
 	};
 	DET.detache=function(fn,scope)
 	{
-		scope=scope||window
+		scope=scope||window;
 		return function()
 		{
 			var args=Array.slice(arguments,0);
@@ -174,4 +174,4 @@
 			scope[keys[i]]=DET.detache(fn,scope);
 		}
 	};
-})(Morgas,Morgas.setModule,Morgas.getModule)
+})(Morgas,Morgas.setModule,Morgas.getModule);
