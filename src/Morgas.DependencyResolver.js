@@ -53,7 +53,7 @@
 					var deps=conf.deps;
                     for(var i=0;i<conf.uses.length;i++)
                     {
-                        if(list.indexOf(conf.uses[i])===-1)
+                        if(list.indexOf(conf.uses[i])===-1&&rtn.indexOf(conf.uses[i])===-1)
                         {
                             list.push(conf.uses[i]);
                         }
