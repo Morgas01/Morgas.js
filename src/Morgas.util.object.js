@@ -32,97 +32,32 @@
 		return obj;
 	};
 	
-	/** iterator
-	 * Iterates stepwise over {any} in {backward} order.
+	/** createIterator
+	 * Creates an iterator for {any} in {backward} order.
 	 * {isObject} declares {any} as a Map or Array. 
 	 */
-	that.Iterator=µ.Class({
-		init:function(any,backward,isObject)
+	that.createIterator=function* (any,backward,isObject)
+	{
+		if(any.length>0&&!isObject)
 		{
-			this.source=any;
-			this.backward=backward;
-			
-			this.index=undefined;
-			this.keys=null;
-			if(any.length==null||isObject)
+			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
-				this.keys=Object.keys(any);
-				if(this.backward)
-					this.keys.reverse();
+				yield {value:any[i],key:i,isObject:false};
 			}
-		},
-		value:function()
-		{
-			if(this.index!==undefined)
-			{
-				return this.source[this.index];
-			}
-			return undefined;
-		},
-		getIndex:function()
-		{
-			return this.index;
-		},
-		hasNext:function()
-		{
-			if(this.keys!=null)
-			{
-				return this.keys.length>0;
-			}
-			else
-			{
-				if(this.index===undefined&&this.source.length>0)
-				{
-					return true;
-				}
-				else if (this.backward&&this.index>=0)
-				{
-					return true
-				}
-				else if(this.index<this.source.length)
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		},
-		next:function()
-		{
-			if(this.keys!=null)
-			{
-				this.index=this.keys.shift();
-			}
-			else
-			{
-				if(this.index===undefined)
-				{
-					this.index=(this.backward ? this.source.length-1 : 0);
-				}
-				else
-				{
-					this.index+=(this.backward ? -1 : 1);
-				}
-			}
-			
-			var rtn=this.value();
-			
-			if(!this.hasNext())
-			{
-				this.destroy();
-			}
-			
-			return rtn;
-		},
-		destroy:function()
-		{
-			this.source=this.backward=this.keys=null;
-			this.next=µ.constantFunctions.ndef;
-			this.hasNext=µ.constantFunctions.f;
 		}
-	});
+		else
+		{
+			var k=Object.keys(any);
+			if(backward)
+			{
+				k.revert();
+			}
+			for(var i=0;i<k.length;i++)
+			{
+				yield {value:any[k[i]],key:k[i],isObject:true};
+			}
+		}
+	};
 	/** iterate
 	 * Iterates over {any} calling {func} with {scope} in {backward} order.
 	 * {isObject} declares {any} as an Object with a length property.
@@ -140,7 +75,7 @@
 		{
 			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
-				rtn.push(func.call(scope,any[i],i),false);
+				rtn.push(func.call(scope,any[i],i,false));
 			}
 		}
 		else
@@ -175,33 +110,27 @@
 		return new SC.DET(function()
 		{
 			var signal=this;
-			var it=new that.Iterator(any,backward,isObject);
-			if(!it.hasNext())
+			var it=new that.createIterator(any,backward,isObject);
+			var interval=setInterval(function iterateStep()
 			{
-				signal.complete();
-			}
-			else
-			{
-				var interval=setInterval(function iterateStep()
+				try
 				{
-					try
+					var step=it.next();
+					for(var i=0;i<chunk&&!step.done;i++,step=it.next())
 					{
-						for(var i=0;i<chunk&&it.hasNext();i++)
-						{
-							func.call(scope,it.next(),it.getIndex());
-						}
-						if(!it.hasNext())
-						{
-							signal.complete();
-							clearInterval(interval);
-						}
+						func.call(scope,step.value,step.key);
 					}
-					catch (e)
+					if(step.done)
 					{
-						signal.error(e);
+						signal.complete();
+						clearInterval(interval);
 					}
-				},0)
-			}
+				}
+				catch (e)
+				{
+					signal.error(e);
+				}
+			},0)
 		});
 	};
 	that.iterateAsync.chunk=1E4;

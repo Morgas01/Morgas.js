@@ -5,6 +5,7 @@
         "Morgas.DependencyResolver.js":"Morgas.js",
         "Morgas.NodePatch.js":"Morgas.js",
         "Morgas.util.object.js":"Morgas.js",
+        "Morgas.util.download.js":"Morgas.js",
         "Morgas.util.crc.js":"Morgas.js",
         "Morgas.Organizer.js":{deps:["Morgas.js"],uses:["Morgas.util.object.js"]},
         "Morgas.Detached.js":"Morgas.js",
