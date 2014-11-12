@@ -185,9 +185,14 @@
 		}
 		if(typeof pattern==="object")
 		{
-			if(typeof obj!=="object"&&Array.isArray(pattern))
+            if(typeof obj.equals==="function")
+            {
+                return obj.equals(pattern);
+            }
+			else if(typeof obj!=="object"&&Array.isArray(pattern))
+            {
 				return pattern.indexOf(obj)!==-1;
-
+            }
 			for(var i in pattern)
 			{
 				if(!that.equals(obj[i],pattern[i]))
@@ -241,7 +246,7 @@
 	{
 		for(var i=0;i<inputs.length;i++)
 		{
-			var path=(inputs[i].dataset.path||"")+inputs[i].dataset.field;
+			var path=(inputs[i].dataset.path ? inputs[i].dataset.path+"." : "")+inputs[i].dataset.field;
 			var value=that.goPath(source, path);
 			if(inputs[i].type==="checkbox")
 			{
