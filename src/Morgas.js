@@ -101,15 +101,15 @@
 			fn=null;
 			if(isKey)
 			{
-				fn=function(){this[source][sKey].apply(this[source],arguments)};
+				fn=function(){return this[source][sKey].apply(this[source],arguments)};
 			}
 			else if (isGetter)
 			{
-				fn=function(){source.call(this)[sKey].apply(source,arguments);};
+				fn=function(){return source.call(this)[sKey].apply(source,arguments);};
 			}
 			else
 			{
-				fn=function(){source[sKey].apply(source,arguments)};
+				fn=function(){return source[sKey].apply(source,arguments)};
 			}
 			target[tKey]=fn;
 		});
