@@ -339,21 +339,30 @@
 		init:function ListenerInit()
 		{
 			this.superInit(BASE);
-			this.listeners=[];
-			this.listenOnce=[];
+			this.listeners=new Map(); //TODO use WeakMap when its capable of iterations
 			this.fireIndex=null;	//indicates if and which listener fired
 			this.disabled=false;
 		},
-		addListener:function addListener(fn,type)
+		addListener:function addListener(fn,scope,type)
 		{
-			if(typeof fn=="function")
+            var fnType=typeof fn;
+			if(fnType==="function"||fnType==="string")
 			{
-				var all=this.listeners.concat(this.listenOnce);
-				for(var i=0;i<all.length;i++)
-				{
-					if(fn==all[i])
-						return null;
-				}
+                scope=scope||this;
+                var entry=null;
+                if(this.listeners.has(scope))
+                {
+                    entry=this.listeners.get(scope);
+                    if(entry.first.has(fn)!==-1||entry.normal.has(fn)!==-1||entry.last.has(fn)!==-1||entry.once.has(fn)!==-1)
+                    {
+                        return null;//already listens
+                    }
+                }
+                else
+                {
+                    entry={first:new Set(),normal:new Set(),last:new Set(),once:new Set()};
+                    this.listeners.set(scope,entry);
+                }
 				if(type)
 				{
 					type=type.toLowerCase();
@@ -361,100 +370,134 @@
 				switch(type)
 				{
 					case "first":
-						this.listeners.unshift(fn);
+						entry.first.add(fn);
 						break;
+                    default:
+                        entry.normal.add(fn);
+                        break;
 					case "last":
-					default:
-						this.listeners.push(fn);
+						entry.last.add(fn);
 						break;
 					case "once":
-						this.listenOnce.push(fn);
+						entry.once.add(fn);
+                        break;
 				}
 				return fn;
 			}
-			return null;
+			return null;//no function
 		},
-		addListeners:function addListeners(fns,type)
+        addListeners:function addListeners(fns,scope,type)
+        {
+            fns=[].concat(fns);
+            var rtn=[];
+            for(var i=0;i<fns.length;i++)
+            {
+                rtn.push(this.addListener(fns[i],scope,type));
+            }
+            return rtn;
+        },
+		removeListener:function removeListener(fn,scope)
 		{
-			fns=(fns instanceof Array)?fns:[fns];
-			var rtn=[];
-			for(var i=0;i<fns.length;i++)
-			{
-				rtn.push(this.addListener(fns[i],type));
-			}
-			return rtn;
-		},
-		removeListener:function removeListener(fn)
-		{
+            //TODO remove fn from all scopes
 			var timesFound=0;
-			if(typeof fn=="string"&&fn.toLowerCase()=="all")
-			{
-				timesFound=this.listeners.length+this.listenOnce.length;
-				this.listeners.length=0;
-				this.listenOnce.length=0;
-			}
-			else
-			{
-				for(var i=0;i<this.listeners.length;i++)
-				{
-					if(this.listeners[i]==fn)
-					{
-						this.listeners.splice(i,1);
-						if(this.fireIndex!==null&&i<=this.fireIndex)
-						{
-							this.fireIndex--;
-						}
-						i--;
-						timesFound++;
-					}
-				}
-				for(var i=0;i<this.listenOnce.length;i++)
-				{
-					if(this.listenOnce[i]==fn)
-					{
-						this.listenOnce.splice(i,1);
-						i--;
-						timesFound++;
-					}
-				}
-			}
-			return timesFound;
+            var entry=this.listeners.get(scope);
+            if(entry)
+            {
+                if(typeof fn=="string"&&fn.toLowerCase()=="all")
+                {
+                    timesFound=entry.first.size+entry.normal.size+entry.last.size+entry.once.size;
+                    this.listeners.delete(scope);
+                }
+                else
+                {
+                    if(entry.first.delete(fn))
+                    {
+                        timesFound++;
+                    }
+                    if(entry.normal.delete(fn))
+                    {
+                        timesFound++;
+                    }
+                    if(entry.last.delete(fn))
+                    {
+                        timesFound++;
+                    }
+                    if(entry.once.delete(fn))
+                    {
+                        timesFound++;
+                    }
+                    if(entry.first.size===0&&entry.normal.size===0&&entry.last.size===0&&entry.once.size===0)
+                    {
+                        this.listeners.delete(scope);
+                    }
+                }
+                return timesFound;
+            }
+            return null;
 		},
-		removeListeners:function removeListeners(fns)
+		removeListeners:function removeListeners(fns,scope)
 		{
-			fns=(fns instanceof Array)?fns:[fns];
+			fns=[].concat(fns);
 			var rtn=[];
 			for(var i=0;i<fns.length;i++)
 			{
-				rtn.push(this.removeListener(fns[i]));
+				rtn.push(this.removeListener(fns[i]),scope);
 			}
 			return rtn;
 		},
-		fire:function fire(scope,event)
+		fire:function fire(source,event)
 		{
 			event=event||{};
-			event.source=scope;
+			event.source=source;
 			if(!this.disabled)
 			{
-				var oldFireIndex=this.fireIndex;
-				this.fireIndex=0;
 				var run=true;
-				while(run&&this.fireIndex<this.listeners.length)
-				{
-					run=false!==this.listeners[this.fireIndex++].call(scope,event);
-				}
-				if(oldFireIndex)
-				{
-					this.fireIndex=oldFireIndex;
-				}
-				else
-				{
-					this.fireIndex=null;
-				}
-				while(this.listenOnce.length>0)
-				{
-					this.listenOnce.shift().call(scope,event);
-				}
+                for(var [scope,entry] of this.listeners)
+                {
+                    var it=entry.first.values();
+                    var step=undefined;
+                    var value=undefined;
+                    while(run&&(step=it.next(),value=step.value,!step.done))
+                    {
+                        if(typeof value==="string")
+                        {
+                            value=scope[value];
+                        }
+                        run=false!==value.call(scope,event);
+                    }
+                    it=entry.normal.values();
+                    while(run&&(step=it.next(),value=step.value,!step.done))
+                    {
+                        if(typeof value==="string")
+                        {
+                            value=scope[value];
+                        }
+                        run=false!==value.call(scope,event);
+                    }
+                    it=entry.last.values();
+                    while(run&&(step=it.next(),value=step.value,!step.done))
+                    {
+                        if(typeof value==="string")
+                        {
+                            value=scope[value];
+                        }
+                        run=false!==value.call(scope,event);
+                    }
+                    it=entry.once.values();
+                    while((step=it.next(),value=step.value,!step.done))
+                    {
+                        if(typeof value==="string")
+                        {
+                            value=scope[value];
+                        }
+                        false!==value.call(scope,event);
+                    }
+                    entry.once.clear();
+                    if(entry.first.size===0&&entry.normal.size===0&&entry.last.size===0)
+                    {
+                        this.listeners.delete(scope);
+                    }
+                }
 				return run;
 			}
 			return null;
@@ -475,32 +518,35 @@
 			this.superInit(LISTENER);
 			this.state=param.state===true;
 			this.stateDisabled=false;
-			this.lastArgs=null;
+			this.lastEvent=null;
 		},
 		setDisabled:function setDisabled(bool){this.stateDisabled=bool===true;},
 		isDisabled:function isDisabled(){return this.stateDisabled;},
-		setState:function setState(/*scope,event*/)
+		setState:function setState(source,event)
 		{
+            event=event||{};
+            event.source=source;
+
 			this.state=true;
-			this.lastArgs=arguments;
+			this.lastEvent=event;
 
 			var rtn=false;
 			if(!this.stateDisabled)
 			{
 				this.disabled=false;
-				rtn=this.fire.apply(this,this.lastArgs);
+				rtn=this.fire.apply(this,this.lastEvent);
 				this.disabled=true
 			}
 			return rtn;
 		},
 		resetState:function resetState(){this.state=false;},
 		getState:function getState(){return this.state},
-		addListener:function addListener(fn,type)
+		addListener:function addListener(fn,scope,type)
 		{
 			var doFire=this.state&&!this.stateDisabled;
 			if(doFire)
 			{
-				fn.apply(this.lastArgs[0],Array.prototype.slice.call(this.lastArgs,1));
+				fn.apply(scope,this.lastEvent);
 			}
 			if(!(doFire&&typeof type=="string"&&type.toLowerCase()=="once"))
 			{
@@ -527,7 +573,7 @@
 			this.listeners={};
 			this.createListener(".created");
 		},
-		createListener:function createListener(types/*,functions...*/)
+		createListener:function createListener(types,scope/*,functions...*/)
 		{
 			var typeArr=types.split(this.rNames);
 			var fnarr=[].slice.call(arguments,1);
@@ -545,41 +591,41 @@
 						this.listeners[name_type[0]]=new LISTENER({});	
 					}
 				}
-				this.listeners[name_type[0]].addListeners(fnarr,name_type[1]);
+				this.listeners[name_type[0]].addListeners(fnarr,scope,name_type[1]);
 			}
 		},
-		addListener:function addListener(types/*,functions...*/)
+		addListener:function addListener(types,scope/*,functions...*/)
 		{
 			var typeArr=types.split(this.rNames);
-			var fnarr=[].slice.call(arguments,1);
+			var fnarr=[].slice.call(arguments,2);
 			for(var i=0;i<typeArr.length;i++)
 			{
 				var name_type=typeArr[i].split(this.rNameopt);
 				if(this.listeners[name_type[0]]!==undefined)
 				{
-					this.listeners[name_type[0]].addListeners(fnarr,name_type[1]);
+					this.listeners[name_type[0]].addListeners(fnarr,scope,name_type[1]);
 				}
 			}
 		},
-		removeListener:function removeListener(names/*,functions...*/)
+		removeListener:function removeListener(names,scope/*,functions...*/)
 		{
 			if(names.toLowerCase()=="all")
 			{
 				for(var i in this.listeners)
 				{
-					this.listeners[i].removeListeners(names);
+					this.listeners[i].removeListeners(names,scope);
 				}
 			}
 			else
 			{
 				var nameArr=names.split(this.rNames);
-				var fnarr=[].slice.call(arguments,1);
+				var fnarr=[].slice.call(arguments,2);
 				for(var i=0;i<nameArr.length;i++)
 				{
 					var name=nameArr[i];
 					if(this.listeners[name]!==undefined)
 					{
-						this.listeners[name].removeListeners(fnarr);
+						this.listeners[name].removeListeners(fnarr,scope);
 					}
 				}
 			}
@@ -733,7 +779,7 @@
 				instance.patches[this.patchID]=this;
 				if(instance.listeners!=null)
 				{
-					this.instance.addListener(".created",µ.bind(this.patch,this,param,false));
+					this.instance.addListener(".created:once",this.patch,µ.bind(this.patch,this,param,false));
 				}
 				else
 				{
