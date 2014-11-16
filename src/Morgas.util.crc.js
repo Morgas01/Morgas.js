@@ -1,11 +1,5 @@
 (function(µ,SMOD,GMOD){
-	 /**
-	 * Depends on	: Morgas
-	 * Uses			: 
-	 *
-	 * creates crc32 checksum
-	 *
-	 */
+	
 	var util=µ.util=µ.util||{};
 	
 	var that=util.crc32=function(str)

@@ -1,5 +1,5 @@
 ﻿(function MorgasInit(oldµ){
-	Morgas={version:"0.2"};
+	Morgas={version:"0.3"};
 	µ=Morgas;
 	/**
 	 * revert "µ" to its old value
@@ -8,6 +8,15 @@
 	{
 		return µ=oldµ;
 	};
+	
+	µ.constantFunctions={
+			"ndef":function(){return undefined},
+			"nul":function(){return null},
+			"f":function(){return false},
+			"t":function(){return true;},
+			"zero":function(){return 0;},
+			"boolean":function(val){return !!val}
+		};
 
 	/** Modules
 	 *	Every class and utility function should define a Module, which can
@@ -37,127 +46,7 @@
 			return modules[key];
 		};
 	})();
-	var SMOD=µ.setModule,GMOD=µ.getModule;
-	
-	/**
-	 * 
-	 */
-	µ.constantFunctions={
-		"ndef":function(){return undefined},
-		"nul":function(){return null},
-		"f":function(){return false},
-		"t":function(){return true;},
-		"zero":function(){return 0;},
-		"boolean":function(val){return !!val}
-	};
-	
-	/** bind
-	 * For more compatibility redefine the module.
-	 * For more flexibility consider Callback
-	 */
-	µ.bind=Function.bind.call.bind(Function.bind);
-	SMOD("bind",µ.bind);
-	
-	/** rescope
-	 * faster than bind but only changes the scope.
-	 */
-	µ.rescope=function(fn,scope)
-	{
-		return function()
-		{
-			return fn.apply(scope,arguments);
-		}
-	};
-	µ.rescope.all=function(keys,scope)
-	{	
-		keys=keys||Object.keys(scope);
-		for(var i=0;i<keys.length;i++)
-		{
-			scope[keys[i]]=µ.rescope(scope[keys[i]],scope);
-		}
-	};
-	SMOD("rescope",µ.rescope);
-	
-	/** proxy
-	 * proxy methods from source to target.
-	 */
-	µ.proxy=function(source,listOrMapping,target)
-	{
-		var isKey=false,
-		isGetter=false;
-		switch(typeof source)
-		{
-			case "string":
-				isKey=true;
-				break;
-			case "function":
-				isGetter=true;
-				break;
-		}
-		GMOD("iterate")(listOrMapping,function(value,index,isObject)
-		{
-			var sKey=(isObject?index:value),
-			tKey=value,
-			fn=null;
-			if(isKey)
-			{
-				fn=function(){return this[source][sKey].apply(this[source],arguments)};
-			}
-			else if (isGetter)
-			{
-				fn=function(){return source.call(this)[sKey].apply(source,arguments);};
-			}
-			else
-			{
-				fn=function(){return source[sKey].apply(source,arguments)};
-			}
-			target[tKey]=fn;
-		});
-	};
-	SMOD("proxy",µ.proxy);
-	
-	/** shortcut
-	 * creates an object that will evaluate its values defined in {map} on its first call.
-	 * when {context} is provided and {map.value} is not a function it will treated as a path from {context}
-	 *
-	 * uses goPath
-	 *
-	 * map:	{key:("moduleOrPath",function)}
-	 * context: any (optional)
-	 * target: {} (optional)
-	 *
-	 * returns {key:value}
-	 */
-	µ.shortcut=function(map,context,target)
-	{
-		if(!target)
-		{
-			target={};
-		}
-		for(var m in map){(function(path,key)
-		{
-			var value=null;
-			Object.defineProperty(target,key,{
-				configurable:false,
-				enumerable:true,
-				get:function()
-				{
-					if(value==null)
-					{
-						if(typeof path=="function")
-							value=path(context);
-						else if(context)
-							value=GMOD("goPath")(context,path);
-						else
-							value=GMOD(path);
-					}
-					return value;
-				}
-			});
-		})(map[m],m)}
-		return target;
-	};
-	SMOD("shortcut",µ.shortcut);
+	var SMOD=µ.setModule,GMOD=µ.getModule,HMOD=µ.hasModule;
 	
 	/**
 	 * Debug message if it's verbose is >= the current verbose.
@@ -174,7 +63,7 @@
 		{
 			verbose=0;
 		}
-		if(µ.debug.verbose>=verbose)
+		if(µ.debug.verbose!==false&&µ.debug.verbose>=verbose)
 		{
 			if(typeof msg == "function")
 				msg=msg();
@@ -184,7 +73,14 @@
 	};
 	SMOD("debug",µ.debug);
 	
-	µ.debug.verbose=1;//false:off 0:error 1:warning 2:info 3:debug
+	µ.debug.LEVEL={
+		OFF:false,
+		ERROR:0,
+		WARNING:1,
+		INFO:2,
+		DEBUG:3
+	};
+	µ.debug.verbose=µ.debug.LEVEL.WARNING;
 	µ.getDebug=function(debug){µ.debug.verbose=debug};
 	µ.setDebug=function(debug){µ.debug.verbose=debug};
 	µ.debug.out=function(msg,verbose)
@@ -206,38 +102,50 @@
 		}
 	};
 	
-	/** Callback function
-	 * Creates a function that will call {callb} with {scope} as [this].
-	 * 
-	 * The passed arguments to {callb} are:
-	 * old scope, args..., arguments...
-	 * 
-	 * 
-	 * @param	callb* 		function to be called
-	 * @param	scope		[this] of called function
-	 * @param	args 		Array or Object to be passed
-	 * @param	sliceFrom	slice the standard arguments
-	 * @param	sliceTo		slice the standard arguments
-	 * 
-	 * @returns	function
+	/** shortcut
+	 * creates an object that will evaluate its values defined in {map} on its first call.
+	 * when {context} is provided and {map.value} is not a function it will treated as a path from {context}
+	 *
+	 * uses goPath
+	 *
+	 * map:	{key:("moduleOrPath",function)}
+	 * context: any (optional)
+	 * target: {} (optional)
+	 *
+	 * returns {key:value}
 	 */
-	µ.Callback=function callback(callb,scope,args,sliceFrom,sliceTo)
+	µ.shortcut=function(map,context,target)
 	{
-		if(!sliceFrom)
+		if(!target)
 		{
-			sliceFrom=0;
+			target={};
 		}
-		args=(args instanceof Array)?args:(args!==undefined)?[args]:[];
-		return function()
+		for(var m in map){(function(path,key)
 		{
-			callb.apply(scope,[].concat(this,args,args.slice.call(arguments,0)).slice(sliceFrom,sliceTo));
-		};
+			var value=undefined;
+			Object.defineProperty(target,key,{
+				configurable:false,
+				enumerable:true,
+				get:function()
+				{
+					if(value==null)
+					{
+						if(typeof path=="function")
+							value=path(context);
+						else if(context&&HMOD("goPath"))
+							value=GMOD("goPath")(context,path);
+						else if (HMOD(path))
+							value=GMOD(path);
+						else
+							GMOD("debug")("shortcut: could not evaluate "+path)
+					}
+					return value;
+				}
+			});
+		})(map[m],m)}
+		return target;
 	};
-	SMOD("Callback",µ.Callback);
-
-	var _EXTEND={},
-	//shortcuts
-	CLASS,BASE,LISTENER,STATELISTENER,LISTENERS,PATCH;
+	SMOD("shortcut",µ.shortcut);
 	
 	/** Class function
 	 * Designed to create JavaScript Classes
@@ -276,15 +184,14 @@
 	 *  @param	superClass	(optional)	default: µ.BaseClass
 	 *  @param	prototype	(optional)
 	 */
-	CLASS=µ.Class=function ClassFunc(superClass,prot)
+	var CLASS=µ.Class=function ClassFunc(superClass,prot)
 	{
 		var newClass = function ClassConstructor()
 		{
-			if(arguments[0]!==_EXTEND)
+			this.init.apply(this,arguments);
+			if(HMOD("Listeners")&&this instanceof GMOD("Listeners"))
 			{
-				this.init.apply(this,arguments);
-				if(this instanceof LISTENERS)
-					this.setState(".created");
+				this.setState(".created");
 			}
 		};
 
@@ -295,7 +202,7 @@
 		}
 		if(superClass)
 		{
-			newClass.prototype=new superClass(_EXTEND);
+			newClass.prototype=Object.create(superClass.prototype);
 			newClass.prototype.constructor=newClass;
 		}
 		for(var i in prot)
@@ -307,9 +214,9 @@
 	SMOD("Class",CLASS);
 	
 	/** Base Class
-	 *	allows to check of being a class ( instanceof µ.BaseClass )
+	 *	allows to check of being a class ( foo instanceof µ.BaseClass )
 	 */
-	BASE=µ.BaseClass=CLASS(
+	var BASE=µ.BaseClass=CLASS(
 	{
 		init:function baseInit(){},
 		superInit:function superInit(_class/*,arg1,arg2,...,argN*/)
@@ -322,492 +229,4 @@
 		}
 	});
 	SMOD("Base",BASE);
-	/**Listener Class
-	 * Holds Arrays of functions to fire or fire once when "fire" is called
-	 * When fired and a listening function returns false firing is aborted
-	 * When added a type can be passed:
-	 * 		"first" function gets prepended
-	 * 		"last" function gets appended (default)
-	 * 		"once" function is removed after call 
-	 * 			(will only be called when "normal" listeners haven't abort firing.
-	 * 			cant abort other "once" listening functions)
-	 *  
-	 * Can be disabled
-	*/
-	LISTENER=µ.Listener=µ.Class(BASE,
-	{
-		init:function ListenerInit()
-		{
-			this.superInit(BASE);
-			this.listeners=new Map(); //TODO use WeakMap when its capable of iterations
-			this.fireIndex=null;	//indicates if and which listener fired
-			this.disabled=false;
-		},
-		addListener:function addListener(fn,scope,type)
-		{
-            var fnType=typeof fn;
-			if(fnType==="function"||fnType==="string")
-			{
-                scope=scope||this;
-                var entry=null;
-                if(this.listeners.has(scope))
-                {
-                    entry=this.listeners.get(scope);
-                    if(entry.first.has(fn)!==-1||entry.normal.has(fn)!==-1||entry.last.has(fn)!==-1||entry.once.has(fn)!==-1)
-                    {
-                        return null;//already listens
-                    }
-                }
-                else
-                {
-                    entry={first:new Set(),normal:new Set(),last:new Set(),once:new Set()};
-                    this.listeners.set(scope,entry);
-                }
-				if(type)
-				{
-					type=type.toLowerCase();
-				}
-				switch(type)
-				{
-					case "first":
-						entry.first.add(fn);
-						break;
-                    default:
-                        entry.normal.add(fn);
-                        break;
-					case "last":
-						entry.last.add(fn);
-						break;
-					case "once":
-						entry.once.add(fn);
-                        break;
-				}
-				return fn;
-			}
-			return null;//no function
-		},
-        addListeners:function addListeners(fns,scope,type)
-        {
-            fns=[].concat(fns);
-            var rtn=[];
-            for(var i=0;i<fns.length;i++)
-            {
-                rtn.push(this.addListener(fns[i],scope,type));
-            }
-            return rtn;
-        },
-		removeListener:function removeListener(fn,scope)
-		{
-            //TODO remove fn from all scopes
-			var timesFound=0;
-            var entry=this.listeners.get(scope);
-            if(entry)
-            {
-                if(typeof fn=="string"&&fn.toLowerCase()=="all")
-                {
-                    timesFound=entry.first.size+entry.normal.size+entry.last.size+entry.once.size;
-                    this.listeners.delete(scope);
-                }
-                else
-                {
-                    if(entry.first.delete(fn))
-                    {
-                        timesFound++;
-                    }
-                    if(entry.normal.delete(fn))
-                    {
-                        timesFound++;
-                    }
-                    if(entry.last.delete(fn))
-                    {
-                        timesFound++;
-                    }
-                    if(entry.once.delete(fn))
-                    {
-                        timesFound++;
-                    }
-                    if(entry.first.size===0&&entry.normal.size===0&&entry.last.size===0&&entry.once.size===0)
-                    {
-                        this.listeners.delete(scope);
-                    }
-                }
-                return timesFound;
-            }
-            return null;
-		},
-		removeListeners:function removeListeners(fns,scope)
-		{
-			fns=[].concat(fns);
-			var rtn=[];
-			for(var i=0;i<fns.length;i++)
-			{
-				rtn.push(this.removeListener(fns[i]),scope);
-			}
-			return rtn;
-		},
-		fire:function fire(source,event)
-		{
-			event=event||{};
-			event.source=source;
-			if(!this.disabled)
-			{
-				var run=true;
-                for(var [scope,entry] of this.listeners)
-                {
-                    var it=entry.first.values();
-                    var step=undefined;
-                    var value=undefined;
-                    while(run&&(step=it.next(),value=step.value,!step.done))
-                    {
-                        if(typeof value==="string")
-                        {
-                            value=scope[value];
-                        }
-                        run=false!==value.call(scope,event);
-                    }
-                    it=entry.normal.values();
-                    while(run&&(step=it.next(),value=step.value,!step.done))
-                    {
-                        if(typeof value==="string")
-                        {
-                            value=scope[value];
-                        }
-                        run=false!==value.call(scope,event);
-                    }
-                    it=entry.last.values();
-                    while(run&&(step=it.next(),value=step.value,!step.done))
-                    {
-                        if(typeof value==="string")
-                        {
-                            value=scope[value];
-                        }
-                        run=false!==value.call(scope,event);
-                    }
-                    it=entry.once.values();
-                    while((step=it.next(),value=step.value,!step.done))
-                    {
-                        if(typeof value==="string")
-                        {
-                            value=scope[value];
-                        }
-                        false!==value.call(scope,event);
-                    }
-                    entry.once.clear();
-                    if(entry.first.size===0&&entry.normal.size===0&&entry.last.size===0)
-                    {
-                        this.listeners.delete(scope);
-                    }
-                }
-				return run;
-			}
-			return null;
-		},
-		setDisabled:function setDisabled(bool){this.disabled=bool===true;},
-		isDisabled:function isDisabled(){return this.disabled;}
-	});
-	SMOD("Listener",LISTENER);
-	/** StateListener Class
-	 * Listener that fires only when "setState" is called
-	 * When state is set it fires added listening functions with last arguments immediately
-	 * reset trough "resetState";
-	 */
-	STATELISTENER=LISTENER.StateListener=CLASS(LISTENER,
-	{
-		init:function StateListenerInit(param)
-		{
-			this.superInit(LISTENER);
-			this.state=param.state===true;
-			this.stateDisabled=false;
-			this.lastEvent=null;
-		},
-		setDisabled:function setDisabled(bool){this.stateDisabled=bool===true;},
-		isDisabled:function isDisabled(){return this.stateDisabled;},
-		setState:function setState(source,event)
-		{
-            event=event||{};
-            event.source=source;
-
-			this.state=true;
-			this.lastEvent=event;
-
-			var rtn=false;
-			if(!this.stateDisabled)
-			{
-				this.disabled=false;
-				rtn=this.fire.apply(this,this.lastEvent);
-				this.disabled=true
-			}
-			return rtn;
-		},
-		resetState:function resetState(){this.state=false;},
-		getState:function getState(){return this.state},
-		addListener:function addListener(fn,scope,type)
-		{
-			var doFire=this.state&&!this.stateDisabled;
-			if(doFire)
-			{
-				fn.apply(scope,this.lastEvent);
-			}
-			if(!(doFire&&typeof type=="string"&&type.toLowerCase()=="once"))
-			{
-				return LISTENER.prototype.addListener.apply(this,arguments);
-			}
-			return null;
-		}
-	});
-	SMOD("StateListener",STATELISTENER);
-	/** Listeners Class
-	 * Manages several Listener instances
-	 * provides a "createListener" function:
-	 * 		prefix "." indicates a StateListener
-	 * 	when adding a listening function the type
-	 * 	can be passed followed after the name separated by ":" 
-	 */
-	LISTENERS=µ.Listeners=CLASS(BASE,
-	{
-		rNames:/[\s|,]+/,
-		rNameopt:":",
-		init:function ListenersInit()
-		{
-			this.superInit(BASE);
-			this.listeners={};
-			this.createListener(".created");
-		},
-		createListener:function createListener(types,scope/*,functions...*/)
-		{
-			var typeArr=types.split(this.rNames);
-			var fnarr=[].slice.call(arguments,1);
-			for(var i=0;i<typeArr.length;i++)
-			{
-				var name_type=typeArr[i].split(this.rNameopt);
-				if(this.listeners[name_type[0]]==null)
-				{
-					if(name_type[0][0]=='.')
-					{
-						this.listeners[name_type[0]]=new STATELISTENER({});
-					}
-					else
-					{
-						this.listeners[name_type[0]]=new LISTENER({});	
-					}
-				}
-				this.listeners[name_type[0]].addListeners(fnarr,scope,name_type[1]);
-			}
-		},
-		addListener:function addListener(types,scope/*,functions...*/)
-		{
-			var typeArr=types.split(this.rNames);
-			var fnarr=[].slice.call(arguments,2);
-			for(var i=0;i<typeArr.length;i++)
-			{
-				var name_type=typeArr[i].split(this.rNameopt);
-				if(this.listeners[name_type[0]]!==undefined)
-				{
-					this.listeners[name_type[0]].addListeners(fnarr,scope,name_type[1]);
-				}
-			}
-		},
-		removeListener:function removeListener(names,scope/*,functions...*/)
-		{
-			if(names.toLowerCase()=="all")
-			{
-				for(var i in this.listeners)
-				{
-					this.listeners[i].removeListeners(names,scope);
-				}
-			}
-			else
-			{
-				var nameArr=names.split(this.rNames);
-				var fnarr=[].slice.call(arguments,2);
-				for(var i=0;i<nameArr.length;i++)
-				{
-					var name=nameArr[i];
-					if(this.listeners[name]!==undefined)
-					{
-						this.listeners[name].removeListeners(fnarr,scope);
-					}
-				}
-			}
-		},
-		fire:function fire(name,event)
-		{
-			event=event||{};
-			event.type=name;
-			if(this.listeners[name])
-			{
-				return this.listeners[name].fire(this,event);
-			}
-			return undefined
-		},
-		setDisabled:function setDisabled(names,bool)
-		{
-			var nameArr=names.split(this.rNames);
-			for(var i=0;i<nameArr.length;i++)
-			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null)
-					lstnr.setDisabled(bool);
-			}
-		},
-		isDisabled:function isDisabled(names)
-		{
-			var rtn=true;
-			var nameArr=names.split(this.rNames);
-			for(var i=0;rtn&&i<nameArr.length;i++)
-			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null)
-					rtn&=lstnr.isDisabled();
-			}
-			return rtn;
-		},
-		setState:function setState(name,event)
-		{
-			event=event||{};
-			event.type=name;
-			var lstnr=this.listeners[name];
-			if (lstnr&&lstnr instanceof STATELISTENER)
-			{
-				return lstnr.setState(this,event);
-			}
-			return undefined;
-		},
-		resetState:function resetState(names)
-		{
-			var nameArr=names.split(this.rNames);
-			for(var i=0;i<nameArr.length;i++)
-			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null&&lstnr instanceof STATELISTENER)
-					lstnr.resetState();
-			}
-		},
-		getState:function getState(names)
-		{
-			var rtn=true;
-			var nameArr=names.split(this.rNames);
-			for(var i=0;rtn&&i<nameArr.length;i++)
-			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null&&lstnr instanceof STATELISTENER)
-					rtn&=lstnr.getState();
-			}
-			return rtn
-		}
-	});
-	SMOD("Listeners",LISTENERS);
-	LISTENERS.attachListeners=function attachListeners(instance)
-	{
-		for(var i in LISTENERS.prototype)
-		{
-			if (i!="init"&&i!="constructor"&&i!="superInit"&&i!="superInitApply")
-				instance[i]=LISTENERS.prototype[i];
-		}
-		LISTENERS.prototype.init.call(instance);
-		instance.setState(".created");
-	};
-	SMOD("attachListeners",LISTENERS.attachListeners);
-	/**Patch Class
-	 * Adds functionality to an instance
-	 * 
-	 * Patches add themself in a the "patches" map of the instance with their patchID
-	 * The core patch adds the "patches" map and the functions "hasPatch" and "getPatch"
-	 * 
-	 * Normaly a Patch does not add functions direct to the instance but uses listeners
-	 * 
-	 * 
-	 * To create a new patch do sth. like this
-	 * 
-	 * var myPatch=µ.Class(µ.patch,
-	 * {
-	 * 		patchID:"myPatchID",
-	 * 		patch:function(param,noListeners)
-	 * 		{
-	 * 			this.superPatch(µ.patch);//call super.patch // in case of µ.Patch its not necessary 
-	 * 			//your constructor after instance is created
-	 * 		}
-	 * }
-	 * 
-	 * The "patch" function is called on the create event (when the constructor of the instance is finished)
-	 * If the instance has no listeners, "noListeners" is true and "patch" was called immediately
-	 * 
-	 * If you want to override the init function do it like this:
-	 * 
-	 * var myPatch=µ.Class(mySuperPatch,
-	 * {
-	 * 		patchID:"myPatchID",
-	 * 		init:function(instance,param)
-	 * 		{
-	 * 			//call constructor of superclass
-	 * 			this.superInit(mySuperPatch,instance,param);
-	 * 			//or this.superInitApply(mySuperPatch,arguments);
-	 * 
-	 * 			if(this.instance!=null)
-	 * 			{
-	 * 				//your constructor
-	 * 				//post patch:  this.instance.addListener("created",function(param,noListeners){}) 
-	 * 			}
-	 * 		},
-	 * 		patch:function(param,noListeners)
-	 * 		{
-	 * 			this.superPatch(mySuperPatch,param,noListeners);
-	 * 			//post constructor
-	 * 		}
-	 * }  
-	 */
-	PATCH=µ.Patch=CLASS(BASE,
-	{
-		init:function Patchinit(instance,param)
-		{
-			this.superInit(BASE);
-			if(instance.patches==null)
-			{
-				instance.patches={};
-				instance.hasPatch=function(patch)
-				{
-					return this.getPatch(patch)!==undefined;
-				};
-				instance.getPatch=function(patch)
-				{
-					return this.patches[patch.patchID||patch.prototype.patchID];
-				};
-			}
-			if(!instance.hasPatch(this))
-			{
-				this.instance=instance;
-				instance.patches[this.patchID]=this;
-				if(instance.listeners!=null)
-				{
-					this.instance.addListener(".created:once",this.patch,µ.bind(this.patch,this,param,false));
-				}
-				else
-				{
-					this.patch(param,true);
-				}
-			}
-		},
-		patch:function patch(param,noListeners){},
-		superPatch:function superPatch(_class/*,arg1,arg2,...,argN*/)
-		{
-			_class.prototype.patch.apply(this,[].slice.call(arguments,1));
-		},
-		superPatchApply:function superPatchApply(_class,args)
-		{
-			this.superPatch.apply(this,[_class].concat([].slice.call(args)));
-		}
-	});
-	SMOD("Patch",PATCH);
-	PATCH.hasPatch=function(instance, patch)
-	{
-		if(instance.hasPatch)
-			return instance.hasPatch(patch);
-		return false;
-	};
-	PATCH.getPatch=function(instance, patch)
-	{
-		if(instance.getPatch)
-			return instance.getPatch(patch);
-		return null;
-	};
 })(window.µ);

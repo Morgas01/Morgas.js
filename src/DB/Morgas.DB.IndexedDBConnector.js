@@ -9,7 +9,6 @@
 	var DBC=GMOD("DBConn"),
 	SC=GMOD("shortcut")({
 		det:"Detached",
-		unique:"uniquify",
 		it:"iterate",
 		eq:"equals",
 		find:"find",
@@ -178,7 +177,7 @@
 					}
 
 					var store = trans.objectStore(objectType);
-					req=store.openCursor();
+					var req=store.openCursor();
 					req.onerror=function(event)
 					{
 						µ.debug(event,0);

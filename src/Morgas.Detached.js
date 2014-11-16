@@ -79,7 +79,7 @@
 			},
 			function()
 			{
-				this.args=arguments;
+				_self.args=arguments;
 				_self.status=-1;
 				while(_self.onError.length>0)
 				{
@@ -159,7 +159,7 @@
 				}
 				catch(e)
 				{
-					µ.debug(e,1);
+					SC.debug(e,1);
 					this.error(e);
 				}
 			})

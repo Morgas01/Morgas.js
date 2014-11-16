@@ -36,21 +36,6 @@
 			this.children=[];
 			
 			aliasMap=aliasMap||{};
-			/*
-			this.aliasMap={
-				parent:aliasMap.parent||"parent",
-				children:aliasMap.children||"children",
-				addChild:aliasMap.addChild||"addChild",
-				removeChild:aliasMap.removeChild||"removeChild",
-				remove:aliasMap.remove||"remove",
-				setParent:aliasMap.setParent||"setParent",
-				hasChild:aliasMap.hasChild||"hasChild"
-			};
-			
-			for(var i in this.aliasMap)
-			{
-				setAlias(this,i,this.aliasMap[i]);
-			}*/
 			this.aliasMap={};
 			var aliasTargets=["parent","children","addChild","removeChild","remove","setParent","hasChild"];
 			for (var i = 0; i < aliasTargets.length; i++)
@@ -151,7 +136,7 @@
 		remove:"remove",
 		setParent:"setParent",
 		hasChild:"hasChild"
-	}
+	};
 	NODE.Basic=µ.Class({
 		init:function(aliasMap)
 		{

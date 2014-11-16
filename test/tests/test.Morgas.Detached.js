@@ -59,10 +59,10 @@
 	{
 		new DET(function()
 		{
-			this.error();
-		}).error(function()
+			this.error("reason");
+		}).error(function(err)
 		{
-			ok(true);
+			strictEqual(err,"reason","error called");
 			start();
 			this.complete();
 		});
@@ -71,10 +71,10 @@
 	{	
 		new DET(function()
 		{
-			throw("test");
-		}).error(function()
+			throw("reason");
+		}).error(function(err)
 		{
-			ok(true,"error thrown");
+			strictEqual(err,"reason","error thrown");
 			start();
 			this.complete();
 		});
