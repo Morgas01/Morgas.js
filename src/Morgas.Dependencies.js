@@ -13,7 +13,7 @@
         	uses:["Morgas.util.object.iterate.js"]
         },
         "Morgas.DependencyResolver.js":"Morgas.js",
-        "Morgas.NodePatch.js":["Morgas.js","Morgas.Patch.js"],
+        "Morgas.NodePatch.js":{deps:["Morgas.js","Morgas.Patch.js"],uses:["Morgas.util.function.proxy.js"]},
         "Morgas.util.object.goPath.js":"Morgas.js",
         "Morgas.util.object.equals.js":"Morgas.js",
         "Morgas.util.object.find.js":{

@@ -1,107 +1,138 @@
 (function(µ,SMOD,GMOD){
-	
+
+    var Patch=GMOD("Patch");
 	var SC=GMOD("shortcut")({
-		rs:"rescope",
-		Patch:"Patch"
+		p:"proxy",
+        d:"debug"
 	});
-	
-	var setAlias=function(node,target,alias)
-	{
-		if(typeof node[target]!=="function")
-		{
-			Object.defineProperty(node.instance,alias,{
-				get:function()
-				{
-					return node[target];
-				},
-				set:function(arg)
-				{
-					node[target]=arg;
-				}
-			})
-		}
-		else
-		{
-			node.instance[alias]=node[target];
-		}
-	}
-	
-	var NODE=µ.NodePatch=µ.Class(SC.Patch,{
+
+	var NODE=µ.NodePatch=µ.Class(Patch,{
 		patchID:"NodePatch",
 		patch:function(aliasMap)
 		{
-			SC.rs.all(["addChild","removeChild","remove","setParent","hasChild"],this);
 
 			this.parent=null;
 			this.children=[];
-			
+
 			aliasMap=aliasMap||{};
-			this.aliasMap={};
-			var aliasTargets=["parent","children","addChild","removeChild","remove","setParent","hasChild"];
-			for (var i = 0; i < aliasTargets.length; i++)
+            this.aliasMap={};
+            var proxyMap={};
+			for (var i=0;i<NODE.Aliases.length;i++)
 			{
-				var target=aliasTargets[i];
-				var alias=aliasMap[aliasTargets[i]];
-				if(alias)
-				{
-					setAlias(this,target,alias);
-					this.aliasMap[target]=alias;
-				}
+                var target=NODE.Aliases[i];
+                if(target in aliasMap)
+                {
+                    this.aliasMap[target]=aliasMap[target];
+                    if(this.instance[this.aliasMap[target]]===undefined)
+                    {
+                        proxyMap[target]=this.aliasMap[target];
+                    }
+                }
+			}
+            SC.p(getNode,proxyMap,this.instance);
+
+			for (var i=0;i<NODE.Symbols.length;i++)
+			{
+                var symbol=NODE.Symbols[i];
+                if(symbol in aliasMap)
+                {
+                    setSymbol(this,symbol,aliasMap[symbol])
+                }
 			}
 		},
-		getAliasMap:function()
+		addChild:function(child,index)
 		{
-			var rtn={},
-			keys=Object.keys(this.aliasMap);
-			for(var i=0;i<keys.length;i++)
+			var childPatch=getNode(child),alias;
+            var childIndex=this.children.indexOf(child);
+			if(childIndex===-1)
 			{
-				rtn[i]=this.aliasMap[i];
-			}
-			return rtn;
-		},addChild:function(child,index)
-		{
-			var childPatch=SC.Patch.getPatch(child,NODE);
-			if(this.children.indexOf(child)===-1)
-			{
-				if(child.parent!==null&&child.parent!==this.instance)
+				if(childPatch.parent!==null&&childPatch.parent!==this.instance)
 				{
-					childPatch.remove();
+                    alias=childPatch.aliasMap.remove;
+                    if(alias)
+                    {
+                        if(!child[alias]())
+                        {//won't let go of parent
+                            SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
+                            return false;
+                        }
+                    }
+                    else
+                    {
+					    childPatch.remove();
+                    }
 				}
-				
 				if(index!==undefined)
 				{
 					this.children.splice(index,0,child);
 				}
 				else
 				{
+                    index=this.children.length;
 					this.children.push(child);
 				}
 			}
-			if(child.parent!==this.instance)
+            else
+            {
+                index=childIndex;
+            }
+			if(childPatch.parent!==this.instance)
 			{
-				childPatch.setParent(this.instance);
+                alias=childPatch.aliasMap.setParent;
+                if(alias)
+                {
+                    if(!child[alias](this.instance))
+                    {//won't attach to me
+                        SC.d(["rejected to set parent",this.instance," of child ",child],SC.d.LEVEL.INFO);
+                        this.children.splice(index,1);
+                        return false;
+                    }
+                }
+                else
+                {
+                    childPatch.setParent(this.instance);
+                }
 			}
+            return true;
 		},
 		removeChild:function(child)
 		{
 			var index=this.children.indexOf(child);
 			if(index!==-1)
 			{
-				var childPatch=SC.Patch.getPatch(child,NODE);
+				var childPatch=getNode(child),alias=childPatch.aliasMap.setParent;
 				this.children.splice(index, 1);
-				childPatch.setParent(null);
-				return true;
+                if(alias)
+                {
+                    if(!child[alias](null))
+                    {//won't let go of me
+                        SC.d(["rejected remove child ",child," from parent ",this.instance],SC.d.LEVEL.INFO);
+                        this.children.splice(index,0,child);
+                        return false;
+                    }
+                }
+                else
+                {
+				    childPatch.setParent(null);
+                }
 			}
-			return false;
+			return true;
 		},
 		remove:function()
 		{
 			if(this.parent!==null)
 			{
-				var parentPatch=SC.Patch.getPatch(this.parent,NODE);
-				return parentPatch.removeChild(this.instance);
+				var parentPatch=getNode(this.parent),alias=parentPatch.aliasMap.removeChild;
+                if(alias)
+                {
+				    return this.parent[alias](this.instance);
+                }
+                else
+                {
+                    return parentPatch.removeChild(this.instance);
+                }
 			}
-			return false;
+			return true;
 		},
 		setParent:function(parent)
 		{
@@ -109,40 +140,76 @@
 			{
 				if(this.parent!==null)
 				{
-					this.remove();
+                    var oldParent=this.parent;
+                    var oldParentPatch=getNode(oldParent);
+                    this.parent=null;
+                    var alias=oldParentPatch.aliasMap.removeChild;
+                    if(alias)
+                    {
+                        if(!oldParent[alias](this.instance))
+                        {//I won't attach to that
+                            this.parent=oldParent;
+                            SC.d(["rejected to remove child ",this.instance," from old parent ",this.parent],SC.d.LEVEL.INFO);
+                            return false;
+                        }
+                    }
+                    else
+                    {
+					    oldParentPatch.removeChild(this.instance);
+                    }
 				}
-				this.parent=parent||null;
+                this.parent=parent||null;
 			}
 			if(this.parent)
 			{
-				var parentPatch=SC.Patch.getPatch(parent,NODE);
+				var parentPatch=getNode(parent),alias=parentPatch.aliasMap.addChild;
 				if(parentPatch.children.indexOf(this.instance)===-1)
 				{
-					parentPatch.addChild(this.instance);
+                    if(alias)
+                    {
+                        if(!this.parent[alias](this.instance))
+                        {//won't accept me
+                            SC.d(["rejected to add child ",this.instance," to parent ",parent],SC.d.LEVEL.INFO);
+                            this.parent=null;
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        parentPatch.addChild(this.instance);
+                    }
 				}
 			}
-			
+            return true;
+
 		},
 		hasChild:function(child)
 		{
 			return this.children.indexOf(child)!==-1;
-		}
+		},
+        isChildOf:function(parent)
+        {
+            var parentPatch=getNode(parent);
+            return parent&&parent.hasChild(this.instance);
+        }
 	});
-	NODE.BasicAliases={
-		parent:"parent",
-		children:"children",
-		addChild:"addChild",
-		removeChild:"removeChild",
-		remove:"remove",
-		setParent:"setParent",
-		hasChild:"hasChild"
-	};
+	NODE.Aliases=["addChild","removeChild","remove","setParent","hasChild"];
+    NODE.Symbols=["parent","children"];
+    NODE.BasicAliases={
+        parent:"parent",
+        children:"children",
+        addChild:"addChild",
+        removeChild:"removeChild",
+        remove:"remove",
+        setParent:"setParent",
+        hasChild:"hasChild"
+    };
 	NODE.Basic=µ.Class({
 		init:function(aliasMap)
 		{
 			aliasMap=aliasMap||{};
 			var map={};
-			for(var i=0,targets=Object.keys(NODE.BasicAliases),target=targets[i]; i<targets.length; target=targets[++i])
+            for(var i=0,targets=Object.keys(NODE.BasicAliases),target=targets[i]; i<targets.length; target=targets[++i])
 			{
 				var alias=aliasMap[target];
 				if(alias===undefined)
@@ -160,16 +227,37 @@
 	
 	var getNode=function(obj)
 	{
-		if(obj)
-		{
-			if(obj instanceof NODE)
-			{
-				return obj;
-			}
-			return SC.Patch.getPatch(obj,NODE);
-		}
-		return null;
+        if(typeof obj==="string")
+        {//used as proxy getter
+            obj=this
+        }
+        if(obj instanceof NODE)
+        {
+            return obj;
+        }
+        return Patch.getPatch(obj,NODE);
 	};
+
+    var setSymbol=function(node,symbol,alias)
+    {
+        if(typeof node[symbol]!=="function")
+        {
+            Object.defineProperty(node.instance,alias,{
+                get:function()
+                {
+                    return node[symbol];
+                },
+                set:function(arg)
+                {
+                    node[symbol]=arg;
+                }
+            })
+        }
+        else
+        {
+            node.instance[alias]=node[symbol];
+        }
+    };
 	
 	SMOD("NodePatch",NODE);
 })(Morgas,Morgas.setModule,Morgas.getModule);

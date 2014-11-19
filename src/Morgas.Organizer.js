@@ -30,9 +30,9 @@
 				this.group(groupName);
 				this.groups[groupName].values[groupKey]=[]
 			}
-			SC.it(values,function(value,index)
+			SC.it(values,function(value)
 			{
-				index=this.values.length;
+				var index=this.values.length;
 				this.values.push(value);
 				for(var m in this.maps)
 				{

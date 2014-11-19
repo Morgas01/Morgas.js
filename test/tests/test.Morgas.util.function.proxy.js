@@ -22,7 +22,7 @@
 				return v+2;
 			}
 		};
-		var dynamicSource=null
+		var dynamicSource=null;
 		var getter=function(key)
 		{
 			dynamicSource={};
@@ -32,7 +32,7 @@
 				return v+3;
 			};
 			return dynamicSource;
-		}
+		};
 		
 		P(target.innerSource,["f1"],target);
 		P(outerSource,{"function2":"f2"},target);

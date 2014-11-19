@@ -25,7 +25,7 @@
 		return new SC.DET(function()
 		{
 			var signal=this;
-			var it=new SC.It(any,backward,isObject);
+			var it=SC.It(any,backward,isObject);
 			var interval=setInterval(function iterateStep()
 			{
 				try

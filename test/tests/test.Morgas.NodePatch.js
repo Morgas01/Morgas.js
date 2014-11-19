@@ -43,6 +43,59 @@
 		ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
 		
 	});
+
+	test("alias predefined",function()
+	{
+		var confirmNode= µ.Class({
+            init:function()
+            {
+                this.nodePatch=new SC.node(this,SC.node.BasicAliases);
+            },
+            addChild:function(child,confirm)
+            {
+                if(confirm)
+                {
+                    return this.nodePatch.addChild(child);
+                }
+                return false;
+            }
+        });
+		var confirmNode2= µ.Class({
+            init:function()
+            {
+                this.nodePatch=new SC.node(this,SC.node.BasicAliases);
+            },
+            setParent:function(parent,confirm)
+            {
+                if(parent===this.nodePatch.parent||parent!=null||confirm)
+                {
+                    return this.nodePatch.setParent(parent);
+                }
+                return false;
+            }
+        });
+
+        var parent=new confirmNode(),
+            child1=new confirmNode2(),
+            child2=new SC.node.Basic();
+
+        parent.addChild(child1,true);
+        child2.setParent(parent);
+
+        ok(parent===child1.parent&&parent.hasChild(child1),"child1 connected");
+        ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 not connected");
+        parent.addChild(child2,true);
+        ok(parent==child2.parent&&parent.hasChild(child2),"child2 connected");
+
+        parent.removeChild(child1);
+        child2.remove();
+
+        ok(parent===child1.parent&&parent.hasChild(child1),"child1 not removed");
+        child1.setParent(null,true);
+        ok(parent!==child1.parent&&!parent.hasChild(child1),"child1 removed");
+        ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
+
+	});
 	
 	test("change",function()
 	{

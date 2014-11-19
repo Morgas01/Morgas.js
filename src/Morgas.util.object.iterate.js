@@ -62,7 +62,7 @@
 		{
 			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
-				rtn.push(func.call(scope,any[i],i,false));
+				rtn.push(func.call(scope,any[i],i,i,false));
 			}
 		}
 		else if (typeof any.next==="function"||typeof any.entries==="function")
@@ -71,10 +71,12 @@
 			{
 				any=any.entries();
 			}
-			var step=null;
+			var step=null,index=0;
 			while(step=any.next(),!step.done)
 			{
-				rtn.push(func.call(scope,step.value[1],step.value[0],undefined));
+                isObject=step.value[1]!==step.value[0]&&step.value[0]!==index;
+				rtn.push(func.call(scope,step.value[1],step.value[0],index,isObject));
+                index++;
 			}
 		}
 		else
@@ -86,7 +88,7 @@
 			}
 			for(var i=0;i<k.length;i++)
 			{
-				rtn.push(func.call(scope,any[k[i]],k[i],true));
+				rtn.push(func.call(scope,any[k[i]],k[i],i,true));
 			}
 		}
 		return rtn;
