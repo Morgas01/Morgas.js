@@ -114,7 +114,7 @@
 	 *
 	 * returns {key:value}
 	 */
-	µ.shortcut=function(map,context,target,dynamic)
+	µ.shortcut=function(map,target,context,dynamic)
 	{
 		if(!target)
 		{
