@@ -237,7 +237,7 @@
         }
         return Patch.getPatch(obj,NODE);
 	};
-
+	//TODO replace with GMOD("shortcut") dynamic
     var setSymbol=function(node,symbol,alias)
     {
         if(typeof node[symbol]!=="function")

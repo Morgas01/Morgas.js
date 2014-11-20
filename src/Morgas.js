@@ -114,7 +114,7 @@
 	 *
 	 * returns {key:value}
 	 */
-	µ.shortcut=function(map,context,target)
+	µ.shortcut=function(map,context,target,dynamic)
 	{
 		if(!target)
 		{
@@ -128,7 +128,7 @@
 				enumerable:true,
 				get:function()
 				{
-					if(value==null)
+					if(value==null||dynamic)
 					{
 						if(typeof path=="function")
 							value=path(context);
