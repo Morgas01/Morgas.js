@@ -34,14 +34,22 @@
 	test("shortcut",function()
 	{
 		var s1=null;
+		var context={path:{to:{value:2}}};
 		var SC=µ.shortcut({s1:function(){return s1;},s2:"s2"});
+		µ.shortcut({s3:"path.to.value"},SC,context);
+		µ.shortcut({s4:"path.to.value"},SC,context,true);
 		strictEqual(SC.s1,null,"function before set");
 		strictEqual(SC.s2,undefined,"module before set");
+		strictEqual(SC.s3,2,"context with path");
+		strictEqual(SC.s4,2,"context with path and dynamic");
 		
 		s1={};
 		µ.setModule("s2",{});
+		context.path.to.value=4;
 
 		strictEqual(SC.s1,s1,"function after set");
 		strictEqual(SC.s2,µ.getModule("s2"),"module after set");
+		strictEqual(SC.s3,2,"context with path");
+		strictEqual(SC.s4,4,"context with path and dynamic");
 	});
 })();
