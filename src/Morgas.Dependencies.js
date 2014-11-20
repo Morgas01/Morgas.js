@@ -6,6 +6,7 @@
         	deps:["Morgas.js"],
         	uses:["Morgas.util.function.bind.js"]
         },
+        "Morgas.Listeners.js":"Morgas.js",
         "Morgas.util.function.bind.js":"Morgas.js",
         "Morgas.util.function.rescope.js":"Morgas.js",
         "Morgas.util.function.proxy.js":{
