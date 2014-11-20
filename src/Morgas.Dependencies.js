@@ -29,6 +29,8 @@
         "Morgas.util.object.uniquify.js":"Morgas.js",
         "Morgas.util.download.js":"Morgas.js",
         "Morgas.util.crc.js":"Morgas.js",
+        "Morgas.util.converter.csvToObject.js.js":"Morgas.js",
+        "Morgas.util.queryParam.js":"Morgas.js",
         "Morgas.Organizer.js":{
         	deps:["Morgas.js"],
         	uses:["Morgas.util.object.equals.js","Morgas.util.object.iterate.js"]
