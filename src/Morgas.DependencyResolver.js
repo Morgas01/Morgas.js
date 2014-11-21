@@ -56,6 +56,7 @@
                         if(list.indexOf(conf.uses[i])===-1&&rtn.indexOf(conf.uses[i])===-1)
                         {
                             list.push(conf.uses[i]);
+                            items.push(conf.uses[i]);
                         }
                     }
 					for(var i=0;i<deps.length;i++)
