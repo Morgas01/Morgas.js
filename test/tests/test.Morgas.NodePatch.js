@@ -65,11 +65,11 @@
             {
                 this.nodePatch=new SC.node(this,SC.node.BasicAliases);
             },
-            setParent:function(parent,confirm)
+            remove:function(confirm)
             {
-                if(parent===this.nodePatch.parent||parent!=null||confirm)
+                if(confirm)
                 {
-                    return this.nodePatch.setParent(parent);
+                    return this.nodePatch.remove();
                 }
                 return false;
             }
@@ -91,7 +91,7 @@
         child2.remove();
 
         ok(parent===child1.parent&&parent.hasChild(child1),"child1 not removed");
-        child1.setParent(null,true);
+        child1.remove(true);
         ok(parent!==child1.parent&&!parent.hasChild(child1),"child1 removed");
         ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
 

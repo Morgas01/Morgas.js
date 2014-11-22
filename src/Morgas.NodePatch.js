@@ -44,24 +44,13 @@
 		{
 			var childPatch=getNode(child),alias;
             var childIndex=this.children.indexOf(child);
-			if(childIndex===-1)
-			{
-				if(childPatch.parent!==null&&childPatch.parent!==this.instance)
-				{
-                    alias=childPatch.aliasMap.remove;
-                    if(alias)
-                    {
-                        if(!child[alias]())
-                        {//won't let go of parent
-                            SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
-                            return false;
-                        }
-                    }
-                    else
-                    {
-					    childPatch.remove();
-                    }
-				}
+            if(!childPatch)
+            {//is not a Node
+            	SC.d([child," is not a Node"]);
+            	return false;
+            }
+            else if(childIndex===-1)
+			{//has not that child jet
 				if(index!==undefined)
 				{
 					this.children.splice(index,0,child);
@@ -71,14 +60,26 @@
                     index=this.children.length;
 					this.children.push(child);
 				}
-			}
-            else
-            {
-                index=childIndex;
-            }
-			if(childPatch.parent!==this.instance)
-			{
-                alias=childPatch.aliasMap.setParent;
+				if(childPatch.parent!==null&&childPatch.parent!==this.instance)
+				{//has other parent
+					//remove other parent
+                    alias=childPatch.aliasMap.remove;
+                    if(alias)
+                    {
+                        if(!child[alias]())
+                        {//won't let go of parent
+                            SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
+                            this.children.splice(index,1);
+                            return false;
+                        }
+                    }
+                    else
+                    {
+					    childPatch.remove();
+                    }
+				}
+				//add to parent
+				alias=childPatch.aliasMap.setParent;
                 if(alias)
                 {
                     if(!child[alias](this.instance))
@@ -93,95 +94,111 @@
                     childPatch.setParent(this.instance);
                 }
 			}
-            return true;
+			return true;
 		},
 		removeChild:function(child)
 		{
 			var index=this.children.indexOf(child);
 			if(index!==-1)
-			{
-				var childPatch=getNode(child),alias=childPatch.aliasMap.setParent;
+			{//has child
 				this.children.splice(index, 1);
-                if(alias)
-                {
-                    if(!child[alias](null))
-                    {//won't let go of me
-                        SC.d(["rejected remove child ",child," from parent ",this.instance],SC.d.LEVEL.INFO);
-                        this.children.splice(index,0,child);
-                        return false;
-                    }
-                }
-                else
-                {
-				    childPatch.setParent(null);
-                }
-			}
-			return true;
-		},
-		remove:function()
-		{
-			if(this.parent!==null)
-			{
-				var parentPatch=getNode(this.parent),alias=parentPatch.aliasMap.removeChild;
-                if(alias)
-                {
-				    return this.parent[alias](this.instance);
-                }
-                else
-                {
-                    return parentPatch.removeChild(this.instance);
+				var childPatch=getNode(child);
+				if(childPatch&&childPatch.parent===this.instance)
+				{//is still parent of child
+					var alias=childPatch.aliasMap.remove;
+	                if(alias)
+	                {
+	                    if(!child[alias]())
+	                    {//won't let go of me
+	                        SC.d(["rejected remove child ",child," from parent ",this.instance],SC.d.LEVEL.INFO);
+	                        this.children.splice(index,0,child);
+	                        return false;
+	                    }
+	                }
+	                else
+	                {
+					    childPatch.remove();
+	                }
                 }
 			}
 			return true;
 		},
 		setParent:function(parent)
 		{
-			if(this.parent!==parent)
+			var parentPatch=getNode(parent),alias;
+			if(!parentPatch)
+			{//is not a Node
+            	SC.d([parent," is not a Node"]);
+            	return false;
+			}
+			if(parent&&this.parent!==parent)
 			{
 				if(this.parent!==null)
-				{
-                    var oldParent=this.parent;
-                    var oldParentPatch=getNode(oldParent);
-                    this.parent=null;
-                    var alias=oldParentPatch.aliasMap.removeChild;
+				{//has other parent
+					//remove other parent
+                    alias=childPatch.aliasMap.remove;
                     if(alias)
                     {
-                        if(!oldParent[alias](this.instance))
-                        {//I won't attach to that
-                            this.parent=oldParent;
-                            SC.d(["rejected to remove child ",this.instance," from old parent ",this.parent],SC.d.LEVEL.INFO);
+                        if(!child[alias]())
+                        {//won't let go of parent
+                            SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
+                            this.children.splice(index,1);
                             return false;
                         }
                     }
                     else
                     {
-					    oldParentPatch.removeChild(this.instance);
+					    childPatch.remove();
                     }
 				}
-                this.parent=parent||null;
-			}
-			if(this.parent)
-			{
-				var parentPatch=getNode(parent),alias=parentPatch.aliasMap.addChild;
+				this.parent=parent;
+				alias=parentPatch.aliasMap.addChild;
 				if(parentPatch.children.indexOf(this.instance)===-1)
-				{
-                    if(alias)
-                    {
-                        if(!this.parent[alias](this.instance))
-                        {//won't accept me
-                            SC.d(["rejected to add child ",this.instance," to parent ",parent],SC.d.LEVEL.INFO);
-                            this.parent=null;
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        parentPatch.addChild(this.instance);
-                    }
+				{//not already called from addChild
+					if(alias)
+					{
+						if(!this.parent[alias](this.instance))
+						{//won't accept me
+							SC.d(["rejected to add child ",this.instance," to parent ",parent],SC.d.LEVEL.INFO);
+							this.parent=null;
+							return false;
+						}
+					}
+					else
+					{
+						parentPatch.addChild(this.instance);
+					}
 				}
 			}
             return true;
 
+		},
+		remove:function()
+		{
+			if(this.parent!==null)
+			{
+				var oldParent=this.parent;
+				var oldParentPatch=getNode(oldParent);
+				this.parent=null;
+				if(oldParentPatch.children.indexOf(this.instance)!==-1)
+				{//is still old parents child
+					var alias=oldParentPatch.aliasMap.removeChild;
+					if(alias)
+					{
+						if(!oldParent[alias](this.instance))
+						{//I won't let go of parent
+							this.parent=oldParent;
+							SC.d(["rejected to remove child ",this.instance," from parent ",this.parent],SC.d.LEVEL.INFO);
+							return false;
+						}
+					}
+					else
+					{
+						oldParentPatch.removeChild(this.instance);
+					}
+				}
+			}
+			return true;
 		},
 		hasChild:function(child)
 		{
@@ -235,7 +252,10 @@
         {
             return obj;
         }
-        return Patch.getPatch(obj,NODE);
+        else if (obj)
+        {
+        	return Patch.getPatch(obj,NODE);
+        }
 	};
 	//TODO replace with GMOD("shortcut") dynamic
     var setSymbol=function(node,symbol,alias)
