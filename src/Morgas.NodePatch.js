@@ -252,7 +252,7 @@
         {
             return obj;
         }
-        else if (obj)
+        else
         {
         	return Patch.getPatch(obj,NODE);
         }

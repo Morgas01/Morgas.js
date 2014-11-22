@@ -101,7 +101,7 @@
 	};
 	PATCH.getPatch=function(instance, patch)
 	{
-		if(instance.getPatch)
+		if(instance&&instance.getPatch)
 			return instance.getPatch(patch);
 		return null;
 	};
