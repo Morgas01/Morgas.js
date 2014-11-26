@@ -12,6 +12,15 @@
 			this.complete();
 		});
 	});
+	asyncTest("call arguments",function()
+	{
+		new DET(function(arg)
+		{
+			strictEqual(arg,"callarg");
+			start();
+			this.complete();
+		},["callarg"]);
+	});
 
 	asyncTest("on complete",function()
 	{
@@ -22,7 +31,15 @@
 			this.complete();
 		});
 	});
-
+	asyncTest("on complete return",function()
+	{
+		new DET(function(){return "some other arg"}).complete(function(arg)
+		{
+			strictEqual(arg,"some other arg");
+			start();
+			this.complete();
+		});
+	});
 	asyncTest("on complete no args",function()
 	{
 		new DET().complete(function()
@@ -78,6 +95,24 @@
 			start();
 			this.complete();
 		});
+	});
+	asyncTest("on error propagate",function()
+	{
+		var d1=new DET(function()
+		{
+			throw("reason");
+		});
+		var d2=d1.complete(function()
+		{
+			this.complete("complete");
+		});
+		d2.error(function(err)
+		{
+			strictEqual(err,"reason","error propagated");
+			start();
+			this.complete();
+		});
+		d1.propagateError(d2);
 	});
 	
 	asyncTest("detached function",function()
