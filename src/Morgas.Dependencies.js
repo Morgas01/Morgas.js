@@ -25,13 +25,17 @@
         "Morgas.util.object.iterate.js":"Morgas.js",
         "Morgas.util.object.iterateAsync.js":{
         	deps:["Morgas.js"],
-        	uses:["Morgas.util.object.iterate.js","Morgas.Detached.js",]
+        	uses:["Morgas.util.object.iterate.js","Morgas.Detached.js"]
         },
         "Morgas.util.object.uniquify.js":"Morgas.js",
         "Morgas.util.download.js":"Morgas.js",
         "Morgas.util.crc.js":"Morgas.js",
         "Morgas.util.converter.csvToObject.js.js":"Morgas.js",
         "Morgas.util.queryParam.js":"Morgas.js",
+		"Morgas.util.Request.js":{
+			deps:["Morgas.js"],
+			uses:["Morgas.Detached.js"]
+		},
         "Morgas.Organizer.js":{
         	deps:["Morgas.js"],
         	uses:["Morgas.util.object.equals.js","Morgas.util.object.iterate.js"]

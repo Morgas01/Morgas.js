@@ -1,36 +1,45 @@
-(function(µ){
-	/**
-	 * Depends on	: Morgas
-	 * Uses			: Detached
-	 *
-	 * Request Class
-	*/
+(function(µ,GMOD,SMOD,HMOD){
 	
 	µ.util=µ.util||{};
-	
+
+	var SC=GMOD("shortcut")({
+		det:"Detached"
+	});
+
 	REQ=µ.util.Request=function Request_init(url)
 	{
-		var req=new XMLHttpRequest();
-		req.open("GET",url,true);
-		
-		var det=new µ.Detached();
-		req.onload=function()
+		return new SC.det(function()
 		{
-			if (req.status == 200)
+			var signal=this;
+			var req=new XMLHttpRequest();
+			req.open("GET",url,true);
+
+			req.onload=function()
 			{
-				det.signal().complete(req);
-			}
-			else
+				if (req.status == 200)
+				{
+					signal.complete(req);
+				}
+				else
+				{
+					signal.error(req.statusText);
+				}
+			};
+			req.onerror=function()
 			{
-				det.signal().error(req.statusText);
-			}
-		};
-		req.onerror=function()
-		{
-			det.signal().error("Network Error");
-		};
-		req.send();
-		
-		return det;
-	}
-})(Morgas);
+				signal.error("Network Error");
+			};
+			req.send();
+		});
+	};
+	SMOD("Request",REQ);
+
+	REQ.json=function Request_Json(url)
+	{
+		var det=REQ(url);
+		var jDet=det.then(JSON.parse,true);
+		det.propagateError(jDet);
+		return jDet;
+	};
+	SMOD("Request.json");
+})(Morgas,Morgas.setModule,Morgas.getModule);
