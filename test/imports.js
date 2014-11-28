@@ -31,6 +31,9 @@
 	WR(srcDir+"Morgas.util.object.goPath.js");
 	WR(testDir+"test.Morgas.util.object.goPath.js");
 	
+	WR(srcDir+"Morgas.util.object.adopt.js");
+	WR(testDir+"test.Morgas.util.object.adopt.js");
+	
 	WR(srcDir+"Morgas.util.object.equals.js");
 	WR(testDir+"test.Morgas.util.object.equals.js");
 	
