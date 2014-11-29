@@ -3,10 +3,6 @@
 	var util=µ.util=µ.util||{};
 	var obj=util.object||{};
 	
-	var SC=GMOD("shortcut")({
-		it:"iterate"
-	});
-	
 	/**
 	 * adopt attributes defined in [target] from [provider]
 	 * when [extend] is set to true all attribues from [provider] are adopted
