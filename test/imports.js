@@ -49,6 +49,9 @@
 	WR(srcDir+"Morgas.util.object.iterateAsync.js");
 	WR(testDir+"test.Morgas.util.object.iterateAsync.js");
 	
+	WR(srcDir+"Morgas.util.Request.js");
+	WR(testDir+"test.Morgas.util.Request.js");
+	
 	WR(srcDir+"Morgas.util.object.uniquify.js");
 	WR(testDir+"test.Morgas.util.object.uniquify.js");
 
