@@ -66,7 +66,7 @@
 							object.setID&&object.setID(req.result);//if (!(object instanceof DBFRIEND)) {object.setID(req.result)} 
 						}
 					});
-				},false,true));
+				}),false,true);
 				db.close();
 				signal.complete(new SC.det(transactions));
 				this.complete();
