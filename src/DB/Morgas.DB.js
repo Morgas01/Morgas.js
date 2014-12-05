@@ -371,7 +371,7 @@
 			var rtn={};
 			for(var f in this.fields)
 			{
-				rtn[f]=this.fields[f].toJSON(f);
+				rtn[f]=this.fields[f].toJSON();
 			}
 			return rtn;
 		},
