@@ -4,20 +4,23 @@
 	
 	var REQ=GMOD("Request");
 	var RJS=GMOD("Request.json");
+	var scope={};
 	
 	asyncTest("request",function()
 	{
-		REQ("resources/request.json").then(function(xhr)
+		REQ("resources/request.json",scope).then(function(xhr,s)
 		{
-			strictEqual(xhr.response,'{\r\n	"name":"test response",\r\n	"value":"something"\r\n}');
+			strictEqual(xhr.response,'{\r\n	"name":"test response",\r\n	"value":"something"\r\n}',"response");
+			strictEqual(s,scope,"scope");
 			start();
 		});
 	});
-	asyncTest("request",function()
+	asyncTest("request json",function()
 	{
-		RJS("resources/request.json").then(function(json)
+		RJS("resources/request.json",scope).then(function(json,s)
 		{
-			deepEqual(json,{"name":"test response","value":"something"});
+			deepEqual(json,{"name":"test response","value":"something"},"response");
+			strictEqual(s,scope,"scope");
 			start();
 		});
 	});

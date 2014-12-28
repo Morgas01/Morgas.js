@@ -6,7 +6,7 @@
 		det:"Detached"
 	});
 
-	REQ=µ.util.Request=function Request_init(param)
+	REQ=µ.util.Request=function Request_init(param,scope)
 	{
 		if(typeof param ==="string")
 		{
@@ -24,7 +24,7 @@
 			contentType:param.contentType,//||undefined
 			data:param.data//||undefined
 		};
-		return new SC.det(function()
+		return new SC.det([function()
 		{
 			var signal=this;
 			var req=new XMLHttpRequest();
@@ -56,11 +56,13 @@
 				}
 				else
 				{
+					// todo try next if(Array.isArray(param.url))
 					signal.error(req.statusText);
 				}
 			};
 			req.onerror=function()
 			{
+				// todo try next if(Array.isArray(param.url))
 				signal.error("Network Error");
 			};
 			if(param.progress)
@@ -68,20 +70,20 @@
 				req.onprogress=param.progress;
 			}
 			req.send(param.data);
-		});
+		},scope]);
 	};
 	SMOD("Request",REQ);
 
-	REQ.json=function Request_Json(param)
+	REQ.json=function Request_Json(param,scope)
 	{
-		if(typeof param ==="string")
+		if(typeof param ==="string")//TODO ||Array.isArray(param))
 		{
 			param={url:param};
 		}
 		param.responseType="json";
 		var det=REQ(param);
-		var jDet=det.then(function(r){return r.response});
-		det.propagateError(jDet);
+		var jDet=det.then(function(r){return r.response},true);
+		jDet.fn.push(scope);
 		return jDet;
 	};
 	SMOD("Request.json",REQ.json);
