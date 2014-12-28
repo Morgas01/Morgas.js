@@ -52,34 +52,50 @@
 	 * 		}
 	 * }  
 	 */
-	PATCH=µ.Patch=µ.Class(
+	var _hasPatch=function hasPatch(patch)
+	{
+		return this.getPatch(patch)!==undefined;
+	};
+	var _getPatch=function getPatch(patch)
+	{
+		return this.patches[patch.patchID||patch.prototype.patchID];
+	};
+	var _callPatch=function()
+	{
+		this.patch(this._patchParam,false);
+		delete this._patchParam;
+	}
+	
+	var PATCH=µ.Patch=µ.Class(
 	{
 		init:function Patchinit(instance,param)
 		{
 			if(instance.patches==null)
 			{
 				instance.patches={};
-				instance.hasPatch=function(patch)
-				{
-					return this.getPatch(patch)!==undefined;
-				};
-				instance.getPatch=function(patch)
-				{
-					return this.patches[patch.patchID||patch.prototype.patchID];
-				};
+				instance.hasPatch=_hasPatch;
+				instance.getPatch=_getPatch;
 			}
 			if(!instance.hasPatch(this))
 			{
 				this.instance=instance;
 				instance.patches[this.patchID]=this;
-				if(typeof instance.addListener==="function")//instanceof Listeners or has Listeners attached
+				if(typeof this.instance.addListener==="function")//instanceof Listeners or has Listeners attached
 				{
-					this.instance.addListener(".created:once",this.patch,SC.bind(this.patch,this,param,false));
+					this._patchParam=param;
+					this.instance.addListener(".created:once",this,_callPatch);
 				}
 				else
 				{
 					this.patch(param,true);
 				}
+			}
+		},
+		patchNow:function()
+		{
+			if(typeof this.instance.removeListener==="function"&&this.instance.removeListener(".created",this))
+			{
+				this.patch(this._patchParam,false);
 			}
 		},
 		patch:function patch(param,noListeners){},

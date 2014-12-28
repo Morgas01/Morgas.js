@@ -116,6 +116,7 @@
 		{
 			fns=[].concat(fns);
 			var rtn=[];
+			if(fns.length==0)fns.push("all");
 			for(var i=0;i<fns.length;i++)
 			{
 				rtn.push(this.removeListener(fns[i],scope));
@@ -286,11 +287,12 @@
 		},
 		removeListener:function removeListener(names,scope/*,functions...*/)
 		{
+			var removeCount=0;
 			if(names.toLowerCase()=="all")
 			{
 				for(var i in this.listeners)
 				{
-					this.listeners[i].removeListeners(names,scope);
+					removeCount+=this.listeners[i].removeListeners(names,scope);
 				}
 			}
 			else
@@ -302,10 +304,11 @@
 					var name=nameArr[i];
 					if(this.listeners[name]!==undefined)
 					{
-						this.listeners[name].removeListeners(fnarr,scope);
+						removeCount+=this.listeners[name].removeListeners(fnarr,scope);
 					}
 				}
 			}
+			return removeCount;
 		},
 		fire:function fire(name,event)
 		{

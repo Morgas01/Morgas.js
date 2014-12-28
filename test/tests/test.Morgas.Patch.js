@@ -15,10 +15,11 @@
 	});
 	var class2=µ.Class(µ.getModule("Listeners"),
 	{
-		init:function(value)
+		init:function(value,patchNow)
 		{
 			this.superInit(µ.Listeners);
-			new patch(this,2);
+			var p=new patch(this,2);
+			if(patchNow) p.patchNow();
 			this.value=value
 		}
 	});
@@ -29,5 +30,6 @@
 		
 		assert.propEqual2(new patch(new class1(1),1),{instance:{value:2}},"Patch class");
 		assert.propEqual2(new class2(2),{value:4},"Patch Listeners");
+		assert.propEqual2(new class2(2,true),{value:2},"Patch Listeners now");
 	});
 })();
