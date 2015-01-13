@@ -110,6 +110,11 @@
                 }
                 return timesFound;
             }
+            else if (typeof fn=="string"&&fn.toLowerCase()=="all"&&scope===undefined)
+            {
+            	this.listeners.clear();
+            	return -1;//unknown count
+            }
             return null;
 		},
 		removeListeners:function removeListeners(fns,scope)
@@ -374,6 +379,10 @@
 					rtn&=lstnr.getState();
 			}
 			return rtn
+		},
+		destroy:function()
+		{
+			this.removeListener("all");
 		}
 	});
 	SMOD("Listeners",LISTENERS);

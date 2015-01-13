@@ -68,7 +68,7 @@
 	
 	var PATCH=µ.Patch=µ.Class(
 	{
-		init:function Patchinit(instance,param)
+		init:function Patchinit(instance,param,doPatchNow)
 		{
 			if(instance.patches==null)
 			{
@@ -84,6 +84,7 @@
 				{
 					this._patchParam=param;
 					this.instance.addListener(".created:once",this,_callPatch);
+					if(doPatchNow) this.patchNow();
 				}
 				else
 				{
@@ -93,7 +94,7 @@
 		},
 		patchNow:function()
 		{
-			if(typeof this.instance.removeListener==="function"&&this.instance.removeListener(".created",this))
+			if(this.instance.patches[this.patchID]===this&&typeof this.instance.removeListener==="function"&&this.instance.removeListener(".created",this))
 			{
 				this.patch(this._patchParam,false);
 			}
