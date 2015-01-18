@@ -4,8 +4,8 @@
 	var obj=util.object||{};
 	
 	/**
-	 * adopt attributes defined in [target] from [provider]
-	 * when [extend] is set to true all attribues from [provider] are adopted
+	 * adopt attributes defined in [target] from [provider].
+	 * when [extend] is set to true all attributes from [provider] are adopted
 	 * @param {object} target
 	 * @param {object} [provider=undefined]
 	 * @param {boolean} [extend=false]

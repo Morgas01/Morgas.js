@@ -1,8 +1,4 @@
 (function(µ,SMOD,GMOD){
-	
-	var SC=GMOD("shortcut")({
-		bind:"bind"
-	});
 
 	/**Patch Class
 	 * Adds functionality to an instance
