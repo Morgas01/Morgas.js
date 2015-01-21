@@ -24,9 +24,7 @@
 			
 			this.dbClass=dbClass;
 			this.connector=connector;
-			
-			this.isLoading=false;
-			this.queue=[];
+
 			
 			var inst=new dbClass();
 			for(var f in inst.fields)

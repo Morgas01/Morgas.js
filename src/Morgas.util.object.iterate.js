@@ -23,7 +23,6 @@
 			{
 				any=any.entries();
 			}
-			return any;
 			var step=null;
 			while(step=any.next(),!step.done)
 			{

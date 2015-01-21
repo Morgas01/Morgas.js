@@ -346,7 +346,7 @@
 				.executeAsync();
 				var stmt=con.createAsyncStatement("SELECT 0 AS newID WHERE NOT EXISTS (SELECT ID FROM "+type+" WHERE ID=0) UNION "+"SELECT ID+1 AS newID FROM "+type+" WHERE ID+1 NOT IN (SELECT ID FROM "+type+")");
 				rtn[type]=[];
-				var loaded=new µ.Detached()
+				var loaded=new µ.Detached();
 				loadIDs.push(loaded);
 				(function(detached,type){
 					stmt.executeAsync(

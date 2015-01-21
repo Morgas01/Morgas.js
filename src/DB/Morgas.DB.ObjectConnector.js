@@ -68,7 +68,7 @@
 					var found=SC.find(group,json);
 					if(found.length===0)
 					{
-						json.objectType=objs[i].objectType
+						json.objectType=objs[i].objectType;
 						newFriends.push(json);
 					}
 				}

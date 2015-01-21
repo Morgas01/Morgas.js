@@ -86,7 +86,7 @@
 					var keys=Object.keys(group);
 					for(var i=0;i<keys.length;i++)
 					{
-						var index=group[keys[i]].indexOf(valuesIndex)
+						var index=group[keys[i]].indexOf(valuesIndex);
 						if(index!==-1)
 						{
 							group[keys[i]].splice(index,1);
@@ -362,7 +362,7 @@
 	ORG.getOrderIndex=function(item,source,sort,order)
 	{
 		//start in the middle
-		var length=(order?order:source).length
+		var length=(order?order:source).length;
 		var jump=Math.ceil(length/2);
 		var i=jump;
 		var lastJump=null;
@@ -394,7 +394,7 @@
 			order.splice(orderIndex,0,index);
 		});
 		return order;
-	}
+	};
 	
 	SMOD("Organizer",ORG);
 	

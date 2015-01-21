@@ -117,7 +117,7 @@
 		{
 			p=p.then(function()
 			{
-				var o1,o2
+				var o1,o2;
 				return dbConn.loadFriends(obj3,"friendRel",{testInt:20})
 				.then(function(result)
 				{

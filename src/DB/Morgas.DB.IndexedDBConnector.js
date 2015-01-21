@@ -95,7 +95,7 @@
 					{
 						db.close();
 						signal.complete(rtn);
-					}
+					};
 
 					var store = trans.objectStore(objClass.prototype.objectType);
 					if(typeof pattern.ID==="number"|| Array.isArray(pattern.ID))
@@ -106,7 +106,7 @@
 							req.onerror=function(event)
 							{
 								µ.debug(event,0);
-							}
+							};
 							req.onsuccess=function(event)
 							{
 								µ.debug(event, 3);
@@ -127,7 +127,7 @@
 							µ.debug(event,0);
 							db.close();
 							signal.error(event);
-						}
+						};
 						req.onsuccess=function(event)
 						{
 							if(req.result)
@@ -174,7 +174,7 @@
 					{
 						db.close();
 						_collectingSelf.complete(ids);
-					}
+					};
 
 					var store = trans.objectStore(objectType);
 					var req=store.openCursor();
@@ -184,7 +184,7 @@
 						db.close();
 						signal.error(event);
 						_collectingSelf.error(event);
-					}
+					};
 					req.onsuccess=function(event)
 					{
 						if(req.result)
@@ -221,7 +221,7 @@
 							{
 								µ.debug(event,0);
 								rSignal.complete(ID);
-							}
+							};
 							req.onsuccess=function(event)
 							{
 								µ.debug(event, 3);
@@ -291,7 +291,7 @@
 					{
 						_self.version=req2.result.version;
 						signal.complete(req2.result);
-					}
+					};
 					db.close();
 				}
 			}
@@ -313,7 +313,7 @@
 			rtn[objType].push(obj);
 		}
 		return rtn;
-	}
+	};
 	SMOD("IndexedDBConnector",ICON);	
 	SMOD("IDBConn",ICON);
 })(Morgas,Morgas.setModule,Morgas.getModule);

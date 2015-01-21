@@ -73,4 +73,4 @@
 
 	WR(srcDir+"Morgas.DependencyResolver.js");
 	WR(testDir+"test.Morgas.DependencyResolver.js");
-})()
+})();

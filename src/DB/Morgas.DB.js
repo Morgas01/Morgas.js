@@ -116,7 +116,7 @@
 			pattern[fieldName]=this.getID();
 			return this.load(childClass,pattern).then(function(children)
 			{
-				obj.addChildren(children)
+				obj.addChildren(children);
 				this.complete(children);
 			});
 		},
@@ -138,7 +138,7 @@
 			fPattern[id]=obj.getID();
 			var friendship=DBFRIEND.Generator(type,id,fid);
 			
-			var p=this.load(friendship,fPattern)
+			var p=this.load(friendship,fPattern);
 			
 			if (rel.relatedClass===fRel.relatedClass)
 			{
@@ -239,7 +239,7 @@
 			rtn[type][objType].push(obj);
 		}
 		return rtn;
-	}
+	};
 	//make toDelete a Pattern from Number, DB.Object or Array
 	DBC.getDeletePattern=function(objClass,toDelete)
 	{
@@ -461,6 +461,7 @@
 					var date=this.getValue();
 					if(date instanceof Date)
 						return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds();
+					break;
 				default:
 					return this.getValue();
 			}
@@ -470,7 +471,7 @@
 			switch(this.type)
 			{
 				case FIELD.TYPES.DATE:
-					this.value=new Date(Date.UTC.apply(Date,jsonObj.split(",")))
+					this.value=new Date(Date.UTC.apply(Date,jsonObj.split(",")));
 					break;
 				default:
 					this.value=jsonObj;

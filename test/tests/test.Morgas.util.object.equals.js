@@ -44,7 +44,7 @@
 			value:5,
 			obj:{recrusive:true},
 			arr:3,
-			anything:"more will be ignored",
+			anything:"more will be ignored"
 		},pattern),"obj");
 		ok(EQ(complex,5),"obj.equals 1");
 		ok(!EQ(complex,3),"obj.equals 2");

@@ -17,7 +17,6 @@
 		init:function ListenerInit()
 		{
 			this.listeners=new Map(); //TODO use WeakMap when its capable of iterations
-			this.fireIndex=null;	//indicates if and which listener fired
 			this.disabled=false;
 		},
 		addListener:function addListener(fn,scope,type)
@@ -173,7 +172,6 @@
                         {
                             value=scope[value];
                         }
-                        false!==value.call(scope,event);
                     }
                     entry.once.clear();
                     if(entry.first.size===0&&entry.normal.size===0&&entry.last.size===0)

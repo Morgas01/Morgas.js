@@ -14,7 +14,7 @@
 			{name:"alice"},
 			{name:"erin"},
 			{name:"lucy"},
-			{name:"louise"},
+			{name:"louise"}
 		];
 		var obj={
 			id:5,

@@ -64,7 +64,7 @@
 	{
 		this.patch(this._patchParam,false);
 		delete this._patchParam;
-	}
+	};
 	
 	var PATCH=µ.Patch=µ.Class(
 	{

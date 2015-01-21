@@ -19,7 +19,7 @@
 			{
 				id:"1",
 				value:3
-			},
+			}
 		];
 		
 		deepEqual(U(arr1),[1,2,5,3,6,7,8,9,0,4],"literal");

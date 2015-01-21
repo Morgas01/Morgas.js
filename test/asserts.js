@@ -31,7 +31,7 @@
 		{
 			return value===expected;
 		}
-	}
+	};
 	var crop=function(value,expected)
 	{
 		if(value==null)
@@ -63,7 +63,7 @@
 		{
 			return value;
 		}
-	}
+	};
 	QUnit.extend(QUnit.assert,
 	{
 		propEqual2:function( value, expected, message )
@@ -73,7 +73,7 @@
 		notPropEqual2:function( value, expected, message )
 		{
 			QUnit.push(!propEqual2(value, expected), crop(value,expected), expected, message);
-		},
+		}
 	});
 	test( "PropEqual2",function( assert ) {
 		assert.propEqual2({arr:[1,"2"],sub:{"3":4,"5":"6"}},{arr:[1,"2"],sub:{"3":4,"5":"6"}},"full");

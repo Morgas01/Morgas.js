@@ -3,10 +3,10 @@
 	
 	µ.debug.verbose=3;
 	
-	var class1=µ.Class()
+	var class1=µ.Class();
 	class1.prototype.init=function(val){this.value=val};
 	
-	var class2=function(){class1.apply(this,arguments);}
+	var class2=function(){class1.apply(this,arguments);};
 	class2.prototype=new class1(µ._EXTEND);
 	class2.prototype.init=function(param)
 	{
