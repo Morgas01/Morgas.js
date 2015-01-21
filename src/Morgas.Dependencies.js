@@ -4,7 +4,7 @@
         "Morgas.js":true,
         "Morgas.Patch.js":{
         	deps:["Morgas.js"],
-        	uses:["Morgas.util.function.bind.js"]
+        	uses:[]
         },
         "Morgas.Listeners.js":"Morgas.js",
         "Morgas.util.function.bind.js":"Morgas.js",
@@ -22,7 +22,10 @@
         	deps:["Morgas.js"],
         	uses:["Morgas.util.object.equals.js"]
         },
-        "Morgas.util.object.inputValues.js":"Morgas.js",
+        "Morgas.util.object.inputValues.js":{
+        	deps:["Morgas.js"],
+        	uses:["Morgas.util.object.goPath.js"]
+        },
         "Morgas.util.object.iterate.js":"Morgas.js",
         "Morgas.util.object.iterateAsync.js":{
         	deps:["Morgas.js"],

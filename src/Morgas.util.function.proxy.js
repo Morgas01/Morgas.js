@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 	
 	var util=µ.util=µ.util||{};
-	var uFn=util.function||{};
+	var uFn=util["function"]||{};
 	
 	var SC=GMOD("shortcut")({
 		it:"iterate"
