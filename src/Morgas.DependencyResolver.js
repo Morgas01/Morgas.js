@@ -45,7 +45,7 @@
 			items=[].concat(items);
 			while(list.length>0)
 			{
-				var	resolved=true,conf=this.config[list[0]];
+				let resolved=true,conf=this.config[list[0]];
 				if(conf===undefined)
 				{
 					µ.debug("DependencyResolver.resolve: "+list[0]+" is undefined", 2);
