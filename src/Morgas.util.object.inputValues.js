@@ -1,9 +1,9 @@
 (function(µ,SMOD,GMOD){
 
-	var util=µ.util=µ.util||{};
-	var obj=util.object||{};
+	let util=µ.util=µ.util||{};
+	let obj=util.object||{};
 	
-	var SC=GMOD("shortcut")({
+	let SC=GMOD("shortcut")({
 		goPath:"goPath"
 	});
 	
@@ -16,10 +16,10 @@
 	 */
 	obj.setInputValues=function(inputs,source)
 	{
-		for(var i=0;i<inputs.length;i++)
+		for(let i=0;i<inputs.length;i++)
 		{
-			var path=(inputs[i].dataset.path ? inputs[i].dataset.path+"." : "")+inputs[i].name;
-			var value=SC.goPath(source, path);
+			let path=(inputs[i].dataset.path ? inputs[i].dataset.path+"." : "")+inputs[i].name;
+			let value=SC.goPath(source, path);
 			if(value!==undefined)
 			{
 				if(inputs[i].type==="checkbox")
@@ -43,9 +43,9 @@
 	 */
 	obj.getInputValues=function(inputs,target)
 	{
-		for(var i=0;i<inputs.length;i++)
+		for(let i=0;i<inputs.length;i++)
 		{
-			var t=target;
+			let t=target;
 			if(inputs[i].dataset.path)
 			{
 				t=SC.goPath(t, inputs[i].dataset.path);

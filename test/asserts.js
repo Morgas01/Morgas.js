@@ -1,13 +1,13 @@
 (function(){
 	module("asserts");
 	
-	var propEqual2=function(value,expected)
+	let propEqual2=function(value,expected)
 	{
 		if(typeof expected=="object")
 		{
 			if(expected instanceof Array)
 			{
-				for(var i=0;i<expected.length;i++)
+				for(let i=0;i<expected.length;i++)
 				{
 					if(!propEqual2(value[i], expected[i]))
 					{
@@ -17,7 +17,7 @@
 			}
 			else
 			{
-				for(var i in expected)
+				for(let i in expected)
 				{
 					if(!propEqual2(value[i], expected[i]))
 					{
@@ -32,7 +32,7 @@
 			return value===expected;
 		}
 	};
-	var crop=function(value,expected)
+	let crop=function(value,expected)
 	{
 		if(value==null)
 		{
@@ -40,11 +40,11 @@
 		}
 		if(typeof expected=="object")
 		{
-			var rtn;
+			let rtn;
 			if(expected instanceof Array)
 			{
 				rtn=[];
-				for(var i=0;i<expected.length;i++)
+				for(let i=0;i<expected.length;i++)
 				{
 					rtn.push(crop(value[i],expected[i]))
 				}
@@ -52,7 +52,7 @@
 			else
 			{
 				rtn={};
-				for(var i in expected)
+				for(let i in expected)
 				{
 					rtn[i]=crop(value[i],expected[i]);
 				}

@@ -7,20 +7,20 @@
 	 * change µ.Worker.prototype.MorgasPath and µ.Worker.prototype.BaseWorkerPath if necessary
 	 */
 	
-	var WORKER;
+	let WORKER;
 	WORKER=µ.Worker=µ.Class(µ.Listeners,
 	{
 		init:function(param)
 		{
-			var BaseWorkerPath=param.BaseWorkerPath||WORKER.BaseWorkerPath;
-			var MorgasPath=param.MorgasPath||WORKER.MorgasPath;
+			let BaseWorkerPath=param.BaseWorkerPath||WORKER.BaseWorkerPath;
+			let MorgasPath=param.MorgasPath||WORKER.MorgasPath;
 			this.superInit(µ.Listeners);
 			this.listeners[".created"].setDisabled(true);
 			this.createListener("error scriptsImported");
 			
 			//this.worker = new ChromeWorker(BaseWorkerPath)
 			this.worker=new Worker(BaseWorkerPath);
-			var _self=this;
+			let _self=this;
 			this.worker.onmessage=µ.Callback(this._onMessage,this,undefined,1);
 			this.worker.onerror=µ.Callback(this._onError,this,undefined,1);
 			this.post(MorgasPath);

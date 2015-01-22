@@ -7,15 +7,15 @@
 	 * LazyCache loads DB.Objects as needed and organizes them
 	 *
 	 */
-	var ORG=GMOD("Organizer");
+	let ORG=GMOD("Organizer");
 
-	var SC=GMOD("shortcut")({
+	let SC=GMOD("shortcut")({
 		it:"iterate",
 		debug:"debug",
 		det:"Detache"
 	});
 	
-	 var LC=ORG.LazyCache=µ.Class(ORG,
+	 let LC=ORG.LazyCache=µ.Class(ORG,
 	 {
 		init:function(dbClass,connector)
 		{
@@ -26,8 +26,8 @@
 			this.connector=connector;
 
 			
-			var inst=new dbClass();
-			for(var f in inst.fields)
+			let inst=new dbClass();
+			for(let f in inst.fields)
 			{
 				if(inst.fields[f].options.UNIQUE)
 				{
@@ -38,11 +38,11 @@
 		},
 		add:function(items,force)
 		{
-			var rtn=[];
-			var toAdd=[];
+			let rtn=[];
+			let toAdd=[];
 			SC.it(items,function(value)
 			{
-				var id=value.getID();
+				let id=value.getID();
 				if(value instanceof this.dbClass&&id!=null)
 				{
 					if (this.hasMapKey("ID",id))
@@ -65,7 +65,7 @@
 		},
 		get:function(signal,pattern,sort,force)
 		{
-			var key=JSON.stringify(pattern);
+			let key=JSON.stringify(pattern);
 			if(!force&&this.filters[key]!=null)
 			{
 				if(this.filters[key].signals.length==0)
@@ -78,7 +78,7 @@
 				if(sort)
 					sort="fields."+sort+".value";
 				this.filter(key,LC.filterPattern(pattern),sort);
-				var signals=this.filters[key].signals=[signal];
+				let signals=this.filters[key].signals=[signal];
 				this._load(pattern,signals,false,force);
 			}
 		},
@@ -92,11 +92,11 @@
 				}
 				else
 				{
-					var pattern={};
+					let pattern={};
 					pattern[fieldName]=value;
 					if(this.maps[fieldName].signals[value]==null)
 					{
-						var signals=this.maps[fieldName].signals[value]=[signal];
+						let signals=this.maps[fieldName].signals[value]=[signal];
 						this._load(pattern,signals,true,force);
 					}
 					else
@@ -113,12 +113,12 @@
 		_load:function(pattern,signals,single,force)
 		{
 			SC.debug(["LazyCache._load:",arguments],3);
-			var _self=this;
+			let _self=this;
 			this.connector.load(this.dbClass,pattern).then(function(results)
 			{
 				_self.add([].concat(results),force);
 				results=single?results[0]:results;
-				var signal;
+				let signal;
 				while(signal=signals.shift())
 				{
 					signal.complete(results);
@@ -126,7 +126,7 @@
 			},function(e)
 			{
 				SC.debug(e,1);
-				var signal;
+				let signal;
 				while(signal=signals.shift())
 				{
 					signal.complete(single?undefined:[]);
@@ -136,8 +136,8 @@
 	 });
 	LC.filterPattern=function(pattern)
 	{
-		var newPattern={fields:{}};
-		for(var i in pattern)
+		let newPattern={fields:{}};
+		for(let i in pattern)
 		{
 			newPattern.fields[i]={value:pattern[i]};
 		}

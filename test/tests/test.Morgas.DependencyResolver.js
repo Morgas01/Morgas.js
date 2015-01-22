@@ -1,6 +1,6 @@
 (function(){
 	module("DependencyResolver");
-	var dr=new (µ.getModule("DepRes"))({
+	let dr=new (µ.getModule("DepRes"))({
 		a:true,
 		aa:"a",
 		ab:["a","b"],

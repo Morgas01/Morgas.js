@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 
-	var util=µ.util=µ.util||{};
-	var obj=util.object||{};
+	let util=µ.util=µ.util||{};
+	let obj=util.object||{};
 	
 	/**
 	 * adopt attributes defined in [target] from [provider].
@@ -14,8 +14,9 @@
 	{
 		if(provider)
 		{
-			var keys=Object.keys(extend ? provider : target);
-			for(var k=0,i=keys[k];k<keys.length;i=keys[++k])
+			let keys=Object.keys(extend ? provider : target);
+			let k=0;
+			for(let i=keys[k];k<keys.length;i=keys[++k])
 			{
 				if(extend||i in provider)
 				{

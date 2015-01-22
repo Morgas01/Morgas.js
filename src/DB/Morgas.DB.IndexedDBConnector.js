@@ -6,7 +6,7 @@
 	 * DB.Connector for simple Javascript object
 	 *
 	 */
-	var DBC=GMOD("DBConn"),
+	let DBC=GMOD("DBConn"),
 	SC=GMOD("shortcut")({
 		det:"Detached",
 		it:"iterate",
@@ -17,7 +17,7 @@
 		DBFriend:"DBFriend"
 	});
 	
-	var ICON=µ.Class(DBC,{
+	let ICON=µ.Class(DBC,{
 
 		init:function(dbName)
 		{
@@ -30,13 +30,13 @@
 		save:function(signal,objs)
 		{
 			objs=[].concat(objs);
-			var sortedObjs=ICON.sortObjs(objs);
-			var classNames=Object.keys(sortedObjs);
+			let sortedObjs=ICON.sortObjs(objs);
+			let classNames=Object.keys(sortedObjs);
 			this._open(classNames).then(function(db)
 			{
-				var transactions=SC.it(sortedObjs,SC.det.detache(function(tSignal,objects,objectType)
+				let transactions=SC.it(sortedObjs,SC.det.detache(function(tSignal,objects,objectType)
 				{
-					var trans=db.transaction(objectType,"readwrite");
+					let trans=db.transaction(objectType,"readwrite");
 					trans.onerror=function(event)
 					{
 						µ.debug(event, 0);
@@ -48,17 +48,17 @@
 						tSignal.complete();
 					};
 					
-					var store = trans.objectStore(objectType);
+					let store = trans.objectStore(objectType);
 					SC.it(objects,function(object,i)
 					{
-						var obj=object.toJSON(),
+						let obj=object.toJSON(),
 						method="put";
 						if(obj.ID===undefined)
 						{
 							delete obj.ID;
 							method="add";
 						}
-						var req=store[method](obj);
+						let req=store[method](obj);
 						req.onerror=function(event){µ.debug(event,0)};
 						req.onsuccess=function(event)
 						{
@@ -83,7 +83,7 @@
 				}
 				else
 				{
-					var trans=db.transaction(objClass.prototype.objectType,"readonly"),
+					let trans=db.transaction(objClass.prototype.objectType,"readonly"),
 					rtn=[];
 					trans.onerror=function(event)
 					{
@@ -97,12 +97,12 @@
 						signal.complete(rtn);
 					};
 
-					var store = trans.objectStore(objClass.prototype.objectType);
+					let store = trans.objectStore(objClass.prototype.objectType);
 					if(typeof pattern.ID==="number"|| Array.isArray(pattern.ID))
 					{
-						var reqs=SC.it([].concat(pattern.ID),function(ID)
+						let reqs=SC.it([].concat(pattern.ID),function(ID)
 						{
-							var req=store.get(ID);
+							let req=store.get(ID);
 							req.onerror=function(event)
 							{
 								µ.debug(event,0);
@@ -112,7 +112,7 @@
 								µ.debug(event, 3);
 								if(SC.eq(req.result,pattern))
 								{
-									var inst=new objClass();
+									let inst=new objClass();
 									inst.fromJSON(req.result);
 									rtn.push(inst);
 								}
@@ -121,7 +121,7 @@
 					}
 					else
 					{
-						var req=store.openCursor();
+						let req=store.openCursor();
 						req.onerror=function(event)
 						{
 							µ.debug(event,0);
@@ -134,7 +134,7 @@
 							{
 								if(SC.eq(req.result.value,pattern))
 								{
-									var inst=new objClass();
+									let inst=new objClass();
 									inst.fromJSON(req.result.value);
 									rtn.push(inst);
 								}
@@ -148,19 +148,19 @@
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
-			var _self=this,
+			let _self=this,
 			objectType=objClass.prototype.objectType,
 			collectingIDs=null;
 			if(typeof toDelete==="number"||toDelete instanceof SC.DBObj||toDelete instanceof SC.DBFriend||Array.isArray(toDelete))
 			{
-				var ids=DBC.getDeletePattern(objClass,toDelete).ID;
+				let ids=DBC.getDeletePattern(objClass,toDelete).ID;
 				collectingIDs=SC.det.complete(ids);
 			}
 			else
 			{
 				collectingIDs=this._open().then(function(db)
 				{
-					var _collectingSelf=this,
+					let _collectingSelf=this,
 					ids=[],
 					trans=db.transaction(objectType,"readonly");
 					trans.onerror=function(event)
@@ -176,8 +176,8 @@
 						_collectingSelf.complete(ids);
 					};
 
-					var store = trans.objectStore(objectType);
-					var req=store.openCursor();
+					let store = trans.objectStore(objectType);
+					let req=store.openCursor();
 					req.onerror=function(event)
 					{
 						µ.debug(event,0);
@@ -205,18 +205,18 @@
 				{
 					return _self._open().then(function(db)
 					{
-						var trans=db.transaction(objClass.prototype.objectType,"readwrite");
+						let trans=db.transaction(objClass.prototype.objectType,"readwrite");
 						trans.onerror=function(event)
 						{
 							µ.debug(event,0);
 							db.close();
 							signal.error(event);
 						};
-						var store = trans.objectStore(objectType);
+						let store = trans.objectStore(objectType);
 						
-						var reqs=SC.it(ids,SC.det.detache(function(rSignal,ID)
+						let reqs=SC.it(ids,SC.det.detache(function(rSignal,ID)
 						{
-							var req=store["delete"](ID);
+							let req=store["delete"](ID);
 							req.onerror=function(event)
 							{
 								µ.debug(event,0);
@@ -253,17 +253,17 @@
 		},
 		_open:function(signal,classNames)
 		{
-			var _self=this;
-			var req=indexedDB.open(this.name);
+			let _self=this;
+			let req=indexedDB.open(this.name);
 			req.onerror=function(event){
 				signal.error(event,0);
 			};
 			req.onsuccess=function()
 			{
-				var toCreate=[],
+				let toCreate=[],
 				db=req.result,
 				version=req.result.version;
-				for(var i=0;classNames&&i<classNames.length;i++)
+				for(let i=0;classNames&&i<classNames.length;i++)
 				{
 					if(!db.objectStoreNames.contains(classNames[i]))
 					{
@@ -276,13 +276,13 @@
 				}
 				else
 				{
-					var req2=indexedDB.open(_self.name,version+1);
+					let req2=indexedDB.open(_self.name,version+1);
 					req2.onerror=function(event){
 						signal.error(event,0);
 					};
 					req2.onupgradeneeded=function()
 					{
-						for(var i=0;i<toCreate.length;i++)
+						for(let i=0;i<toCreate.length;i++)
 						{
 							req2.result.createObjectStore(toCreate[i],{keyPath:"ID",autoIncrement:true});
 						}
@@ -300,10 +300,10 @@
 	
 	ICON.sortObjs=function(objs)
 	{
-		var rtn={};
-		for(var i=0;i<objs.length;i++)
+		let rtn={};
+		for(let i=0;i<objs.length;i++)
 		{
-			var obj=objs[i],
+			let obj=objs[i],
 			objType=obj.objectType;
 			
 			if(rtn[objType]===undefined)

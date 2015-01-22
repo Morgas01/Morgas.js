@@ -1,11 +1,11 @@
 (function(µ,SMOD,GMOD){
 	
-	var util=µ.util=µ.util||{};
+	let util=µ.util=µ.util||{};
 	
-	var that=util.crc32=function(str)
+	let that=util.crc32=function(str)
 	{
-	   var crc=0^(-1);
-	   for (var i=0;i<str.length;i++)
+	   let crc=0^(-1);
+	   for (let i=0;i<str.length;i++)
 	   {
 		   crc=(crc>>>8)^that.get((crc^str.charCodeAt(i))&0xFF);
 	   }
@@ -16,8 +16,8 @@
 	{
 	   if(that.table.n==null)
 	   {
-		   var c=n;
-		   for(var k=0;k<8;k++){
+		   let c=n;
+		   for(let k=0;k<8;k++){
 			   c=((c&1)?(0xEDB88320^(c>>>1)):(c>>>1));
 		   }
 		   that.table[n]=c;

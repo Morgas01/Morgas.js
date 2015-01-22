@@ -1,12 +1,12 @@
 (function(µ,SMOD,GMOD){
 
-    var Patch=GMOD("Patch");
-	var SC=GMOD("shortcut")({
+    let Patch=GMOD("Patch");
+	let SC=GMOD("shortcut")({
 		p:"proxy",
         d:"debug"
 	});
 
-	var NODE=µ.NodePatch=µ.Class(Patch,{
+	let NODE=µ.NodePatch=µ.Class(Patch,{
 		patchID:"NodePatch",
 		patch:function(aliasMap)
 		{
@@ -16,10 +16,10 @@
 
 			aliasMap=aliasMap||{};
             this.aliasMap={};
-            var proxyMap={};
-			for (var i=0;i<NODE.Aliases.length;i++)
+            let proxyMap={};
+			for (let i=0;i<NODE.Aliases.length;i++)
 			{
-                var target=NODE.Aliases[i];
+                let target=NODE.Aliases[i];
                 if(target in aliasMap)
                 {
                     this.aliasMap[target]=aliasMap[target];
@@ -31,9 +31,9 @@
 			}
             SC.p(getNode,proxyMap,this.instance);
 
-			for (var i=0;i<NODE.Symbols.length;i++)
+			for (let i=0;i<NODE.Symbols.length;i++)
 			{
-                var symbol=NODE.Symbols[i];
+                let symbol=NODE.Symbols[i];
                 if(symbol in aliasMap)
                 {
                     setSymbol(this,symbol,aliasMap[symbol])
@@ -42,8 +42,8 @@
 		},
 		addChild:function(child,index)
 		{
-			var childPatch=getNode(child),alias;
-            var childIndex=this.children.indexOf(child);
+			let childPatch=getNode(child),alias;
+            let childIndex=this.children.indexOf(child);
             if(!childPatch)
             {//is not a Node
             	SC.d([child," is not a Node"]);
@@ -98,14 +98,14 @@
 		},
 		removeChild:function(child)
 		{
-			var index=this.children.indexOf(child);
+			let index=this.children.indexOf(child);
 			if(index!==-1)
 			{//has child
 				this.children.splice(index, 1);
-				var childPatch=getNode(child);
+				let childPatch=getNode(child);
 				if(childPatch&&childPatch.parent===this.instance)
 				{//is still parent of child
-					var alias=childPatch.aliasMap.remove;
+					let alias=childPatch.aliasMap.remove;
 	                if(alias)
 	                {
 	                    if(!child[alias]())
@@ -125,7 +125,7 @@
 		},
 		setParent:function(parent)
 		{
-			var parentPatch=getNode(parent),alias;
+			let parentPatch=getNode(parent),alias;
 			if(!parentPatch)
 			{//is not a Node
             	SC.d([parent," is not a Node"]);
@@ -177,12 +177,12 @@
 		{
 			if(this.parent!==null)
 			{
-				var oldParent=this.parent;
-				var oldParentPatch=getNode(oldParent);
+				let oldParent=this.parent;
+				let oldParentPatch=getNode(oldParent);
 				this.parent=null;
 				if(oldParentPatch.children.indexOf(this.instance)!==-1)
 				{//is still old parents child
-					var alias=oldParentPatch.aliasMap.removeChild;
+					let alias=oldParentPatch.aliasMap.removeChild;
 					if(alias)
 					{
 						if(!oldParent[alias](this.instance))
@@ -206,7 +206,7 @@
 		},
         isChildOf:function(parent)
         {
-            var parentPatch=getNode(parent);
+            let parentPatch=getNode(parent);
             return parent&&parent.hasChild(this.instance);
         }
 	});
@@ -225,10 +225,11 @@
 		init:function(aliasMap)
 		{
 			aliasMap=aliasMap||{};
-			var map={};
-            for(var i=0,targets=Object.keys(NODE.BasicAliases),target=targets[i]; i<targets.length; target=targets[++i])
+			let map={};
+            for(let i=0,targets=Object.keys(NODE.BasicAliases);i<targets.length;i++)
 			{
-				var alias=aliasMap[target];
+            	let target=targets[i];
+				let alias=aliasMap[target];
 				if(alias===undefined)
 				{
 					alias=NODE.BasicAliases[target];
@@ -242,7 +243,7 @@
 		}
 	});
 	
-	var getNode=function(obj)
+	let getNode=function(obj)
 	{
         if(typeof obj==="string")
         {//used as proxy getter
@@ -258,7 +259,7 @@
         }
 	};
 	//TODO replace with GMOD("shortcut") dynamic
-    var setSymbol=function(node,symbol,alias)
+    let setSymbol=function(node,symbol,alias)
     {
         if(typeof node[symbol]!=="function")
         {

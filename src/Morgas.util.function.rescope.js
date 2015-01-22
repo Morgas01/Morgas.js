@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 	
-	var util=µ.util=µ.util||{};
-	var uFn=util.function||{};
+	let util=µ.util=µ.util||{};
+	let uFn=util.function||{};
 	
 	/** rescope
 	 * faster than bind but only changes the scope.
@@ -16,7 +16,7 @@
 	uFn.rescope.all=function(keys,scope)
 	{	
 		keys=keys||Object.keys(scope);
-		for(var i=0;i<keys.length;i++)
+		for(let i=0;i<keys.length;i++)
 		{
 			scope[keys[i]]=uFn.rescope(scope[keys[i]],scope);
 		}

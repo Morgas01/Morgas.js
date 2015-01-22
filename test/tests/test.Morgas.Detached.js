@@ -1,7 +1,7 @@
 (function(µ,GMOD){
 	module("Detached");
-	var DET=GMOD("Detached");
-	var _det=DET.detache;
+	let DET=GMOD("Detached");
+	let _det=DET.detache;
 	
 	asyncTest("call",function()
 	{
@@ -98,11 +98,11 @@
 	});
 	asyncTest("on error propagate",function()
 	{
-		var d1=new DET(function()
+		let d1=new DET(function()
 		{
 			throw("reason");
 		});
-		var d2=d1.complete(function()
+		let d2=d1.complete(function()
 		{
 			this.complete("complete");
 		});
@@ -117,8 +117,8 @@
 	
 	asyncTest("detached function",function()
 	{
-		var scope={};
-		var func=_det(function(signal,arg)
+		let scope={};
+		let func=_det(function(signal,arg)
 		{
 			strictEqual(this,scope);
 			signal.complete(arg);

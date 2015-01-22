@@ -1,11 +1,11 @@
 (function(){
 	module("Patch");
 	
-	var class1=function(value)
+	let class1=function(value)
 	{
 		this.value=value
 	};
-	var patch=µ.Class(µ.getModule("Patch"),
+	let patch=µ.Class(µ.getModule("Patch"),
 	{
 		patchID:"patch1",
 		patch:function(param)
@@ -13,12 +13,12 @@
 			this.instance.value+=param;
 		}
 	});
-	var class2=µ.Class(µ.getModule("Listeners"),
+	let class2=µ.Class(µ.getModule("Listeners"),
 	{
 		init:function(value,patchNow)
 		{
 			this.superInit(µ.Listeners);
-			var p=new patch(this,2);
+			let p=new patch(this,2);
 			if(patchNow) p.patchNow();
 			this.value=value
 		}

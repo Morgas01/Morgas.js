@@ -6,13 +6,13 @@
 	 * Organizer to reindex and group arrays
 	 *
 	 */
-	var SC=GMOD("shortcut")({
+	let SC=GMOD("shortcut")({
 		it:"iterate",
 		eq:"equals",
 		path:"goPath"
 	});
 	 
-	var ORG=µ.Organizer=µ.Class({
+	let ORG=µ.Organizer=µ.Class({
 		init:function(values)
 		{
 			this.values=[];
@@ -32,17 +32,17 @@
 			}
 			SC.it(values,function(value)
 			{
-				var index=this.values.length;
+				let index=this.values.length;
 				this.values.push(value);
-				for(var m in this.maps)
+				for(let m in this.maps)
 				{
 					this._map(this.maps[m],index);
 				}
-				for(var f in this.filters)
+				for(let f in this.filters)
 				{
 					this._filter(this.filters[f],index);
 				}
-				for(var g in this.groups)
+				for(let g in this.groups)
 				{
 					this._group(this.groups[g],index);
 				}
@@ -56,22 +56,22 @@
 		},
 		remove:function(value)
 		{
-			var valuesIndex=this.values.indexOf(value);
+			let valuesIndex=this.values.indexOf(value);
 			if(valuesIndex!==-1)
 			{
-				for(var i in this.filters)
+				for(let i in this.filters)
 				{
-					var index=this.filters[i].values.indexOf(valuesIndex);
+					let index=this.filters[i].values.indexOf(valuesIndex);
 					if(index!==-1)
 					{
 						this.filters[i].values.splice(index,1);
 					}
 				}
-				for(var i in this.maps)
+				for(let i in this.maps)
 				{
-					var map=this.maps[i].values;
-					var keys=Object.keys(map);
-					for(var i=0;i<keys.length;i++)
+					let map=this.maps[i].values;
+					let keys=Object.keys(map);
+					for(let i=0;i<keys.length;i++)
 					{
 						if(map[keys[i]]===value)
 						{
@@ -80,13 +80,13 @@
 						}
 					}
 				}
-				for(var i in this.groups)
+				for(let i in this.groups)
 				{
-					var group=this.groups[i].values;
-					var keys=Object.keys(group);
-					for(var i=0;i<keys.length;i++)
+					let group=this.groups[i].values;
+					let keys=Object.keys(group);
+					for(let i=0;i<keys.length;i++)
 					{
-						var index=group[keys[i]].indexOf(valuesIndex);
+						let index=group[keys[i]].indexOf(valuesIndex);
 						if(index!==-1)
 						{
 							group[keys[i]].splice(index,1);
@@ -104,15 +104,15 @@
 		},
 		clear:function()
 		{
-			for(var i in this.filters)
+			for(let i in this.filters)
 			{
 				this.filters[i].values.length=0;
 			}
-			for(var i in this.maps)
+			for(let i in this.maps)
 			{
 				this.maps[i].values={};
 			}
-			for(var i in this.groups)
+			for(let i in this.groups)
 			{
 				this.groups[i].values={};
 			}
@@ -125,7 +125,7 @@
 			if(typeof fn==="string")
 				fn=ORG._pathWrapper(fn);
 			this.maps[mapName]={fn:fn,values:{}};
-			for(var i=0;i<this.values.length;i++)
+			for(let i=0;i<this.values.length;i++)
 			{
 				this._map(this.maps[mapName],i);
 			}
@@ -133,12 +133,12 @@
 		},
 		_map:function(map,index)
 		{
-			var key=""+map.fn(this.values[index]);
+			let key=""+map.fn(this.values[index]);
 			map.values[key]=index;
 		},
 		getMap:function(mapName)
 		{
-			var rtn={};
+			let rtn={};
 			if(this.maps[mapName]!=null)
 			{
 				SC.it(this.maps[mapName].values,function(index,gIndex)
@@ -188,7 +188,7 @@
 			if(typeof sortFn==="string")
 				sortFn=ORG.pathSort(sortFn);
 			this.filters[filterName]={filterFn:filterFn,sortFn:sortFn,values:[]};
-			for(var i=0;i<this.values.length;i++)
+			for(let i=0;i<this.values.length;i++)
 			{
 				this._filter(this.filters[filterName],i);
 			}
@@ -204,7 +204,7 @@
 				}
 				else
 				{
-					var i=ORG.getOrderIndex(this.values[index],this.values,filter.sortFn,filter.values);
+					let i=ORG.getOrderIndex(this.values[index],this.values,filter.sortFn,filter.values);
 					filter.values.splice(i,0,index);
 				}
 			}
@@ -215,7 +215,7 @@
 		},
 		getFilter:function(filterName)
 		{
-			var rtn=[];
+			let rtn=[];
 			if(this.filters[filterName]!=null)
 			{
 				SC.it(this.filters[filterName].values,function(index,gIndex)
@@ -250,7 +250,7 @@
 			this.groups[groupName]={values:{},fn:groupFn};
 			if(groupFn)
 			{
-				for(var i=0;i<this.values.length;i++)
+				for(let i=0;i<this.values.length;i++)
 				{
 					this._group(this.groups[groupName],i);
 				}
@@ -261,7 +261,7 @@
 		{
 			if(group.fn)
 			{
-				var gKey=group.fn(this.values[index]);
+				let gKey=group.fn(this.values[index]);
 				group.values[gKey]=group.values[gKey]||[];
 				group.values[gKey].push(index);
 			}
@@ -272,10 +272,10 @@
 		},
 		getGroup:function(groupName)
 		{
-			var rtn={};
+			let rtn={};
 			if(this.hasGroup(groupName))
 			{
-				for(var gKey in this.groups[groupName].values)
+				for(let gKey in this.groups[groupName].values)
 				{
 					rtn[gKey]=this.getGroupValue(groupName,gKey);
 				}
@@ -284,11 +284,11 @@
 		},
 		getGroupValue:function(groupName,key)
 		{
-			var rtn=[];
+			let rtn=[];
 			if(this.hasGroup(groupName)&&this.groups[groupName].values[key])
 			{
-				var groupValues=this.groups[groupName].values[key];
-				for(var i=0;i<groupValues.length;i++)
+				let groupValues=this.groups[groupName].values[key];
+				for(let i=0;i<groupValues.length;i++)
 				{
 					rtn.push(this.values[groupValues[i]]);
 				}
@@ -333,8 +333,8 @@
 		path=path.split(",");
 		return function(obj,obj2)
 		{
-			var rtn=0;
-			for(var i=0;i<path.length&&rtn===0;i++)
+			let rtn=0;
+			for(let i=0;i<path.length&&rtn===0;i++)
 			{
 				rtn=ORG.sort(SC.path(obj,path[i]),SC.path(obj2,path[i]),DESC)
 			}
@@ -362,14 +362,14 @@
 	ORG.getOrderIndex=function(item,source,sort,order)
 	{
 		//start in the middle
-		var length=(order?order:source).length;
-		var jump=Math.ceil(length/2);
-		var i=jump;
-		var lastJump=null;
+		let length=(order?order:source).length;
+		let jump=Math.ceil(length/2);
+		let i=jump;
+		let lastJump=null;
 		while(jump/*!=0||NaN||null*/&&i>0&&i<=length&&!(jump===1&&lastJump===-1))
 		{
 			lastJump=jump;
-			var compare=order?source[order[i-1]] : source[i-1];
+			let compare=order?source[order[i-1]] : source[i-1];
 			//jump half the size in direction of this sort			(if equals jump 1 to conserv the order)
 			jump=Math.ceil(Math.abs(jump)/2)*Math.sign(sort(item,compare)) ||1;
 			i+=jump;
@@ -387,10 +387,10 @@
 	 */
 	ORG.getSortedOrder=function(source,sort)
 	{
-		var order=[];
+		let order=[];
 		SC.it(source,function(item,index)
 		{
-			var orderIndex=ORG.getOrderIndex(item,source,sort,order);
+			let orderIndex=ORG.getOrderIndex(item,source,sort,order);
 			order.splice(orderIndex,0,index);
 		});
 		return order;

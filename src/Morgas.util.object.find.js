@@ -1,9 +1,9 @@
 (function(µ,SMOD,GMOD){
 
-	var util=µ.util=µ.util||{};
-	var obj=util.object||{};
+	let util=µ.util=µ.util||{};
+	let obj=util.object||{};
 	
-	var SC=GMOD("shortcut")({
+	let SC=GMOD("shortcut")({
 		eq:"equals",
 		it:"iterate"
 	});
@@ -14,7 +14,7 @@
 	 */
 	obj.find=function(source,pattern,onlyValues)
 	{
-		var rtn=[];
+		let rtn=[];
 		SC.it(source,function(value,index)
 		{
 			if(SC.eq(value,pattern))

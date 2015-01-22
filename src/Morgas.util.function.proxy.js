@@ -1,9 +1,9 @@
 (function(µ,SMOD,GMOD){
 	
-	var util=µ.util=µ.util||{};
-	var uFn=util["function"]||{};
+	let util=µ.util=µ.util||{};
+	let uFn=util["function"]||{};
 	
-	var SC=GMOD("shortcut")({
+	let SC=GMOD("shortcut")({
 		it:"iterate"
 	});
 	
@@ -12,7 +12,7 @@
 	 */
 	uFn.proxy=function(source,listOrMapping,target)
 	{
-		var isKey=false,
+		let isKey=false,
 		isGetter=false;
 		switch(typeof source)
 		{
@@ -25,7 +25,7 @@
 		}
 		SC.it(listOrMapping,function(value,key,index,isObject)
 		{
-			var sKey=(isObject?key:value),
+			let sKey=(isObject?key:value),
 			tKey=value,
 			fn=null;
 			if(isKey)
@@ -34,7 +34,7 @@
 			}
 			else if (isGetter)
 			{
-				fn=function(){var scope=source.call(this,sKey);return scope[sKey].apply(scope,arguments);};
+				fn=function(){let scope=source.call(this,sKey);return scope[sKey].apply(scope,arguments);};
 			}
 			else
 			{

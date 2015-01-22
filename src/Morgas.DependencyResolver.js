@@ -10,9 +10,10 @@
 		{
 			if(typeof obj==="object")
 			{
-				for(var keys=Object.keys(obj),l=keys.length,i=0;i<l;i++)
+				let keys=Object.keys(obj);
+				for(let l=keys.length,i=0;i<l;i++)
 				{
-					var k=keys[i];
+					let k=keys[i];
 					if(this.config[k]===undefined||overwrite)
 					{
                         if(typeof obj[k]==="string")
@@ -40,7 +41,8 @@
 		},
 		resolve:function(items)
 		{
-			var rtn=[], list=[].concat(items), items=[].concat(items);
+			let rtn=[], list=[].concat(items);
+			items=[].concat(items);
 			while(list.length>0)
 			{
 				var	resolved=true,conf=this.config[list[0]];
@@ -50,8 +52,8 @@
 				}
 				else if(conf!==true)
 				{
-					var deps=conf.deps;
-                    for(var i=0;i<conf.uses.length;i++)
+					let deps=conf.deps;
+                    for(let i=0;i<conf.uses.length;i++)
                     {
                         if(list.indexOf(conf.uses[i])===-1&&rtn.indexOf(conf.uses[i])===-1)
                         {
@@ -59,12 +61,12 @@
                             items.push(conf.uses[i]);
                         }
                     }
-					for(var i=0;i<deps.length;i++)
+					for(let i=0;i<deps.length;i++)
 					{
-						var dep=deps[i];
+						let dep=deps[i];
 						if(rtn.indexOf(dep)===-1)
 						{//not yet depending
-							var listIndex=list.indexOf(dep);
+							let listIndex=list.indexOf(dep);
 							if(listIndex!==-1)
 							{//as remaining item
 								
@@ -92,12 +94,12 @@
 		},
         clone:function(prefix)
         {
-            var config=null;
+            let config=null;
             if(prefix)
             {
                 config={};
-                var mapFn=function(v){return prefix+v};
-                for(var i in this.config)
+                let mapFn=function(v){return prefix+v};
+                for(let i in this.config)
                 {
                     config[prefix+i]=(this.config[i]===true ? true : {deps:this.config[i].deps.map(mapFn),uses:this.config[i].uses.map(mapFn)})
                 }

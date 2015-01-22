@@ -26,7 +26,7 @@
 	 *	shortcut paths and ensure flexibility.
 	 */
 	(function(){
-		var modules={};
+		let modules={};
 		µ.setModule=function(key,value)
 		{
 			if(modules[key])
@@ -46,7 +46,7 @@
 			return modules[key];
 		};
 	})();
-	var SMOD=µ.setModule,GMOD=µ.getModule,HMOD=µ.hasModule;
+	let SMOD=µ.setModule,GMOD=µ.getModule,HMOD=µ.hasModule;
 	
 	/**
 	 * Debug message if it's verbose is >= the current verbose.
@@ -120,9 +120,9 @@
 		{
 			target={};
 		}
-		for(var m in map){(function(path,key)
+		for(let m in map){(function(path,key)
 		{
-			var value=undefined;
+			let value=undefined;
 			Object.defineProperty(target,key,{
 				configurable:false,
 				enumerable:true,
@@ -184,9 +184,9 @@
 	 *  @param	superClass	(optional)	default: µ.BaseClass
 	 *  @param	prototype	(optional)
 	 */
-	var CLASS=µ.Class=function ClassFunc(superClass,prot)
+	let CLASS=µ.Class=function ClassFunc(superClass,prot)
 	{
-		var newClass = function ClassConstructor()
+		let newClass = function ClassConstructor()
 		{
 			this.init.apply(this,arguments);
 			if(HMOD("Listeners")&&this instanceof GMOD("Listeners"))
@@ -205,7 +205,7 @@
 			newClass.prototype=Object.create(superClass.prototype);
 			newClass.prototype.constructor=newClass;
 		}
-		for(var i in prot)
+		for(let i in prot)
 		{
 			newClass.prototype[i]=prot[i];
 		}

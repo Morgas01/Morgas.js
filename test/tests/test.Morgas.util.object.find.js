@@ -2,12 +2,12 @@
 
 	module("util.object.find");
 	
-	var find=GMOD("find");
+	let find=GMOD("find");
 	
 	test("find",function()
 	{
-		var arr=[1,"4",1,4,2,1,3,5,6,2,3,7];
-		var arr2=[
+		let arr=[1,"4",1,4,2,1,3,5,6,2,3,7];
+		let arr2=[
 			{name:"tim"},
 			{name:"george"},
 			{name:"john"},
@@ -16,7 +16,7 @@
 			{name:"lucy"},
 			{name:"louise"}
 		];
-		var obj={
+		let obj={
 			id:5,
 			price:20,
 			stock:5

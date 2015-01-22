@@ -2,12 +2,12 @@
 
 	module("util.object.uniquify");
 	
-	var U=GMOD("uniquify");
+	let U=GMOD("uniquify");
 	
 	test("uniquify",function()
 	{
-		var arr1=[1,2,5,3,6,5,7,8,9,0,4,5,6,2,9,7,8];
-		var arr2=[
+		let arr1=[1,2,5,3,6,5,7,8,9,0,4,5,6,2,9,7,8];
+		let arr2=[
 			{
 				id:"1",
 				value:1

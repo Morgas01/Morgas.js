@@ -4,13 +4,13 @@
 	
 	test("bind",function()
 	{
-		var scope={
+		let scope={
 			fn:function(value){
 				ok(this===otherScope,"scope");
 				ok(value===3,"param")
 			}
 		};
-		var otherScope={};
+		let otherScope={};
 		
 		scope.fn=GMOD("bind")(scope.fn,otherScope,3);
 		scope.fn(1);

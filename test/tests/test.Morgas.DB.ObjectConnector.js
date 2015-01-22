@@ -1,6 +1,6 @@
 (function(µ,GMOD){
 	module("DB.ObjectConnector");
-	var OCON=GMOD("ObjectConnector");
+	let OCON=GMOD("ObjectConnector");
 	
 	window.DBTest(new OCON(true));
 	

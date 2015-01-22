@@ -2,9 +2,9 @@
 
 	module("util.Request");
 	
-	var REQ=GMOD("Request");
-	var RJS=GMOD("Request.json");
-	var scope={};
+	let REQ=GMOD("Request");
+	let RJS=GMOD("Request.json");
+	let scope={};
 	
 	asyncTest("request",function()
 	{

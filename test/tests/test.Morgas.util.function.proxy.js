@@ -2,11 +2,11 @@
 
 	module("util.function.proxy");
 	
-	var P=GMOD("proxy");
+	let P=GMOD("proxy");
 	
 	test("proxy",function()
 	{
-		var target={
+		let target={
 			innerSource:{
 				f1:function(v)
 				{
@@ -15,15 +15,15 @@
 				}
 			}
 		};
-		var outerSource={
+		let outerSource={
 			function2:function(v)
 			{
 				strictEqual(this,outerSource,"object scope");
 				return v+2;
 			}
 		};
-		var dynamicSource=null;
-		var getter=function(key)
+		let dynamicSource=null;
+		let getter=function(key)
 		{
 			dynamicSource={};
 			dynamicSource[key]=function(v)

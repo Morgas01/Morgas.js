@@ -6,15 +6,15 @@
 	 * DB.Connector for simple Javascript object
 	 *
 	 */
-	var DBC		=GMOD("DBConn");
-	var ORG		=GMOD("Organizer");
+	let DBC		=GMOD("DBConn");
+	let ORG		=GMOD("Organizer");
 	
-	var SC=GMOD("shortcut")({
+	let SC=GMOD("shortcut")({
 		eq:"equals",
 		find:"find"
 	});
 	
-	var OCON;
+	let OCON;
 	
 	OCON=DBC.ObjectConnector=µ.Class(DBC,
 	{
@@ -30,26 +30,26 @@
 		save:function(signal,objs)
 		{
 			objs=[].concat(objs);
-			var sortedObjs=DBC.sortObjs(objs);
-			for(var objectType in sortedObjs.fresh)
+			let sortedObjs=DBC.sortObjs(objs);
+			for(let objectType in sortedObjs.fresh)
 			{
-				var objs=sortedObjs.fresh[objectType],
+				let objs=sortedObjs.fresh[objectType],
 				ids=this._getNextID(objectType);
-				for(var i=0;i<objs.length;i++)
+				for(let i=0;i<objs.length;i++)
 				{
-					var id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
+					let id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
 					objs[i].setID(id);
 					this.db.add([{objectType:objs[i].objectType,fields:objs[i].toJSON()}]);
 				}
 			}
 
-			for(var objectType in sortedObjs.preserved)
+			for(let objectType in sortedObjs.preserved)
 			{
-				var objs=sortedObjs.preserved[objectType],
+				let objs=sortedObjs.preserved[objectType],
 				group=this.db.getGroupValue("objectType",objectType);
-				for(var i=0;i<objs.length;i++)
+				for(let i=0;i<objs.length;i++)
 				{
-					var found=SC.find(group,{fields:{ID:objs[i].getID()}});
+					let found=SC.find(group,{fields:{ID:objs[i].getID()}});
 					if(found.length>0)
 					{
 						found[0].value.fields=objs[i].toJSON();
@@ -57,15 +57,15 @@
 				}
 			}
 
-			for(var objectType in sortedObjs.friend)
+			for(let objectType in sortedObjs.friend)
 			{
-				var objs=sortedObjs.friend[objectType],
+				let objs=sortedObjs.friend[objectType],
 				group=this.db.getGroupValue("objectType",objectType),
 				newFriends=[];
-				for(var i=0;i<objs.length;i++)
+				for(let i=0;i<objs.length;i++)
 				{
-					var json={fields:objs[i].toJSON()};
-					var found=SC.find(group,json);
+					let json={fields:objs[i].toJSON()};
+					let found=SC.find(group,json);
 					if(found.length===0)
 					{
 						json.objectType=objs[i].objectType;
@@ -78,7 +78,7 @@
 		},
 		load:function(signal,objClass,pattern,sort,DESC)
 		{
-			var values=this.db.getGroupValue("objectType",objClass.prototype.objectType),
+			let values=this.db.getGroupValue("objectType",objClass.prototype.objectType),
 			rtn=[];
 			
 			if(sort)
@@ -86,11 +86,11 @@
 				sort=ORG.pathSort("fields."+sort+".value",DESC);
 			}
 			
-			for(var i=0;i<values.length;i++)
+			for(let i=0;i<values.length;i++)
 			{
 				if(SC.eq(values[i].fields,pattern))
 				{
-					var instance=new objClass();
+					let instance=new objClass();
 					instance.fromJSON(values[i].fields);
 					if(sort)
 					{
@@ -107,9 +107,9 @@
 		"delete":function(signal,objClass,toDelete)
 		{
 			toDelete={objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)};
-			var filterKey=JSON.stringify(toDelete),
+			let filterKey=JSON.stringify(toDelete),
 			values=this.db.filter(filterKey,toDelete).getFilter(filterKey);
-			for(var i=0;i<values.length;i++)
+			for(let i=0;i<values.length;i++)
 			{
 				this.db.remove(values[i]);
 			}
@@ -127,12 +127,12 @@
 		},
 		_getNextID:function(objectType)
 		{
-			var rtn=[],
+			let rtn=[],
 			group=this.db.getGroupValue("objectType",objectType);
-			var i=0;
+			let i=0;
 			for(;group.length>0;i++)
 			{
-				var found=SC.find(group,{fields:{ID:i}});
+				let found=SC.find(group,{fields:{ID:i}});
 				if(found.length===0)
 				{
 					rtn.push(i);

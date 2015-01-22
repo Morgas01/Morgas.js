@@ -1,12 +1,12 @@
 (function(µ,SMOD,GMOD){
 
-    var util=µ.util=µ.util||{};
+    let util=µ.util=µ.util||{};
 
-    var queryRegExp=/[\?&]([^=&]+)(=(([^&]|\\&)*))?/g;
+    let queryRegExp=/[\?&]([^=&]+)(=(([^&]|\\&)*))?/g;
     util.queryParam={};
 
     (function parseQueryParam(queryString){
-        var matches;
+        let matches;
         while(matches=queryRegExp.exec(queryString))
         {
             util.queryParam[matches[1]]=matches[3];

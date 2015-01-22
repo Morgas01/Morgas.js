@@ -1,11 +1,11 @@
 (function(µ,SMOD,GMOD){
 
-    var util=µ.util=µ.util||{};
-    var uCon=util.converter||{};
+    let util=µ.util=µ.util||{};
+    let uCon=util.converter||{};
 
-    var lineEXP=/[\r\n]+/, cellEXP=/;"(([^"]|"")+)"|;([^;]*)/g, cleanUpEXP=/"(")/g, getCells=function(line)
+    let lineEXP=/[\r\n]+/, cellEXP=/;"(([^"]|"")+)"|;([^;]*)/g, cleanUpEXP=/"(")/g, getCells=function(line)
     {
-        var matches,
+        let matches,
             cells=[];
 
         line=";"+line;
@@ -19,7 +19,7 @@
 
     uCon.csvToObject=function(csv)
     {
-        var lines = csv.split(lineEXP), keys = getCells(lines.shift()), rtn = [];
+        let lines = csv.split(lineEXP), keys = getCells(lines.shift()), rtn = [];
         if (lines[lines.length - 1] === "") {
             lines.length--;
         }
@@ -27,13 +27,13 @@
             keys.length--;
         }
         rtn.keys=keys;
-        for (var i = 0; i < lines.length; i++) {
-            var cells = getCells(lines[i]);
+        for (let i = 0; i < lines.length; i++) {
+            let cells = getCells(lines[i]);
             if (cells[cells.length - 1] === "") {
                 cells.length--;
             }
-            var obj = {_line:lines[i],_overflowCells:cells.slice(keys.length)};
-            for (var k = 0; k < keys.length; k++) {
+            let obj = {_line:lines[i],_overflowCells:cells.slice(keys.length)};
+            for (let k = 0; k < keys.length; k++) {
                 obj[keys[k]] = cells[k];
             }
             rtn.push(obj);

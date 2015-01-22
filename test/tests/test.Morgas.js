@@ -3,10 +3,10 @@
 	
 	µ.debug.verbose=3;
 	
-	var class1=µ.Class();
+	let class1=µ.Class();
 	class1.prototype.init=function(val){this.value=val};
 	
-	var class2=function(){class1.apply(this,arguments);};
+	let class2=function(){class1.apply(this,arguments);};
 	class2.prototype=new class1(µ._EXTEND);
 	class2.prototype.init=function(param)
 	{
@@ -15,7 +15,7 @@
 	};
 	class2.prototype.constructor=class2;
 	
-	var class3=µ.Class(class2,
+	let class3=µ.Class(class2,
 	{
 		init:function(val)
 		{
@@ -33,9 +33,9 @@
 
 	test("shortcut",function()
 	{
-		var s1=null;
-		var context={path:{to:{value:2}}};
-		var SC=µ.shortcut({s1:function(){return s1;},s2:"s2"});
+		let s1=null;
+		let context={path:{to:{value:2}}};
+		let SC=µ.shortcut({s1:function(){return s1;},s2:"s2"});
 		µ.shortcut({s3:"path.to.value"},SC,context);
 		µ.shortcut({s4:"path.to.value"},SC,context,true);
 		strictEqual(SC.s1,null,"function before set");
