@@ -229,4 +229,4 @@
 		}
 	});
 	SMOD("Base",BASE);
-})(window.µ);
+})(this.µ);
