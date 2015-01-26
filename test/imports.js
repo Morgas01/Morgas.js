@@ -3,7 +3,7 @@
 		document.write('<script type="application/javascript;version=1.8" charset="utf-8" src="'+path+'"></script>');
 	};
 	
-	let srcDir="./",
+	let srcDir="../src/",
 	testDir="tests/";
 
 	
