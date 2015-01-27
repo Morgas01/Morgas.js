@@ -42,7 +42,7 @@
 		},
         "Morgas.Organizer.js":{
         	deps:["Morgas.js"],
-        	uses:["Morgas.util.object.equals.js","Morgas.util.object.iterate.js"]
+        	uses:["Morgas.util.object.equals.js","Morgas.util.object.iterate.js","Morgas.util.object.goPath.js"]
         },
         "Morgas.Detached.js":"Morgas.js",
 
