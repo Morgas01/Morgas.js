@@ -1,0 +1,8 @@
+µ.Detached:
+	-	abort function -> rejects with "abort"
+µ.Worker:
+	-	tests
+	-	utils
+NEW:
+	Request cache
+	SQLiteConnector for Moz Extensions
