@@ -3,8 +3,11 @@
 µ.Worker:
 	-	tests
 	-	utils
-	-	DB Worker
+	-	DBWorker
+	-	Event/RequestWorker
 NEW:
-	Request cache
-	SQLiteConnector for Moz Extensions
-	Remote DBConnector
+	RequestCache
+	SQLiteConnector for moz extensions
+	RemoteDBConnector
+	(Indexed)DB GUI
+	simple tool for custom builds (concating files)
