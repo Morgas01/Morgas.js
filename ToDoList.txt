@@ -3,6 +3,8 @@
 µ.Worker:
 	-	tests
 	-	utils
+	-	DB Worker
 NEW:
 	Request cache
 	SQLiteConnector for Moz Extensions
+	Remote DBConnector
