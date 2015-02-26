@@ -4,18 +4,18 @@
 	
 	test("inputValues",function()
 	{
-		let domElement=document.createElement("div");
+		var domElement=document.createElement("div");
 		domElement.innerHTML='<input type="text" name="field1">'+
 		'<input type="checkbox" data-path="foo.bar" name="field2">'+
 		'<select name="selection"><option value="select1"/><option value="select2"/></select>'+
 		'<textarea name="default">default value</textarea>';
 		
-		let set={
+		var set={
 			"field1":"value1",
 			"foo":{"bar":{"field2":true}},
 			"selection":"select2"
 		};
-		let get={
+		var get={
 			"field1":null,
 			"foo":{"bar":{"field2":null}},
 			"selection":null,

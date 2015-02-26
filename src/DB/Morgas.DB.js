@@ -7,14 +7,14 @@
 	 *
 	 */
 
-	let SC=GMOD("shortcut")({
+	var SC=GMOD("shortcut")({
 		debug:"debug",
 		det:"Detached"
 	});
 	
-	let DB=µ.DB=µ.DB||{};
+	var DB=µ.DB=µ.DB||{};
 	
-	let DBC,TRAN,STMT,DBOBJECT,REL,FIELD;
+	var DBC,TRAN,STMT,DBOBJECT,REL,FIELD;
 	
 	DBC=DB.Connector=µ.Class(
 	{
@@ -28,7 +28,7 @@
 		{
 			/*
 			objs=[].concat(objs);
-			let sortedObjs=DBC.sortObjs(objs);
+			var sortedObjs=DBC.sortObjs(objs);
 			*/
 			throw new Error("abstract Class DB.Connector");
 		},
@@ -39,7 +39,7 @@
 		"delete":function(signal,objClass,toDelete)
 		{
 			/*
-			let toDelete=DBC.getDeletePattern(objClass,toDelete);
+			var toDelete=DBC.getDeletePattern(objClass,toDelete);
 			*/
 			throw new Error("abstract Class DB.Connector");
 		},
@@ -55,24 +55,24 @@
 		},
 		saveFriendships:function(obj,relationName)
 		{
-			let rel=obj.relations[relationName],
+			var rel=obj.relations[relationName],
 				friends=obj.friends[relationName];
 			if(!friends)
 			{
 				SC.debug("no friends in relation "+relationName+" found",2);
 				return new SC.det.complete(false);
 			}
-			let fRel=friends[0].relations[rel.targetRelationName],
+			var fRel=friends[0].relations[rel.targetRelationName],
 				id=obj.getID();
 			if(id==null)
 			{
 				SC.debug("friend id is null",2);
 				return new SC.det.complete(false);
 			}
-			let fids=[];
-			for(let i=0;i<friends.length;i++)
+			var fids=[];
+			for(var i=0;i<friends.length;i++)
 			{
-				let fid=friends[i].getID();
+				var fid=friends[i].getID();
 				if(fid!=null)
 					fids.push(fid);
 			}
@@ -81,7 +81,7 @@
 				SC.debug("no friend with friend id found");
 				return new SC.det.complete(false);
 			}
-			let tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
+			var tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
 				idName=obj.objectType+"_ID",
 				fidName=friends[0].objectType+"_ID",
 				toSave=[];
@@ -89,7 +89,7 @@
 			{
 				fidName+=2;
 			}
-			for(let i=0;i<fids.length;i++)
+			for(var i=0;i<fids.length;i++)
 			{
 				toSave.push(new DBFRIEND(tableName,idName,id,fidName,fids[i]));
 			}
@@ -98,19 +98,19 @@
 		
 		loadParent:function(obj,relationName)
 		{
-			let relation=obj.relations[relationName],
+			var relation=obj.relations[relationName],
 				parentClass=relation.relatedClass,
 				fieldName=relation.fieldName;
 			return this.load(parentClass,{ID:obj.getValueOf(fieldName)}).then(function(result)
 			{
-				let parent=result[0];
+				var parent=result[0];
 				parent.addChild(relationName,obj);
 				this.complete(parent);
 			});
 		},
 		loadChildren:function(obj,relationName,pattern)
 		{
-			let relation=obj.relations[relationName],
+			var relation=obj.relations[relationName],
 				childClass=rel.relatedClass,
 				fieldName=relation.fieldName;
 			pattern[fieldName]=this.getID();
@@ -122,7 +122,7 @@
 		},
 		loadFriends:function(obj,relationName,pattern)
 		{
-			let _self=this,
+			var _self=this,
 				rel=obj.relations[relationName],
 				friendClass=rel.relatedClass,
 				fRel=new friendClass().relations[rel.targetRelationName],
@@ -136,22 +136,22 @@
 				fid+=2;
 			}
 			fPattern[id]=obj.getID();
-			let friendship=DBFRIEND.Generator(type,id,fid);
+			var friendship=DBFRIEND.Generator(type,id,fid);
 			
-			let p=this.load(friendship,fPattern);
+			var p=this.load(friendship,fPattern);
 			
 			if (rel.relatedClass===fRel.relatedClass)
 			{
 				p=p.then(function(results)
 				{
-					let signal=this;
+					var signal=this;
 					fPattern[fid]=fPattern[id];
 					delete fPattern[id];
 					_self.load(friendship,fPattern).then(function(results2)
 					{
-						for(let i=0;i<results2.length;i++)
+						for(var i=0;i<results2.length;i++)
 						{
-							let t=results2[i].fields[id].value;
+							var t=results2[i].fields[id].value;
 							results2[i].fields[id].value=results2[i].fields[fid].value;
 							results2[i].fields[fid].value=t;
 						}
@@ -170,24 +170,24 @@
 		},
 		deleteFriendships:function(obj,relationName)
 		{
-			let rel=obj.relations[relationName],
+			var rel=obj.relations[relationName],
 				friends=obj.friends[relationName];
 			if(!friends)
 			{
 				SC.debug("no friends in relation "+relationName+" found",2);
 				return new SC.det.complete(false);
 			}
-			let fRel=friends[0].relations[rel.targetRelationName],
+			var fRel=friends[0].relations[rel.targetRelationName],
 				id=obj.getID();
 			if(id==null)
 			{
 				SC.debug("friend id is null",2);
 				return new SC.det.complete(false);
 			}
-			let fids=[];
-			for(let i=0;i<friends.length;i++)
+			var fids=[];
+			for(var i=0;i<friends.length;i++)
 			{
-				let fid=friends[i].getID();
+				var fid=friends[i].getID();
 				if(fid!=null)
 					fids.push(fid);
 			}
@@ -196,26 +196,26 @@
 				SC.debug("no friend with friend id found");
 				return new SC.det.complete(false);
 			}
-			let tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
+			var tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
 				idName=obj.objectType+"_ID",
 				fidName=friends[0].objectType+"_ID",
 				toDelete=[];
 			if (rel.relatedClass===fRel.relatedClass)
 			{
 				fidName+=2;
-				let pattern={};
+				var pattern={};
 				pattern[idName]=fids;
 				pattern[fidName]=id;
 				toDelete.push(pattern);
 			}
-			let pattern={};
+			var pattern={};
 			pattern[idName]=id;
 			pattern[fidName]=fids;
 			toDelete.push(pattern);
 			
-			let wait=[],
+			var wait=[],
 			fClass=DBFRIEND.Generator(tableName,idName,fidName);
-			for(let i=0;i<toDelete.length;i++)
+			for(var i=0;i<toDelete.length;i++)
 			{
 				wait.push(this["delete"](fClass,toDelete[i]));
 			}
@@ -225,10 +225,10 @@
 
 	DBC.sortObjs=function(objs)
 	{
-		let rtn={friend:{},fresh:{},preserved:{}};
-		for(let i=0;i<objs.length;i++)
+		var rtn={friend:{},fresh:{},preserved:{}};
+		for(var i=0;i<objs.length;i++)
 		{
-			let obj=objs[i],
+			var obj=objs[i],
 			type=(obj instanceof DBFRIEND ? "friend" :(obj.getID()===undefined ? "fresh" : "preserved")),
 			objType=obj.objectType;
 			
@@ -243,14 +243,14 @@
 	//make toDelete a Pattern from Number, DB.Object or Array
 	DBC.getDeletePattern=function(objClass,toDelete)
 	{
-		let type=typeof toDelete;
+		var type=typeof toDelete;
 		if(type==="number" || toDelete instanceof DB.Object)
 		{
 			toDelete=[toDelete];
 		}
 		if(Array.isArray(toDelete))
 		{
-			for(let i=0;i<toDelete.length;i++)
+			for(var i=0;i<toDelete.length;i++)
 			{
 				if(toDelete[i] instanceof objClass)
 				{
@@ -298,10 +298,10 @@
 		setID:function(val)
 		{
 			this.fields["ID"].setValue(val);
-			for(let c in this.children)
+			for(var c in this.children)
 			{
-				let children=this.children[c];
-				for(let i=0;i<children.length;i++)
+				var children=this.children[c];
+				for(var i=0;i<children.length;i++)
 				{
 					children[i]._setParent(this.relations[c],this);
 				}
@@ -314,13 +314,13 @@
 		},
 		_setParent:function(pRel,parent)
 		{
-			let cRel=this.relations[pRel.targetRelationName];
+			var cRel=this.relations[pRel.targetRelationName];
 			this.parents[pRel.targetRelationName]=parent;
 			this.setValueOf(cRel.fieldName,parent.getValueOf(pRel.fieldName));
 		},
 		_add:function(container,relationName,value)
 		{
-			let c=container[relationName]=container[relationName]||[];
+			var c=container[relationName]=container[relationName]||[];
 			if(c.indexOf(value)==-1)
 				c.push(value);
 		},
@@ -338,7 +338,7 @@
 		},
 		addChildren:function(relationName,children)
 		{
-			for(let i=0;i<children.length;i++)
+			for(var i=0;i<children.length;i++)
 			{
 				this.addChild(relationName,children[i]);
 			}
@@ -357,7 +357,7 @@
 		},
 		addFriends:function(relationName,friends)
 		{
-			for(let i=0;i<friends.length;i++)
+			for(var i=0;i<friends.length;i++)
 			{
 				this.addFriend(relationName,friends[i]);
 			}
@@ -368,8 +368,8 @@
 		},
 		toJSON:function()
 		{
-			let rtn={};
-			for(let f in this.fields)
+			var rtn={};
+			for(var f in this.fields)
 			{
 				rtn[f]=this.fields[f].toJSON();
 			}
@@ -377,7 +377,7 @@
 		},
 		fromJSON:function(jsonObject)
 		{
-			for(let i in this.fields)
+			for(var i in this.fields)
 			{
 				if(jsonObject[i]!==undefined)
 				{
@@ -393,7 +393,7 @@
 	});
 	SMOD("DBObj",DBOBJECT);
 	
-	let DBFRIEND=DB.Firendship=µ.Class(
+	var DBFRIEND=DB.Firendship=µ.Class(
 	{
 		init:function(type,fieldName1,value1,fieldName2,value2)
 		{
@@ -459,7 +459,7 @@
 			switch(this.type)
 			{
 				case FIELD.TYPES.DATE:
-					let date=this.getValue();
+					var date=this.getValue();
 					if(date instanceof Date)
 						return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds();
 					break;

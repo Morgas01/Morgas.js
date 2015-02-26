@@ -2,7 +2,7 @@
 	
 	µ.util=µ.util||{};
 
-	let SC=GMOD("shortcut")({
+	var SC=GMOD("shortcut")({
 		det:"Detached"
 	});
 
@@ -26,8 +26,8 @@
 		};
 		return new SC.det([function()
 		{
-			let signal=this;
-			let req=new XMLHttpRequest();
+			var signal=this;
+			var req=new XMLHttpRequest();
 			req.open(param.method,param.url,param.async,param.user,param.password);
 			req.responseType=param.responseType;
 			if(param.contentType)
@@ -81,8 +81,8 @@
 			param={url:param};
 		}
 		param.responseType="json";
-		let det=REQ(param);
-		let jDet=det.then(function(r){return r.response},true);
+		var det=REQ(param);
+		var jDet=det.then(function(r){return r.response},true);
 		jDet.fn.push(scope);
 		return jDet;
 	};

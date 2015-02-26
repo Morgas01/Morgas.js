@@ -1,12 +1,12 @@
 (function(µ,SMOD,GMOD){
 
-    let Patch=GMOD("Patch");
-	let SC=GMOD("shortcut")({
+    var Patch=GMOD("Patch");
+	var SC=GMOD("shortcut")({
 		p:"proxy",
         d:"debug"
 	});
 
-	let NODE=µ.NodePatch=µ.Class(Patch,{
+	var NODE=µ.NodePatch=µ.Class(Patch,{
 		patchID:"NodePatch",
 		patch:function(aliasMap)
 		{
@@ -16,10 +16,10 @@
 
 			aliasMap=aliasMap||{};
             this.aliasMap={};
-            let proxyMap={};
-			for (let i=0;i<NODE.Aliases.length;i++)
+            var proxyMap={};
+			for (var i=0;i<NODE.Aliases.length;i++)
 			{
-                let target=NODE.Aliases[i];
+                var target=NODE.Aliases[i];
                 if(target in aliasMap)
                 {
                     this.aliasMap[target]=aliasMap[target];
@@ -31,9 +31,9 @@
 			}
             SC.p(getNode,proxyMap,this.instance);
 
-			for (let i=0;i<NODE.Symbols.length;i++)
+			for (var i=0;i<NODE.Symbols.length;i++)
 			{
-                let symbol=NODE.Symbols[i];
+                var symbol=NODE.Symbols[i];
                 if(symbol in aliasMap)
                 {
                     setSymbol(this,symbol,aliasMap[symbol])
@@ -42,8 +42,8 @@
 		},
 		addChild:function(child,index)
 		{
-			let childPatch=getNode(child),alias;
-            let childIndex=this.children.indexOf(child);
+			var childPatch=getNode(child),alias;
+            var childIndex=this.children.indexOf(child);
             if(!childPatch)
             {//is not a Node
             	SC.d([child," is not a Node"]);
@@ -67,7 +67,7 @@
                     if(alias)
                     {
                         if(!child[alias]())
-                        {//won't let go of parent
+                        {//won't var go of parent
                             SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
                             this.children.splice(index,1);
                             return false;
@@ -98,18 +98,18 @@
 		},
 		removeChild:function(child)
 		{
-			let index=this.children.indexOf(child);
+			var index=this.children.indexOf(child);
 			if(index!==-1)
 			{//has child
 				this.children.splice(index, 1);
-				let childPatch=getNode(child);
+				var childPatch=getNode(child);
 				if(childPatch&&childPatch.parent===this.instance)
 				{//is still parent of child
-					let alias=childPatch.aliasMap.remove;
+					var alias=childPatch.aliasMap.remove;
 	                if(alias)
 	                {
 	                    if(!child[alias]())
-	                    {//won't let go of me
+	                    {//won't var go of me
 	                        SC.d(["rejected remove child ",child," from parent ",this.instance],SC.d.LEVEL.INFO);
 	                        this.children.splice(index,0,child);
 	                        return false;
@@ -125,7 +125,7 @@
 		},
 		setParent:function(parent)
 		{
-			let parentPatch=getNode(parent),alias;
+			var parentPatch=getNode(parent),alias;
 			if(!parentPatch)
 			{//is not a Node
             	SC.d([parent," is not a Node"]);
@@ -140,7 +140,7 @@
                     if(alias)
                     {
                         if(!child[alias]())
-                        {//won't let go of parent
+                        {//won't var go of parent
                             SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
                             this.children.splice(index,1);
                             return false;
@@ -177,16 +177,16 @@
 		{
 			if(this.parent!==null)
 			{
-				let oldParent=this.parent;
-				let oldParentPatch=getNode(oldParent);
+				var oldParent=this.parent;
+				var oldParentPatch=getNode(oldParent);
 				this.parent=null;
 				if(oldParentPatch.children.indexOf(this.instance)!==-1)
 				{//is still old parents child
-					let alias=oldParentPatch.aliasMap.removeChild;
+					var alias=oldParentPatch.aliasMap.removeChild;
 					if(alias)
 					{
 						if(!oldParent[alias](this.instance))
-						{//I won't let go of parent
+						{//I won't var go of parent
 							this.parent=oldParent;
 							SC.d(["rejected to remove child ",this.instance," from parent ",this.parent],SC.d.LEVEL.INFO);
 							return false;
@@ -206,7 +206,7 @@
 		},
         isChildOf:function(parent)
         {
-            let parentPatch=getNode(parent);
+            var parentPatch=getNode(parent);
             return parent&&parent.hasChild(this.instance);
         }
 	});
@@ -225,11 +225,11 @@
 		init:function(aliasMap)
 		{
 			aliasMap=aliasMap||{};
-			let map={};
-            for(let i=0,targets=Object.keys(NODE.BasicAliases);i<targets.length;i++)
+			var map={};
+            for(var i=0,targets=Object.keys(NODE.BasicAliases);i<targets.length;i++)
 			{
-            	let target=targets[i];
-				let alias=aliasMap[target];
+            	var target=targets[i];
+				var alias=aliasMap[target];
 				if(alias===undefined)
 				{
 					alias=NODE.BasicAliases[target];
@@ -243,7 +243,7 @@
 		}
 	});
 	
-	let getNode=function(obj)
+	var getNode=function(obj)
 	{
         if(typeof obj==="string")
         {//used as proxy getter
@@ -259,7 +259,7 @@
         }
 	};
 	//TODO replace with GMOD("shortcut") dynamic
-    let setSymbol=function(node,symbol,alias)
+    var setSymbol=function(node,symbol,alias)
     {
         if(typeof node[symbol]!=="function")
         {

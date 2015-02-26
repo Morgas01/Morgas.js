@@ -1,9 +1,9 @@
 (function(µ,SMOD,GMOD){
 
-	let util=µ.util=µ.util||{};
-	let obj=util.object||{};
+	var util=µ.util=µ.util||{};
+	var obj=util.object||{};
 	
-	let SC=GMOD("shortcut")({
+	var SC=GMOD("shortcut")({
 		DET:"Detached",
 		It:"Iterator"
 	});
@@ -24,14 +24,14 @@
 		}
 		return new SC.DET(function()
 		{
-			let signal=this;
-			let it=SC.It(any,backward,isObject);
-			let interval=setInterval(function iterateStep()
+			var signal=this;
+			var it=SC.It(any,backward,isObject);
+			var interval=setInterval(function iterateStep()
 			{
 				try
 				{
-					let step=it.next();
-					for(let i=0;i<chunk&&!step.done;i++,step=it.next())
+					var step=it.next();
+					for(var i=0;i<chunk&&!step.done;i++,step=it.next())
 					{
 						func.call(scope,step.value,step.key);
 					}

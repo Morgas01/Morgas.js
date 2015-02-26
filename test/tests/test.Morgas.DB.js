@@ -1,8 +1,8 @@
 (function(µ,GMOD){
-	let DBObj=GMOD("DBObj"),
+	var DBObj=GMOD("DBObj"),
 	FIELD=GMOD("DBField"),
 	REL=GMOD("DBRel");
-	let testObject=µ.Class(DBObj,{
+	var testObject=µ.Class(DBObj,{
 		objectType:"testObject",
 		init:function(param)
 		{
@@ -27,7 +27,7 @@
 	});
 	window.DBTest=function(dbConn,extra)
 	{
-		let obj1=new testObject({
+		var obj1=new testObject({
 			testInt:10,
 			testDouble:1.1,
 			testBool:true,
@@ -48,7 +48,7 @@
 		
 		obj1.addChild("childRel",obj2);
 		obj2.addFriend("friendRel",obj3);
-		let p;
+		var p;
 		asyncTest("save single",function()
 		{
 			p=dbConn.save(obj1);
@@ -117,7 +117,7 @@
 		{
 			p=p.then(function()
 			{
-				let o1,o2;
+				var o1,o2;
 				return dbConn.loadFriends(obj3,"friendRel",{testInt:20})
 				.then(function(result)
 				{

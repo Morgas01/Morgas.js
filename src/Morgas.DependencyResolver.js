@@ -10,10 +10,10 @@
 		{
 			if(typeof obj==="object")
 			{
-				let keys=Object.keys(obj);
-				for(let l=keys.length,i=0;i<l;i++)
+				var keys=Object.keys(obj);
+				for(var l=keys.length,i=0;i<l;i++)
 				{
-					let k=keys[i];
+					var k=keys[i];
 					if(this.config[k]===undefined||overwrite)
 					{
                         if(typeof obj[k]==="string")
@@ -41,19 +41,19 @@
 		},
 		resolve:function(items)
 		{
-			let rtn=[], list=[].concat(items);
+			var rtn=[], list=[].concat(items);
 			items=[].concat(items);
 			while(list.length>0)
 			{
-				let resolved=true,conf=this.config[list[0]];
+				var resolved=true,conf=this.config[list[0]];
 				if(conf===undefined)
 				{
 					µ.debug("DependencyResolver.resolve: "+list[0]+" is undefined", 2);
 				}
 				else if(conf!==true)
 				{
-					let deps=conf.deps;
-                    for(let i=0;i<conf.uses.length;i++)
+					var deps=conf.deps;
+                    for(var i=0;i<conf.uses.length;i++)
                     {
                         if(list.indexOf(conf.uses[i])===-1&&rtn.indexOf(conf.uses[i])===-1)
                         {
@@ -61,12 +61,12 @@
                             items.push(conf.uses[i]);
                         }
                     }
-					for(let i=0;i<deps.length;i++)
+					for(var i=0;i<deps.length;i++)
 					{
-						let dep=deps[i];
+						var dep=deps[i];
 						if(rtn.indexOf(dep)===-1)
 						{//not yet depending
-							let listIndex=list.indexOf(dep);
+							var listIndex=list.indexOf(dep);
 							if(listIndex!==-1)
 							{//as remaining item
 								
@@ -94,12 +94,12 @@
 		},
         clone:function(prefix)
         {
-            let config=null;
+            var config=null;
             if(prefix)
             {
                 config={};
-                let mapFn=function(v){return prefix+v};
-                for(let i in this.config)
+                var mapFn=function(v){return prefix+v};
+                for(var i in this.config)
                 {
                     config[prefix+i]=(this.config[i]===true ? true : {deps:this.config[i].deps.map(mapFn),uses:this.config[i].uses.map(mapFn)})
                 }

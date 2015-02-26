@@ -1,11 +1,13 @@
 (function(µ,SMOD,GMOD){
 	
-	let util=µ.util=µ.util||{};
+	var util=µ.util=µ.util||{};
 	
-	let that=util.crc32=function(str)
+	// found somewhere on the internet
+	
+	var that=util.crc32=function(str)
 	{
-	   let crc=0^(-1);
-	   for (let i=0;i<str.length;i++)
+	   var crc=0^(-1);
+	   for (var i=0;i<str.length;i++)
 	   {
 		   crc=(crc>>>8)^that.get((crc^str.charCodeAt(i))&0xFF);
 	   }
@@ -16,13 +18,13 @@
 	{
 	   if(that.table.n==null)
 	   {
-		   let c=n;
-		   for(let k=0;k<8;k++){
+		   var c=n;
+		   for(var k=0;k<8;k++){
 			   c=((c&1)?(0xEDB88320^(c>>>1)):(c>>>1));
 		   }
 		   that.table[n]=c;
 	   }
 	   return that.table[n];
 	};
-	SMOD("crc32",util.crc32);
+	SMOD("util.crc32",util.crc32);
 })(Morgas,Morgas.setModule,Morgas.getModule);

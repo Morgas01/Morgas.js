@@ -11,7 +11,7 @@
 	 * 
 	 * To create a new patch do sth. like this
 	 * 
-	 * let myPatch=µ.Class(µ.patch,
+	 * var myPatch=µ.Class(µ.patch,
 	 * {
 	 * 		patchID:"myPatchID",
 	 * 		patch:function(param,noListeners)
@@ -26,7 +26,7 @@
 	 * 
 	 * If you want to override the init function do it like this:
 	 * 
-	 * let myPatch=µ.Class(mySuperPatch,
+	 * var myPatch=µ.Class(mySuperPatch,
 	 * {
 	 * 		patchID:"myPatchID",
 	 * 		init:function(instance,param)
@@ -48,21 +48,21 @@
 	 * 		}
 	 * }  
 	 */
-	let _hasPatch=function hasPatch(patch)
+	var _hasPatch=function hasPatch(patch)
 	{
 		return this.getPatch(patch)!==undefined;
 	};
-	let _getPatch=function getPatch(patch)
+	var _getPatch=function getPatch(patch)
 	{
 		return this.patches[patch.patchID||patch.prototype.patchID];
 	};
-	let _callPatch=function()
+	var _callPatch=function()
 	{
 		this.patch(this._patchParam,false);
 		delete this._patchParam;
 	};
 	
-	let PATCH=µ.Patch=µ.Class(
+	var PATCH=µ.Patch=µ.Class(
 	{
 		init:function Patchinit(instance,param,doPatchNow)
 		{

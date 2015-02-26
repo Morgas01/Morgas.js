@@ -12,7 +12,7 @@
 	 *  
 	 * Can be disabled
 	*/
-	let LISTENER=µ.Listener=µ.Class(
+	var LISTENER=µ.Listener=µ.Class(
 	{
 		init:function ListenerInit()
 		{
@@ -21,11 +21,11 @@
 		},
 		addListener:function addListener(fn,scope,type)
 		{
-            let fnType=typeof fn;
+            var fnType=typeof fn;
 			if(fnType==="function"||fnType==="string")
 			{
                 scope=scope||this;
-                let entry=null;
+                var entry=null;
                 if(this.listeners.has(scope))
                 {
                     entry=this.listeners.get(scope);
@@ -65,8 +65,8 @@
         addListeners:function addListeners(fns,scope,type)
         {
             fns=[].concat(fns);
-            let rtn=[];
-            for(let i=0;i<fns.length;i++)
+            var rtn=[];
+            for(var i=0;i<fns.length;i++)
             {
                 rtn.push(this.addListener(fns[i],scope,type));
             }
@@ -75,8 +75,8 @@
 		removeListener:function removeListener(fn,scope)
 		{
             //TODO remove fn from all scopes
-			let timesFound=0;
-            let entry=this.listeners.get(scope);
+			var timesFound=0;
+            var entry=this.listeners.get(scope);
             if(entry)
             {
                 if(typeof fn=="string"&&fn.toLowerCase()=="all")
@@ -119,9 +119,9 @@
 		removeListeners:function removeListeners(fns,scope)
 		{
 			fns=[].concat(fns);
-			let rtn=[];
+			var rtn=[];
 			if(fns.length==0)fns.push("all");
-			for(let i=0;i<fns.length;i++)
+			for(var i=0;i<fns.length;i++)
 			{
 				rtn.push(this.removeListener(fns[i],scope));
 			}
@@ -133,12 +133,12 @@
 			event.source=source;
 			if(!this.disabled)
 			{
-				let run=true;
-                for(let [scope,entry] of this.listeners)
+				var run=true;
+                for(var [scope,entry] of this.listeners)
                 {
-                    let it=entry.first.values();
-                    let step=undefined;
-                    let value=undefined;
+                    var it=entry.first.values();
+                    var step=undefined;
+                    var value=undefined;
                     while(run&&(step=it.next(),value=step.value,!step.done))
                     {
                         if(typeof value==="string")
@@ -194,7 +194,7 @@
 	 * When state is set it fires added listening functions with last arguments immediately
 	 * reset trough "resetState";
 	 */
-	let STATELISTENER=LISTENER.StateListener=µ.Class(LISTENER,
+	var STATELISTENER=LISTENER.StateListener=µ.Class(LISTENER,
 	{
 		init:function StateListenerInit(param)
 		{
@@ -213,7 +213,7 @@
 			this.state=true;
 			this.lastEvent=event;
 
-			let rtn=false;
+			var rtn=false;
 			if(!this.stateDisabled)
 			{
 				this.disabled=false;
@@ -226,7 +226,7 @@
 		getState:function getState(){return this.state},
 		addListener:function addListener(fn,scope,type)
 		{
-			let doFire=this.state&&!this.stateDisabled;
+			var doFire=this.state&&!this.stateDisabled;
 			if(doFire)
 			{
 				fn.apply(scope,this.lastEvent);
@@ -247,22 +247,23 @@
 	 * 	when adding a listening function the type
 	 * 	can be passed followed after the name separated by ":" 
 	 */
-	let LISTENERS=µ.Listeners=µ.Class(
+	var LISTENERS=µ.Listeners=µ.Class(
 	{
 		rNames:/[\s|,]+/,
 		rNameopt:":",
-		init:function ListenersInit()
+		init:function ListenersInit(dynamic)
 		{
 			this.listeners={};
 			this.createListener(".created");
+			this.dynamicListeners=dynamic===true;
 		},
 		createListener:function createListener(types)
 		{
-			let typeArr=types.split(this.rNames);
-			let fnarr=[].slice.call(arguments,1);
-			for(let i=0;i<typeArr.length;i++)
+			var typeArr=types.split(this.rNames);
+			var fnarr=[].slice.call(arguments,1);
+			for(var i=0;i<typeArr.length;i++)
 			{
-				let name_type=typeArr[i].split(this.rNameopt);
+				var name_type=typeArr[i].split(this.rNameopt);
 				if(this.listeners[name_type[0]]==null)
 				{
 					if(name_type[0][0]=='.')
@@ -278,11 +279,12 @@
 		},
 		addListener:function addListener(types,scope/*,functions...*/)
 		{
-			let typeArr=types.split(this.rNames);
-			let fnarr=[].slice.call(arguments,2);
-			for(let i=0;i<typeArr.length;i++)
+			if(this.dynamicListeners) this.createListener(types);
+			var typeArr=types.split(this.rNames);
+			var fnarr=[].slice.call(arguments,2);
+			for(var i=0;i<typeArr.length;i++)
 			{
-				let name_type=typeArr[i].split(this.rNameopt);
+				var name_type=typeArr[i].split(this.rNameopt);
 				if(this.listeners[name_type[0]]!==undefined)
 				{
 					this.listeners[name_type[0]].addListeners(fnarr,scope,name_type[1]);
@@ -291,21 +293,21 @@
 		},
 		removeListener:function removeListener(names,scope/*,functions...*/)
 		{
-			let removeCount=0;
+			var removeCount=0;
 			if(names.toLowerCase()=="all")
 			{
-				for(let i in this.listeners)
+				for(var i in this.listeners)
 				{
 					removeCount+=this.listeners[i].removeListeners(names,scope);
 				}
 			}
 			else
 			{
-				let nameArr=names.split(this.rNames);
-				let fnarr=[].slice.call(arguments,2);
-				for(let i=0;i<nameArr.length;i++)
+				var nameArr=names.split(this.rNames);
+				var fnarr=[].slice.call(arguments,2);
+				for(var i=0;i<nameArr.length;i++)
 				{
-					let name=nameArr[i];
+					var name=nameArr[i];
 					if(this.listeners[name]!==undefined)
 					{
 						removeCount+=this.listeners[name].removeListeners(fnarr,scope);
@@ -326,21 +328,21 @@
 		},
 		setDisabled:function setDisabled(names,bool)
 		{
-			let nameArr=names.split(this.rNames);
-			for(let i=0;i<nameArr.length;i++)
+			var nameArr=names.split(this.rNames);
+			for(var i=0;i<nameArr.length;i++)
 			{
-				let lstnr=this.listeners[nameArr[i]];
+				var lstnr=this.listeners[nameArr[i]];
 				if(lstnr!=null)
 					lstnr.setDisabled(bool);
 			}
 		},
 		isDisabled:function isDisabled(names)
 		{
-			let rtn=true;
-			let nameArr=names.split(this.rNames);
-			for(let i=0;rtn&&i<nameArr.length;i++)
+			var rtn=true;
+			var nameArr=names.split(this.rNames);
+			for(var i=0;rtn&&i<nameArr.length;i++)
 			{
-				let lstnr=this.listeners[nameArr[i]];
+				var lstnr=this.listeners[nameArr[i]];
 				if(lstnr!=null)
 					rtn&=lstnr.isDisabled();
 			}
@@ -350,7 +352,7 @@
 		{
 			event=event||{};
 			event.type=name;
-			let lstnr=this.listeners[name];
+			var lstnr=this.listeners[name];
 			if (lstnr&&lstnr instanceof STATELISTENER)
 			{
 				return lstnr.setState(this,event);
@@ -359,21 +361,21 @@
 		},
 		resetState:function resetState(names)
 		{
-			let nameArr=names.split(this.rNames);
-			for(let i=0;i<nameArr.length;i++)
+			var nameArr=names.split(this.rNames);
+			for(var i=0;i<nameArr.length;i++)
 			{
-				let lstnr=this.listeners[nameArr[i]];
+				var lstnr=this.listeners[nameArr[i]];
 				if(lstnr!=null&&lstnr instanceof STATELISTENER)
 					lstnr.resetState();
 			}
 		},
 		getState:function getState(names)
 		{
-			let rtn=true;
-			let nameArr=names.split(this.rNames);
-			for(let i=0;rtn&&i<nameArr.length;i++)
+			var rtn=true;
+			var nameArr=names.split(this.rNames);
+			for(var i=0;rtn&&i<nameArr.length;i++)
 			{
-				let lstnr=this.listeners[nameArr[i]];
+				var lstnr=this.listeners[nameArr[i]];
 				if(lstnr!=null&&lstnr instanceof STATELISTENER)
 					rtn&=lstnr.getState();
 			}
@@ -387,7 +389,7 @@
 	SMOD("Listeners",LISTENERS);
 	LISTENERS.attachListeners=function attachListeners(instance)
 	{
-		for(let i in LISTENERS.prototype)
+		for(var i in LISTENERS.prototype)
 		{
 			if (i!="init"&&i!="constructor"&&i!="superInit"&&i!="superInitApply")
 				instance[i]=LISTENERS.prototype[i];

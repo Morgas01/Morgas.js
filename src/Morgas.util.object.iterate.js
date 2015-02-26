@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 
-	let util=µ.util=µ.util||{};
-	let obj=util.object||{};
+	var util=µ.util=µ.util||{};
+	var obj=util.object||{};
 	
 	/** createIterator
 	 * Creates an iterator for {any} in {backward} order.
@@ -12,7 +12,7 @@
 	{
 		if(any.length>=0&&!isObject)
 		{
-			for(let i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
+			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
 				yield [any[i],i];
 			}
@@ -23,7 +23,7 @@
 			{
 				any=any.entries();
 			}
-			let step=null;
+			var step=null;
 			while(step=any.next(),!step.done)
 			{
 				yield step.value.reverse();
@@ -31,12 +31,12 @@
 		}
 		else
 		{
-			let k=Object.keys(any);
+			var k=Object.keys(any);
 			if(backward)
 			{
 				k.revert();
 			}
-			for(let i=0;i<k.length;i++)
+			for(var i=0;i<k.length;i++)
 			{
 				yield [any[k[i]],k[i]];
 			}
@@ -52,14 +52,14 @@
 	//TODO iterator & Set & Map
 	obj.iterate=function(any,func,backward,isObject,scope)
 	{
-		let rtn=[];
+		var rtn=[];
 		if(!scope)
 		{
 			scope=window;
 		}
 		if(any.length>=0&&!isObject)
 		{
-			for(let i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
+			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
 				rtn.push(func.call(scope,any[i],i,i,false));
 			}
@@ -70,7 +70,7 @@
 			{
 				any=any.entries();
 			}
-			let step=null,index=0;
+			var step=null,index=0;
 			while(step=any.next(),!step.done)
 			{
                 isObject=step.value[1]!==step.value[0]&&step.value[0]!==index;
@@ -80,12 +80,12 @@
 		}
 		else
 		{
-			let k=Object.keys(any);
+			var k=Object.keys(any);
 			if(backward)
 			{
 				k.revert();
 			}
-			for(let i=0;i<k.length;i++)
+			for(var i=0;i<k.length;i++)
 			{
 				rtn.push(func.call(scope,any[k[i]],k[i],i,true));
 			}

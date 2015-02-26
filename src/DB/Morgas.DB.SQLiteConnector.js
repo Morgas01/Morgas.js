@@ -6,11 +6,11 @@
 	 * DB.Connector for SQLite db in AddOn
 	 *
 	 */
-	let DB				=µ.DB;
-	let DBC				=DB.Connector;
-	let FIELD			=µ.DB.Field;
+	var DB				=µ.DB;
+	var DBC				=DB.Connector;
+	var FIELD			=µ.DB.Field;
 	
-	let LITECON;
+	var LITECON;
 	LITECON=DBC.SQLiteConnector=µ.Class(DBC,
 	{
 		_service:Components.classes["@mozilla.org/storage/service;1"].getService(Components.interfaces.mozIStorageService),
@@ -24,14 +24,14 @@
 		{
 			µ.debug(["SQLiteConnector.save: ",arguments],3);
 			objs=[].concat(objs);
-			let _self=this;
-			let insert={};
-			let update={};
-			for(let i=0;i<objs.length;i++)
+			var _self=this;
+			var insert={};
+			var update={};
+			for(var i=0;i<objs.length;i++)
 			{
-				let obj=objs[i];
-				let type=obj.objectType;
-				let action;
+				var obj=objs[i];
+				var type=obj.objectType;
+				var action;
 				if(obj.getID()==null)
 					action=insert;
 				else
@@ -42,24 +42,24 @@
 			this.getNextIDs(insert).then(function(ids)
 			{
 				µ.debug(["SQLiteConnector.save: new IDs ",arguments],3);
-				let con=_self._service.openDatabase(_self.file);
-				for(let t in insert)
+				var con=_self._service.openDatabase(_self.file);
+				for(var t in insert)
 				{	
-					for(let i=0;i<insert[t].length;i++)
+					for(var i=0;i<insert[t].length;i++)
 					{
-						let id=(i<ids[t].length?ids[t][i]:ids[t][ids[t].length-1]+i-ids[t].length+1);
+						var id=(i<ids[t].length?ids[t][i]:ids[t][ids[t].length-1]+i-ids[t].length+1);
 						insert[t][i].setID(id);
 					}
 				}
-				for(let t in insert)
+				for(var t in insert)
 				{
-					let stmt=con.createAsyncStatement(_self._getInsertString(insert[t][0]));
-					let params=stmt.newBindingParamsArray();
+					var stmt=con.createAsyncStatement(_self._getInsertString(insert[t][0]));
+					var params=stmt.newBindingParamsArray();
 					
-					for(let i=0;i<insert[t].length;i++)
+					for(var i=0;i<insert[t].length;i++)
 					{
-						let bp = params.newBindingParams();
-						for(let f in insert[t][i].fields)
+						var bp = params.newBindingParams();
+						for(var f in insert[t][i].fields)
 						{
 							bp.bindByName(f,insert[t][i].fields[f].toDBValue());
 						}
@@ -71,15 +71,15 @@
 						handleError:function(e){µ.debug(e,0);detached.error(e)}
 					});
 				}
-				for(let t in update)
+				for(var t in update)
 				{
-					let stmt=con.createAsyncStatement(_self._getUpdateString(update[t][0]));
-					let params=stmt.newBindingParamsArray();
+					var stmt=con.createAsyncStatement(_self._getUpdateString(update[t][0]));
+					var params=stmt.newBindingParamsArray();
 					
-					for(let i=0;i<update[t].length;i++)
+					for(var i=0;i<update[t].length;i++)
 					{
-						let bp = params.newBindingParams();
-						for(let f in update[t][i].fields)
+						var bp = params.newBindingParams();
+						for(var f in update[t][i].fields)
 						{
 							bp.bindByName(f,update[t][i].fields[f].toDBValue());
 						}
@@ -100,14 +100,14 @@
 		},
 		load:function(detached,objClass,pattern,order)
 		{
-			let stmt="SELECT * FROM "+objClass.prototype.objectType+this._parsePattern(pattern);
+			var stmt="SELECT * FROM "+objClass.prototype.objectType+this._parsePattern(pattern);
 			if(order!=null)
 				stmt+=" ORDER BY "+order;
 			
 			µ.debug("SQLiteConnector.load: "+stmt,2);
 			
-			let rtn=[];
-			let con=this._service.openDatabase(this.file);
+			var rtn=[];
+			var con=this._service.openDatabase(this.file);
 			try
 			{
 				stmt=con.createStatement(stmt);
@@ -115,8 +115,8 @@
 				{
 					while (stmt.executeStep())
 					{
-						let inst=new objClass();
-						for(let i in inst.fields)
+						var inst=new objClass();
+						for(var i in inst.fields)
 						{
 							inst.fields[i].fromDBValue(stmt.row[i]);
 						}
@@ -142,12 +142,12 @@
 				handleResult:function(aResultSet)
 				{
 					try{
-					let rtn=[];
-					let row;
+					var rtn=[];
+					var row;
 					while(row=aResultSet.getNextRow())
 					{
-						let inst=new objClass();
-						for(let i in inst.fields)
+						var inst=new objClass();
+						for(var i in inst.fields)
 						{
 							inst.fields[i].fromDBValue(row.getResultByName(i))
 						}
@@ -182,48 +182,48 @@
 		saveFriends:function(detached,obj,relationName)
 		{
 			µ.debug(["SQLiteConnector.saveFriends: ",arguments],3);
-			let rel=obj.relations[relationName];
-			let friends=obj.friends[relationName];
+			var rel=obj.relations[relationName];
+			var friends=obj.friends[relationName];
 			if(!friends)
 				throw "no friends from relation "+relationName+" found";
-			let fRel=friends[0].relations[rel.targetRelationName];
-			let id=obj.getValueOf(rel.fieldName);
+			var fRel=friends[0].relations[rel.targetRelationName];
+			var id=obj.getValueOf(rel.fieldName);
 			if(id==null)
 				throw rel.fieldName+" is null";
 			
-			let fids=[];
-			for(let i=0;i<friends.length;i++)
+			var fids=[];
+			for(var i=0;i<friends.length;i++)
 			{
-				let fid=friends[i].getValueOf(fRel.fieldName);
+				var fid=friends[i].getValueOf(fRel.fieldName);
 				if(fid!=null)
 					fids.push(fid);
 			}
 			if(fids.length<1)
 				throw "no friend with "+fRel.fieldName+" found";
 			
-			let tableName=[obj.objectType,relationName,friends[0].objectType,rel.targetRelationName].sort().join("_");
-			let idName=obj.objectType+"_ID";
-			let fidName=friends[0].objectType+"_ID";
+			var tableName=[obj.objectType,relationName,friends[0].objectType,rel.targetRelationName].sort().join("_");
+			var idName=obj.objectType+"_ID";
+			var fidName=friends[0].objectType+"_ID";
 			
 			
 			µ.debug(["SQLiteConnector.saveFriends: ID: ",id," fids:",fids],3);
 			
-			let con=this._service.openDatabase(this.file);
+			var con=this._service.openDatabase(this.file);
 			
-			let createStmt="CREATE TABLE IF NOT EXISTS "+tableName+" ("+idName+" INTEGER NOT NULL,"+fidName+" INTEGER NOT NULL, PRIMARY KEY ("+idName+","+fidName+"))";
+			var createStmt="CREATE TABLE IF NOT EXISTS "+tableName+" ("+idName+" INTEGER NOT NULL,"+fidName+" INTEGER NOT NULL, PRIMARY KEY ("+idName+","+fidName+"))";
 			µ.debug("SQLiteConnector.saveFriends: "+createStmt,3);
 			
 			con.createAsyncStatement(createStmt)
 			.executeAsync();
 			
-			let stmt="INSERT OR IGNORE INTO "+tableName+" ("+idName+","+fidName+") VALUES (:"+idName+",:"+fidName+")";
+			var stmt="INSERT OR IGNORE INTO "+tableName+" ("+idName+","+fidName+") VALUES (:"+idName+",:"+fidName+")";
 			µ.debug("SQLiteConnector.saveFriends: "+stmt,3);
 			stmt=con.createAsyncStatement(stmt);
-			let params=stmt.newBindingParamsArray();
+			var params=stmt.newBindingParamsArray();
 			
-			for(let i=0;i<fids.length;i++)
+			for(var i=0;i<fids.length;i++)
 			{	
-				let bp = params.newBindingParams();
+				var bp = params.newBindingParams();
 				bp.bindByName(idName,id);
 				bp.bindByName(fidName,fids[i]);
 				params.addParams(bp);
@@ -253,7 +253,7 @@
 					toDelete=[toDelete];
 				}
 				
-				for(let i=0;i<toDelete.length;i++)
+				for(var i=0;i<toDelete.length;i++)
 				{
 					if(toDelete[i] instanceof DB.Object)
 					{
@@ -263,9 +263,9 @@
 				toDelete={ID:toDelete};
 			}
 			
-			let stmt="DELETE FROM "+objClass.prototype.objectType+this._parsePattern(toDelete);
+			var stmt="DELETE FROM "+objClass.prototype.objectType+this._parsePattern(toDelete);
 			µ.debug("SQLiteConnector.delete: "+stmt,2);
-			let con=this._service.openDatabase(this.file);
+			var con=this._service.openDatabase(this.file);
 			try
 			{
 				stmt=con.createAsyncStatement(stmt);
@@ -280,7 +280,7 @@
 			{
 				µ.debug(e,2)
 			}
-			let _self=this;
+			var _self=this;
 			con.asyncClose({complete:function()
 			{
 				detached.complete(_self);
@@ -292,8 +292,8 @@
 		},
 		_getCreateString:function(obj)
 		{
-			let rtn="CREATE TABLE IF NOT EXISTS "+obj.objectType+" ( ";
-			for (let f in obj.fields)
+			var rtn="CREATE TABLE IF NOT EXISTS "+obj.objectType+" ( ";
+			for (var f in obj.fields)
 			{
 				rtn+=f+" "+LITECON.TYPES[obj.fields[f].type];
 				if(f=="ID")
@@ -308,9 +308,9 @@
 		},
 		_getInsertString:function(obj)
 		{
-			let rtn="INSERT INTO "+obj.objectType+" ( ";
-			let values="";
-			for (let f in obj.fields)
+			var rtn="INSERT INTO "+obj.objectType+" ( ";
+			var values="";
+			for (var f in obj.fields)
 			{
 				rtn+=f+" ,";
 				values+=":"+f+" ,";
@@ -322,9 +322,9 @@
 		},
 		_getUpdateString:function(obj)
 		{
-			let rtn="UPDATE "+obj.objectType+" SET ";
-			let values="";
-			for (let f in obj.fields)
+			var rtn="UPDATE "+obj.objectType+" SET ";
+			var values="";
+			for (var f in obj.fields)
 			{
 				if(f!="ID")
 					rtn+=f+"=:"+f+" ,";
@@ -337,23 +337,23 @@
 		getNextIDs:function(detached,insert)
 		{
 			µ.debug(["SQLiteConnector.getNextIDs: ",arguments],2);
-			let con=this._service.openDatabase(this.file);
-			let loadIDs=[];
-			let rtn={};
-			for(let type in insert)
+			var con=this._service.openDatabase(this.file);
+			var loadIDs=[];
+			var rtn={};
+			for(var type in insert)
 			{
 				con.createAsyncStatement(this._getCreateString(insert[type][0]))
 				.executeAsync();
-				let stmt=con.createAsyncStatement("SELECT 0 AS newID WHERE NOT EXISTS (SELECT ID FROM "+type+" WHERE ID=0) UNION "+"SELECT ID+1 AS newID FROM "+type+" WHERE ID+1 NOT IN (SELECT ID FROM "+type+")");
+				var stmt=con.createAsyncStatement("SELECT 0 AS newID WHERE NOT EXISTS (SELECT ID FROM "+type+" WHERE ID=0) UNION "+"SELECT ID+1 AS newID FROM "+type+" WHERE ID+1 NOT IN (SELECT ID FROM "+type+")");
 				rtn[type]=[];
-				let loaded=new µ.Detached();
+				var loaded=new µ.Detached();
 				loadIDs.push(loaded);
 				(function(detached,type){
 					stmt.executeAsync(
 					{
 						handleResult:function(aResultSet)
 						{
-							for (let row = aResultSet.getNextRow();row;row = aResultSet.getNextRow())
+							for (var row = aResultSet.getNextRow();row;row = aResultSet.getNextRow())
 							{
 								rtn[type].push(row.getResultByName("newID"));
 							}
@@ -372,19 +372,19 @@
 			}
 			else
 			{
-				let when=new µ.Detached(loadIDs).complete(function(){detached.complete(rtn)},true);
+				var when=new µ.Detached(loadIDs).complete(function(){detached.complete(rtn)},true);
 				µ.debug(["SQLiteConnector.getNextIDs: loading IDs ",when],3);
 			}
 		},
 		_parsePattern:function(pattern)
 		{
-			let str="";
+			var str="";
 			if(pattern!=null)
 			{
 				if(Object.keys(pattern).length>0)
 				{
 					str+=" WHERE";
-					for(let i in pattern)
+					for(var i in pattern)
 					{
 						str+=" "+i;
 						
@@ -394,7 +394,7 @@
 						}
 						else
 						{
-							let val=pattern[i];
+							var val=pattern[i];
 							if((val+"").match(/^([<=>]|is|not|between|in|like|GLOB)/ig)!=null)
 							{
 								str+=" "+val;

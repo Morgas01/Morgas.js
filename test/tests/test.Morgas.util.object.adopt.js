@@ -2,11 +2,11 @@
 
 	module("util.object.adopt");
 	
-	let adopt=GMOD("adopt");
+	var adopt=GMOD("adopt");
 	
 	test("adopt",function()
 	{
-		let target={
+		var target={
 			v1:1,
 			v2:2,
 			v3:3

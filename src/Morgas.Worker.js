@@ -1,68 +1,110 @@
-(function(µ){
-	/**
-	 * Depends on	: Morgas overlay
-	 * Uses			: 
-	 *
-	 * Worker Class
-	 * change µ.Worker.prototype.MorgasPath and µ.Worker.prototype.BaseWorkerPath if necessary
-	 */
+(function(µ,SMOD,GMOD,HMOD){
 	
-	let WORKER;
-	WORKER=µ.Worker=µ.Class(µ.Listeners,
-	{
+	var Listeners=GMOD("Listeners");
+	
+	var SC=GMOD("shortcut")({
+		det:"Detached",
+		rs:"rescope",
+		bind:"bind",
+		debug:"debug"
+	});
+	
+	var WORKER=µ.Worker=µ.Class(Listeners,{
 		init:function(param)
 		{
-			let BaseWorkerPath=param.BaseWorkerPath||WORKER.BaseWorkerPath;
-			let MorgasPath=param.MorgasPath||WORKER.MorgasPath;
-			this.superInit(µ.Listeners);
-			this.listeners[".created"].setDisabled(true);
-			this.createListener("error scriptsImported");
+			this.superInit(Listeners,true);
+			this.setDisabled(".created",true);
+			this.createListener("debug error");
+			SC.det.detacheAll(this,["request"]);
 			
-			//this.worker = new ChromeWorker(BaseWorkerPath)
-			this.worker=new Worker(BaseWorkerPath);
-			let _self=this;
-			this.worker.onmessage=µ.Callback(this._onMessage,this,undefined,1);
-			this.worker.onerror=µ.Callback(this._onError,this,undefined,1);
-			this.post(MorgasPath);
-		},
-		getRequiredScripts:function()
-		{//overwrite with:  return superclass.prototype.getRequiredScripts.call(this).concat(...your scripts...);
-			return [];
-		},
-		scriptsImported:function()
-		{
-			this.listeners[".created"].setDisabled(false);
-			this.setState(".created");
-			//do stuff
-		},
-		_onMessage:function _onMessage(event)
-		{
-			if(this[event.data.func]==null)
+			param=param||{};
+			param.basePath=param.basePath||WORKER.BASEPATH;
+			param.baseScript=param.baseScript||WORKER.BASESCRIPT;
+			param.workerBasePath=param.workerBasePath||"../";
+			
+			this.requests=new Map();
+			this.worker=new Worker(param.basePath+param.baseScript);
+			this.worker.onmessage=SC.rs(this._onMessage,this);
+			this.worker.onerror=SC.rs(this._onError,this);
+			
+			//init worker
+			this.request("init",{
+				workerID:WORKER.workerID++,
+				basePath:param.workerBasePath,
+				morgasPath:param.morgasPath||"Morgas.js",
+				debug:{
+					send:!param.debug||param.debug.send!==false,
+					verbose:param.debug?param.debug.verbose:SC.debug.LEVEL.DEBUG
+				}
+			}).complete(SC.rs(function()
 			{
-				this.fire("error",new Error("no such main function "+event.data.func));
+				this.setDisabled(".created",false);
+				this.setState(".created");
+			},this));
+		},
+		_onMessage:function(event)
+		{
+			if(event.data.request!==undefined)
+			{
+				if(this.requests.has(event.data.request))
+				{
+					var signal=this.requests.get(event.data.request);
+					clearTimeout(event.data.request);
+					signal[event.data.type](event.data.data);
+					this.requests["delete"](event.data.request);
+				}
+				else
+				{
+					SC.debug("no request "+event.data.request);
+				}
 			}
 			else
 			{
-				this[event.data.func].apply(this,event.data.param);
+				switch(event.data.type)
+				{
+					case "error":
+						this.onError(event.data);
+						break;
+					case "debug":
+						SC.debug(event.data.msg,event.data.verbose);
+						break;
+				}
+				this.fire(event.data.type,event.data);
 			}
 		},
-		_onError:function _onError(event)
+		_onError:function(event)
 		{
+			SC.debug(event,SC.debug.LEVEL.ERROR);
 			this.fire("error",event);
 		},
-		post:function(/*function name,args...*/)
+		send:function(method,args)
 		{
-			this.worker.postMessage({func:Array.prototype.shift.call(arguments),param:Array.prototype.slice.call(arguments,0)});
+			this.worker.postMessage({method:method,args:[].concat(args)});
 		},
-		sendRequiredScripts:function()
+		request:function(signal,method,args,timeout)
 		{
-			this.post("importScripts",this.getRequiredScripts());
+			var timeoutEvent={
+				data:{
+					request:null,
+					type:"error",
+					data:"timeout"
+				}
+			};
+			timeoutEvent.data.request=setTimeout(SC.bind(this._onMessage,this,timeoutEvent),timeout||WORKER.REQUESTTIMEOUT);
+			this.requests.set(timeoutEvent.data.request,signal);
+			this.worker.postMessage({method:method,args:[timeoutEvent.data.request].concat(args),isRequest:true});
 		},
-		importScripts:function(ulrs)
+		destroy:function()
 		{
-			this._post("importScripts",urls);
+			this.worker.terminate();
 		}
 	});
-	WORKER.BaseWorkerPath="chrome://morgas/content/Morgas.Worker.BaseWorker.js";
-	WORKER.MorgasPath="chrome://morgas/content/Morgas-0.2.js";
-})(Morgas);
+	WORKER.BASEPATH="../";
+	WORKER.BASESCRIPT="Worker/Morgas.BaseWorker.js";
+	WORKER.workerID=0;
+	WORKER.REQUESTTIMEOUT=60000;
+	WORKER.requestUUID=0;
+	
+	SMOD("Worker",WORKER);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule);

@@ -1,5 +1,5 @@
 (function(µ,SMOD,GMOD){
-    let DepRes=GMOD("DepRes");
+    var DepRes=GMOD("DepRes");
     µ.dependencies=new DepRes({
         "Morgas.js":true,
         "Morgas.Patch.js":{

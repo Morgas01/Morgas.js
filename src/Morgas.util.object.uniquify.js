@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 
-	let util=µ.util=µ.util||{};
-	let obj=util.object||{};
+	var util=µ.util=µ.util||{};
+	var obj=util.object||{};
 
 	/** uniquify
 	 * Creates a copy of {arr} without duplicates.
@@ -9,13 +9,13 @@
 	 */
 	obj.uniquify=function(arr,fn)
 	{
-		let values;
+		var values;
 		if(fn)
 		{
 			values=new Map();
-			for(let i=0;i<arr.length;i++)
+			for(var i=0;i<arr.length;i++)
 			{
-				let id=arr[i];
+				var id=arr[i];
 				if(fn)
 				{
 					id=fn(arr[i]);
@@ -27,9 +27,9 @@
 		{
 			values=new Set(arr);
 		}
-		let rtn=[];
-		let it=values.values();
-		for(let step=it.next();!step.done;step=it.next())
+		var rtn=[];
+		var it=values.values();
+		for(var step=it.next();!step.done;step=it.next())
 		{
 			rtn.push(step.value);
 		}

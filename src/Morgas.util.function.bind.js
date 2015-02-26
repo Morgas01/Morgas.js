@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 	
-	let util=µ.util=µ.util||{};
-	let uFn=util.function||{};
+	var util=µ.util=µ.util||{};
+	var uFn=util.function||{};
 	
 	/** bind
 	 * For more compatibility redefine the module.

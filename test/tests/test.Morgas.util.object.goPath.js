@@ -2,11 +2,11 @@
 
 	module("util.object.goPath");
 	
-	let goPath=GMOD("goPath");
+	var goPath=GMOD("goPath");
 	
 	test("goPath",function()
 	{
-		let obj={path:{to:{
+		var obj={path:{to:{
 			value:"something",
 			"other value":"something else"
 		}}};

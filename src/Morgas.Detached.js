@@ -7,16 +7,16 @@
 	 *
 	 */
 	
-	let SC=GMOD("shortcut")({
+	var SC=GMOD("shortcut")({
 		debug:"debug"
 	});
 	
-	let wrapFunction=function(fn,args)
+	var wrapFunction=function(fn,args)
 	{
 		return function(resolve,reject)
 		{
 			try {
-				let p=fn.apply({complete:resolve,error:reject},args);
+				var p=fn.apply({complete:resolve,error:reject},args);
 				if(p&&typeof p.then==="function")
 				{
 					p.then(resolve,reject);
@@ -32,14 +32,14 @@
 		}
 	};
 	
-	let DET=µ.Detached=µ.Class(
+	var DET=µ.Detached=µ.Class(
 	{
 		/**
 		*	fn		function or [function]
 		*/
 		init:function(fn,args)
 		{
-			let wait=fn===DET.WAIT;
+			var wait=fn===DET.WAIT;
 			if(wait)
 				fn=arguments[1];
 
@@ -65,14 +65,14 @@
 		},
 		_start:function(args)
 		{
-			for(let i=0;i<this.fn.length;i++)
+			for(var i=0;i<this.fn.length;i++)
 			{
 				if(typeof this.fn[i]==="function")
 				{
 					this.fn[i]=new Promise(wrapFunction(this.fn[i],args));
 				}
 			}
-			let _self=this;
+			var _self=this;
 			Promise.all(this.fn).then(function(args)
 			{
 				_self._setStatus(1,args);
@@ -105,7 +105,7 @@
 				}
 
 			}
-			let alwaysArgs=[(this.status===1)].concat(this.args);
+			var alwaysArgs=[(this.status===1)].concat(this.args);
 			while(this.onAlways.length>0)
 			{
 				this.onAlways.shift()._start(alwaysArgs);
@@ -115,7 +115,7 @@
 		error:function(fn)
 		{
 			fn=[].concat(fn);
-			for(let i=0;i<fn.length;i++)
+			for(var i=0;i<fn.length;i++)
 			{
 				fn[i]=new DET(DET.WAIT,fn[i]);
 				if(this.status==-1&&this.finished>=this.fn.length)
@@ -132,7 +132,7 @@
 		complete:function(fn)
 		{
 			fn=[].concat(fn);
-			for(let i=0;i<fn.length;i++)
+			for(var i=0;i<fn.length;i++)
 			{
 				fn[i]=new DET(DET.WAIT,fn[i]);
 				if(this.status==1)
@@ -148,7 +148,7 @@
 		},
 		then:function(complete,error)
 		{
-			let next=this.complete(complete);
+			var next=this.complete(complete);
 			if(error===true)
 			{
 				this.propagateError(next);
@@ -162,12 +162,12 @@
 		always:function(fn)
 		{
 			fn=[].concat(fn);
-			for(let i=0;i<fn.length;i++)
+			for(var i=0;i<fn.length;i++)
 			{
 				fn[i]=new DET(DET.WAIT,fn[i]);
 				if(this.status!==0)
 				{
-					let args=[(this.status===1)].concat(this.args);
+					var args=[(this.status===1)].concat(this.args);
 					fn[i]._start(args);
 				}
 				else if (this.status===0)
@@ -193,13 +193,13 @@
 	SMOD("Detached",DET);
 	DET.complete=function()
 	{
-		let d=new DET();
+		var d=new DET();
 		d.args=arguments;
 		return d;
 	};
 	DET.error=function()
 	{
-		let d=new DET();
+		var d=new DET();
 		d.status=-1;
 		d.args=arguments;
 		return d;
@@ -209,7 +209,7 @@
 		scope=scope||window;
 		return function()
 		{
-			let args=Array.slice(arguments,0);
+			var args=Array.slice(arguments,0);
 			return new DET(function()
 			{
 				args.unshift(this);
@@ -228,9 +228,9 @@
 	DET.detacheAll=function(scope,keys)
 	{
 		keys=[].concat(keys);
-		for(let i=0;i<keys.length;i++)
+		for(var i=0;i<keys.length;i++)
 		{
-			let fn=scope[keys[i]];
+			var fn=scope[keys[i]];
 			scope[keys[i]]=DET.detache(fn,scope);
 		}
 	};

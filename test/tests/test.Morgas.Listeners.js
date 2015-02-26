@@ -4,10 +4,10 @@
 	
 	test("Listeners",function(assert)
 	{
-		let foo=new (µ.getModule("Listeners"))();
+		var foo=new (µ.getModule("Listeners"))();
 		
 		foo.createListener("event");
-		let result=[];
+		var result=[];
 		foo.addListener("event:once",result,function(e){
 			this.push("once "+e.value);
 		});

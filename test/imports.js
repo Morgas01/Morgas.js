@@ -1,14 +1,17 @@
 (function(){
-	let WR=function(path){
+	var WR=function(path){
 		document.write('<script type="application/javascript;version=1.8" charset="utf-8" src="'+path+'"></script>');
 	};
 	
-	let srcDir="../src/",
+	var srcDir="../src/",
 	testDir="tests/";
 
 	
 	WR(srcDir+"Morgas.js");
 	WR(testDir+"test.Morgas.js");
+
+	WR(srcDir+"Morgas.DependencyResolver.js");
+	WR(testDir+"test.Morgas.DependencyResolver.js");
 	
 	WR(srcDir+"Morgas.Listeners.js");
 	WR(testDir+"test.Morgas.Listeners.js");
@@ -19,6 +22,9 @@
 	WR(srcDir+"Morgas.Detached.js");
 	WR(testDir+"test.Morgas.Detached.js");
 
+	WR(srcDir+"Morgas.util.crc32.js");
+	WR(testDir+"test.Morgas.util.crc32.js");
+	
 	WR(srcDir+"Morgas.util.function.rescope.js");
 	WR(testDir+"test.Morgas.util.function.rescope.js");
 	
@@ -61,6 +67,9 @@
 	WR(srcDir+"Morgas.NodePatch.js");
 	WR(testDir+"test.Morgas.NodePatch.js");
 	
+	WR(srcDir+"Morgas.Worker.js");
+	WR(testDir+"test.Morgas.Worker.js");
+	
 	
 	WR(srcDir+"DB/Morgas.DB.js");
 	WR(testDir+"test.Morgas.DB.js");
@@ -70,7 +79,4 @@
 
 	WR(srcDir+"DB/Morgas.DB.IndexedDBConnector.js");
 	WR(testDir+"test.Morgas.DB.IndexedDBConnector.js");
-
-	WR(srcDir+"Morgas.DependencyResolver.js");
-	WR(testDir+"test.Morgas.DependencyResolver.js");
 })();

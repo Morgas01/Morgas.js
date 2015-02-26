@@ -1,11 +1,11 @@
 (function(µ,GMOD){
 	module("Organizer");
 	
-	let ORG=GMOD("Organizer");
+	var ORG=GMOD("Organizer");
 	
 	test("numbers",function()
 	{
-		let org=new ORG()
+		var org=new ORG()
 		.filter("ASC",undefined,ORG.sort)
 		.filter("DESC",undefined,function(a,b){return ORG.sort(b,a)})
 		.filter("filter",function(val){return val>4})
@@ -22,7 +22,7 @@
 	
 	test("strings",function()
 	{
-		let org=new ORG()
+		var org=new ORG()
 		.filter("ASC",undefined,ORG.sort)
 		.filter("DESC",undefined,function(a,b){return ORG.sort(b,a)})
 		.filter("filter",function(val){return /[aiu]/.test(val)})
@@ -39,12 +39,12 @@
 	
 	test("object",function()
 	{
-		let org=new ORG()
+		var org=new ORG()
 		.filter("filter sorted",{group:/^h\w+g$/,active:true},"data.value")
 		.map("id map","id")
 		.group("animal group","group");
 		
-		let data=[
+		var data=[
 			{
 				id:0,
 				group:"rabbit",

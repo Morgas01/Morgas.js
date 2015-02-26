@@ -2,11 +2,11 @@
 
 	module("util.object.equals");
 	
-	let EQ=GMOD("equals");
+	var EQ=GMOD("equals");
 
 	test("equals",function()
 	{
-		let pattern={
+		var pattern={
 			string:"string",
 			regExp:/[gerx]{4}p/i,
 			num:4,
@@ -17,7 +17,7 @@
 			},
 			arr:[1,"4",1,4,2,1,3,5,6,2,3,7]
 		};
-		let complex={
+		var complex={
 			equals:pattern.value
 		};
 		ok(EQ("string",pattern.string),"string 1");

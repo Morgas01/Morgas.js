@@ -1,12 +1,12 @@
 (function(µ,GMOD){
 	module("NodePatch");
-	let SC=GMOD("shortcut")({
+	var SC=GMOD("shortcut")({
 		node:"NodePatch"
 	});
 	
 	test("connect",function()
 	{
-		let parent=new SC.node.Basic(),
+		var parent=new SC.node.Basic(),
 		child1=new SC.node.Basic(),
 		child2=new SC.node.Basic();
 		
@@ -26,7 +26,7 @@
 	
 	test("alias",function()
 	{
-		let parent=new SC.node.Basic({addChild:"add",removeChild:"remove",remove:null}),
+		var parent=new SC.node.Basic({addChild:"add",removeChild:"remove",remove:null}),
 		child1=new SC.node(new µ.BaseClass(),{parent:"up"}).instance,
 		child2=new SC.node({},{parent:"parent",setParent:"fuse",remove:"explode"}).instance;
 		
@@ -46,7 +46,7 @@
 
 	test("alias predefined",function()
 	{
-		let confirmNode= µ.Class({
+		var confirmNode= µ.Class({
             init:function()
             {
                 this.nodePatch=new SC.node(this,SC.node.BasicAliases);
@@ -60,7 +60,7 @@
                 return false;
             }
         });
-		let confirmNode2= µ.Class({
+		var confirmNode2= µ.Class({
             init:function()
             {
                 this.nodePatch=new SC.node(this,SC.node.BasicAliases);
@@ -75,7 +75,7 @@
             }
         });
 
-        let parent=new confirmNode(),
+        var parent=new confirmNode(),
             child1=new confirmNode2(),
             child2=new SC.node.Basic();
 
@@ -99,7 +99,7 @@
 	
 	test("change",function()
 	{
-		let parent1=new SC.node.Basic(),
+		var parent1=new SC.node.Basic(),
 		parent2=new SC.node.Basic(),
 		child=new SC.node.Basic();
 		

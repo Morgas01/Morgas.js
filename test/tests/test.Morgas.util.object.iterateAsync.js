@@ -2,7 +2,7 @@
 
 	module("util.object.iterateAsync");
 	
-	let itAS=GMOD("iterateAsync");
+	var itAS=GMOD("iterateAsync");
 	
 	asyncTest("iterateAsync",function()
 	{

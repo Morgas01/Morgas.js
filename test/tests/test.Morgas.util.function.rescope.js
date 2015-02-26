@@ -4,12 +4,12 @@
 	
 	test("rescope",function()
 	{
-		let scope={
+		var scope={
 			fn:function(){
 				ok(this===otherScope);
 			}
 		};
-		let otherScope={};
+		var otherScope={};
 		
 		scope.fn=GMOD("rescope")(scope.fn,otherScope);
 		scope.fn();

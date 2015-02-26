@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 
-	let util=µ.util=µ.util||{};
-	let uObj=util.object||{};
+	var util=µ.util=µ.util||{};
+	var uObj=util.object||{};
 
 	/** equals
 	 * Matches {obj} against {pattern}.
@@ -47,7 +47,7 @@
             {
 				return pattern.indexOf(obj)!==-1;
             }
-			for(let i in pattern)
+			for(var i in pattern)
 			{
 				if(!uObj.equals(obj[i],pattern[i]))
 					return false;

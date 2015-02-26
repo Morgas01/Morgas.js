@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 
-	let util=µ.util=µ.util||{};
-	let uObj=util.object||{};
+	var util=µ.util=µ.util||{};
+	var uObj=util.object||{};
 
 	/** goPath
 	 * Goes the {path} from {obj} checking all but last step for existance.
@@ -10,7 +10,7 @@
 	 */
 	uObj.goPath=function(obj,path)
 	{
-		let todo=path;
+		var todo=path;
 		if(typeof todo=="string")
 			todo=todo.split(".");
 		
