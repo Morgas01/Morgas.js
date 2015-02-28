@@ -33,8 +33,8 @@
         },
         "Morgas.util.object.uniquify.js":"Morgas.js",
         "Morgas.util.download.js":"Morgas.js",
-        "Morgas.util.crc.js":"Morgas.js",
-        "Morgas.util.converter.csvToObject.js.js":"Morgas.js",
+        "Morgas.util.crc32.js":"Morgas.js",
+        "Morgas.util.converter.csvToObject.js":"Morgas.js",
         "Morgas.util.queryParam.js":"Morgas.js",
 		"Morgas.util.Request.js":{
 			deps:["Morgas.js"],
@@ -60,7 +60,7 @@
         },
         "DB/Morgas.Organizer.LazyCache.js":{
         	deps:["Morgas.js","Morgas.Organizer.js"],
-        	uses:["Morgas.Detached.js","Morgas.util.object.js","Morgas.util.object.iterate.js"]
+        	uses:["Morgas.Detached.js","Morgas.util.object.iterate.js"]
         }
     });
 })(Morgas,Morgas.setModule,Morgas.getModule);
