@@ -41,16 +41,17 @@
 	 * @param inputs[] input Nodes
 	 * @param {object} target
 	 */
-	obj.getInputValues=function(inputs,target)
+	obj.getInputValues=function(inputs,target,create)
 	{
+		var rtn=target||{};
 		for(var i=0;i<inputs.length;i++)
 		{
-			var t=target;
+			var t=rtn;
 			if(inputs[i].dataset.path)
 			{
-				t=SC.goPath(t, inputs[i].dataset.path);
+				t=SC.goPath(t, inputs[i].dataset.path,!target||create);
 			}
-			if(t!==null&&inputs[i].name in t)
+			if(t!==undefined&&(inputs[i].name in t||!target||create))
 			{
 				if(inputs[i].type==="checkbox")
 				{
@@ -62,6 +63,7 @@
 				}
 			}
 		}
+		return rtn;
 	};
 	
 	SMOD("setInputValues",obj.setInputValues);

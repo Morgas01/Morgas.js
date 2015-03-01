@@ -8,7 +8,7 @@
 	 * 
 	 * goPath(obj,"path.to.target") === goPath(obj,["path","to","target"]) === obj.path.to.target
 	 */
-	uObj.goPath=function(obj,path)
+	uObj.goPath=function(obj,path,create)
 	{
 		var todo=path;
 		if(typeof todo=="string")
@@ -16,6 +16,7 @@
 		
 		while(todo.length>0&&obj)
 		{
+			if(create&&!(todo[0] in obj)) obj[todo[0]]={};
 			obj=obj[todo.shift()];
 		}
 		if(todo.length>0)
