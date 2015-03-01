@@ -418,13 +418,13 @@
 //Morgas.util.object.adopt.js
 (function(e,t){var n=e.util=e.util||{},i=n.object||{};i.adopt=function(e,t,n){if(t)for(var i=Object.keys(n?t:e),s=0,r=i[s];i.length>s;r=i[++s])(n||r in t)&&(e[r]=t[r]);return e},t("adopt",i.adopt)})(Morgas,Morgas.setModule,Morgas.getModule);
 //Morgas.util.object.goPath.js
-(function(e,t){var n=e.util=e.util||{},i=n.object||{};i.goPath=function(e,t){var n=t;for("string"==typeof n&&(n=n.split("."));n.length>0&&e;)e=e[n.shift()];return n.length>0?void 0:e},t("goPath",i.goPath)})(Morgas,Morgas.setModule,Morgas.getModule);
+(function(e,t){var n=e.util=e.util||{},i=n.object||{};i.goPath=function(e,t,n){var i=t;for("string"==typeof i&&(i=i.split("."));i.length>0&&e;)!n||i[0]in e||(e[i[0]]={}),e=e[i.shift()];return i.length>0?void 0:e},t("goPath",i.goPath)})(Morgas,Morgas.setModule,Morgas.getModule);
 //Morgas.util.object.equals.js
 (function(e,t){var n=e.util=e.util||{},i=n.object||{};i.equals=function(e,t){if(e===t)return!0;if(void 0===e||null===e)return!1;if(t instanceof RegExp)return t.test(e);if("function"==typeof t)return"function"==typeof e?!1:t(e);if("function"==typeof e.equals)return e.equals(t);if("object"==typeof t){if("object"!=typeof e&&Array.isArray(t))return-1!==t.indexOf(e);for(var n in t)if(!i.equals(e[n],t[n]))return!1;return!0}return!1},t("equals",i.equals)})(Morgas,Morgas.setModule,Morgas.getModule);
 //Morgas.util.object.find.js
 (function(e,t,n){var i=e.util=e.util||{},r=i.object||{},s=n("shortcut")({eq:"equals",it:"iterate"});r.find=function(e,t,n){var i=[];return s.it(e,function(e,r){s.eq(e,t)&&i.push(n?e:{value:e,index:r})}),i},t("find",r.find)})(Morgas,Morgas.setModule,Morgas.getModule);
 //Morgas.util.object.inputValues.js
-(function(e,t,n){var i=e.util=e.util||{},s=i.object||{},r=n("shortcut")({goPath:"goPath"});s.setInputValues=function(e,t){for(var n=0;e.length>n;n++){var i=(e[n].dataset.path?e[n].dataset.path+".":"")+e[n].name,s=r.goPath(t,i);void 0!==s&&("checkbox"===e[n].type?e[n].checked=!!s:e[n].value=s)}},s.getInputValues=function(e,t){for(var n=0;e.length>n;n++){var i=t;e[n].dataset.path&&(i=r.goPath(i,e[n].dataset.path)),null!==i&&e[n].name in i&&(i[e[n].name]="checkbox"===e[n].type?e[n].checked:e[n].value)}},t("setInputValues",s.setInputValues),t("getInputValues",s.getInputValues)})(Morgas,Morgas.setModule,Morgas.getModule);
+(function(e,t,n){var i=e.util=e.util||{},s=i.object||{},r=n("shortcut")({goPath:"goPath"});s.setInputValues=function(e,t){for(var n=0;e.length>n;n++){var i=(e[n].dataset.path?e[n].dataset.path+".":"")+e[n].name,s=r.goPath(t,i);void 0!==s&&("checkbox"===e[n].type?e[n].checked=!!s:e[n].value=s)}},s.getInputValues=function(e,t,n){for(var i=t||{},s=0;e.length>s;s++){var a=i;e[s].dataset.path&&(a=r.goPath(a,e[s].dataset.path,!t||n)),void 0!==a&&(e[s].name in a||!t||n)&&(a[e[s].name]="checkbox"===e[s].type?e[s].checked:e[s].value)}return i},t("setInputValues",s.setInputValues),t("getInputValues",s.getInputValues)})(Morgas,Morgas.setModule,Morgas.getModule);
 //Morgas.util.object.iterate.js
 (function(µ,SMOD,GMOD){
 
