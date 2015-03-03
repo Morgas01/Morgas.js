@@ -1,6 +1,6 @@
 (function(){
 	var WR=function(path){
-		document.write('<script type="application/javascript;version=1.8" charset="utf-8" src="'+path+'"></script>');
+		document.write('<script type="application/javascript" charset="utf-8" src="'+path+'"></script>');
 	};
 	
 	var srcDir="../src/",
