@@ -60,9 +60,6 @@ self.onmessage=function init(initEvent)
 		{
 			i=1;
 		}
-		console.log(i);
-		console.log(Array.slice(arguments,i));
-		console.log(Array.slice(arguments,i).map(s=>config.basePath+s));
 		self.importScripts.apply(self,Array.slice(arguments,i).map(s=>config.basePath+s));
 		
 		if(i===1) self.respond(_request,true);
