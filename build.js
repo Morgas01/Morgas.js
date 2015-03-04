@@ -17,6 +17,7 @@ var minify=function(name)
 	}
 	catch (e)
 	{
+		try{fs.unlinkSync(outFile);}catch(e){}
 		fs.linkSync(inFile,outFile);
 	}
 };
@@ -25,9 +26,14 @@ var createPackage=function(name,sources)
 {
 	var packageFiles=µ.dependencies.resolve(sources).map(function(f)
 	{
-		return "//"+f+EOL+fs.readFileSync(__dirname+"/build/"+f, FILE_ENCODING);}
+		return "//"+f+EOL+fs.readFileSync(__dirname+"/src/"+f, FILE_ENCODING);}
 	).join(EOL);
-	fs.writeFileSync(__dirname+"/build/"+name,packageFiles);
+	fs.writeFileSync(__dirname+"/build/"+name+".js",packageFiles);
+	try
+	{
+		var minPackage=uglify.minify(__dirname+"/build/"+name+".js")
+		fs.writeFileSync(__dirname+"/build/"+name+"-min.js",packageFiles);
+	} catch(e){console.log("could not minify "+name+".js");}
 };
 
 var files=Object.keys(µ.dependencies.config);
@@ -40,6 +46,6 @@ for(var i=0;i<files.length;i++)
 	}
 }
 
-createPackage("Morgas_CORE.js",["Morgas.js"]);
-createPackage("Morgas_DB.js",["DB/Morgas.DB.js","DB/Morgas.DB.ObjectConnector.js","DB/Morgas.DB.IndexedDBConnector.js","DB/Morgas.Organizer.LazyCache.js"]);
-createPackage("Morgas_FULL.js",Object.keys(µ.dependencies.config));
+createPackage("Morgas_CORE",["Morgas.js"]);
+createPackage("Morgas_DB",["DB/Morgas.DB.js","DB/Morgas.DB.ObjectConnector.js","DB/Morgas.DB.IndexedDBConnector.js","DB/Morgas.Organizer.LazyCache.js"]);
+createPackage("Morgas_FULL",Object.keys(µ.dependencies.config));
