@@ -24,6 +24,7 @@ var minify=function(name)
 var FILE_ENCODING = 'utf-8',EOL = '\n';
 var createPackage=function(name,sources)
 {
+	console.log("package: "+name);
 	var packageFiles=µ.dependencies.resolve(sources).map(function(f)
 	{
 		return "//"+f+EOL+fs.readFileSync(__dirname+"/src/"+f, FILE_ENCODING);}
@@ -31,8 +32,9 @@ var createPackage=function(name,sources)
 	fs.writeFileSync(__dirname+"/build/"+name+".js",packageFiles);
 	try
 	{
-		var minPackage=uglify.minify(__dirname+"/build/"+name+".js")
-		fs.writeFileSync(__dirname+"/build/"+name+"-min.js",packageFiles);
+		var minPackage=uglify.minify(__dirname+"/build/"+name+".js",{outSourceMap: name+"-min.js.map"})
+		fs.writeFileSync(__dirname+"/build/"+name+"-min.js",minPackage.code);
+		fs.writeFileSync(__dirname+"/build/"+name+"-min.js.map",minPackage.map);
 	} catch(e){console.log("could not minify "+name+".js");}
 };
 
