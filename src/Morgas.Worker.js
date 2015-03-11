@@ -12,8 +12,8 @@
 	var WORKER=µ.Worker=µ.Class(Listeners,{
 		init:function(param)
 		{
-			this.superInit(Listeners,true);
-			this.setDisabled(".created",true);
+			this.mega(true);
+			this.disableListener(".created",true);
 			this.createListener("debug error");
 			SC.det.detacheAll(this,["request"]);
 			
@@ -38,7 +38,7 @@
 				}
 			}).complete(SC.rs(function()
 			{
-				this.setDisabled(".created",false);
+				this.disableListener(".created",false);
 				this.setState(".created");
 			},this));
 		},

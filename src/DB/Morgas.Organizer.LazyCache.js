@@ -19,7 +19,7 @@
 	 {
 		init:function(dbClass,connector)
 		{
-			this.superInit(ORG);
+			this.mega();
 			SC.det.detacheAll(this,["get","getUnique"]);
 			
 			this.dbClass=dbClass;
@@ -60,7 +60,7 @@
 					}
 				}
 			},false,false,this);
-			ORG.prototype.add.call(this,toAdd);
+			this.mega(toAdd);
 			return rtn;
 		},
 		get:function(signal,pattern,sort,force)

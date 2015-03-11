@@ -165,8 +165,7 @@
 	 *  {
 	 *  	//call constructor of superclass
 	 *  	mySuperClass.prototype.init.call(this,arg1,arg2...);
-	 *  	//or this.superInit(mySuperClass,arg1,arg2...);
-	 *  	//or this.superInitApply(mySuperClass,arguments);
+	 *  	//or this.mega();
 	 *  
 	 *  	//your constructor
 	 *  }
@@ -200,11 +199,13 @@
 			prot=superClass;
 			superClass=BASE;
 		}
-		if(superClass)
+		if(superClass) //only undefined when creating BaseClass
 		{
 			newClass.prototype=Object.create(superClass.prototype);
 			newClass.prototype.constructor=newClass;
 		}
+		else newClass.prototype.__superClasses=[];
+		
 		for(var i in prot)
 		{
 			newClass.prototype[i]=prot[i];
@@ -215,17 +216,63 @@
 	
 	/** Base Class
 	 *	allows to check of being a class ( foo instanceof µ.BaseClass )
+	 *	provides mega and basic destroy method
 	 */
 	var BASE=µ.BaseClass=CLASS(
 	{
 		init:function baseInit(){},
-		superInit:function superInit(_class/*,arg1,arg2,...,argN*/)
+		mega:function mega()
 		{
-			_class.prototype.init.apply(this,[].slice.call(arguments,1));
+			var isFirstCall=false;
+			if(this.__magaKey===undefined)
+			{
+				isFirstCall=true;
+				searchPrototype:for(var prot=Object.getPrototypeOf(this);prot!==null;prot=Object.getPrototypeOf(prot))
+				{
+					for(var i=0,names=Object.getOwnPropertyNames(prot);i<names.length;i++)
+					{
+						if(this.mega.caller===prot[names[i]])
+						{
+							this.__megaKey=names[i];
+							this.__megaProt=prot;
+							break searchPrototype;
+						}
+					}
+				}
+				if(this.__megaKey===undefined)
+				{
+					µ.debug("caller was not a member",µ.debug.LEVEL.ERROR);
+					return;
+				}
+			}
+			while((this.__megaProt=Object.getPrototypeOf(this.__megaProt))!==null&&!this.__megaProt.hasOwnProperty(this.__megaKey));
+			var error=null;
+			try
+			{
+				if(this.__megaProt===null)
+				{
+					µ.debug("no mega found for "+this.__megaKey,µ.debug.LEVEL.ERROR);
+				}
+				else
+				{
+					this.__megaProt[this.__megaKey].apply(this,arguments);
+				}
+			}
+			catch (e){error=e;}
+			if(isFirstCall)
+			{
+				delete this.__megaKey;
+				delete this.__megaProt;
+				if(error)µ.debug(error,µ.debug.LEVEL.ERROR);
+			}
+			if(error) throw error;
 		},
-		superInitApply:function superInitApply(_class,args)
+		destroy:function()
 		{
-			this.superInit.apply(this,[_class].concat([].slice.call(args)));
+			for(var i in this)
+			{
+				delete this[i];
+			}
 		}
 	});
 	SMOD("Base",BASE);

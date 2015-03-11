@@ -16,7 +16,7 @@
 	 * 		patchID:"myPatchID",
 	 * 		patch:function(param,noListeners)
 	 * 		{
-	 * 			this.superPatch(µ.patch);//call super.patch // in case of µ.Patch its not necessary 
+	 * 			this.mega();// in case of µ.Patch its not necessary 
 	 * 			//your constructor after instance is created
 	 * 		}
 	 * }
@@ -32,18 +32,17 @@
 	 * 		init:function(instance,param)
 	 * 		{
 	 * 			//call constructor of superclass
-	 * 			this.superInit(mySuperPatch,instance,param);
-	 * 			//or this.superInitApply(mySuperPatch,arguments);
+	 * 			this.mega(instance,param);
 	 * 
 	 * 			if(this.instance!=null)
 	 * 			{
 	 * 				//your constructor
-	 * 				//post patch:  this.instance.addListener("created",function(param,noListeners){}) 
+	 * 				//post patch:  this.instance.addListener(".created",function(param,noListeners){}) 
 	 * 			}
 	 * 		},
 	 * 		patch:function(param,noListeners)
 	 * 		{
-	 * 			this.superPatch(mySuperPatch,param,noListeners);
+	 * 			this.mega(param,noListeners);// in case of µ.Patch its not necessary 
 	 * 			//post constructor
 	 * 		}
 	 * }  
@@ -95,15 +94,7 @@
 				this.patch(this._patchParam,false);
 			}
 		},
-		patch:function patch(param,noListeners){},
-		superPatch:function superPatch(_class/*,arg1,arg2,...,argN*/)
-		{
-			_class.prototype.patch.apply(this,[].slice.call(arguments,1));
-		},
-		superPatchApply:function superPatchApply(_class,args)
-		{
-			this.superPatch.apply(this,[_class].concat([].slice.call(args)));
-		}
+		patch:function patch(param,noListeners){}
 	});
 	SMOD("Patch",PATCH);
 	PATCH.hasPatch=function(instance, patch)

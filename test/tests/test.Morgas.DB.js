@@ -8,7 +8,7 @@
 		{
 			param=param||{};
 			
-			this.superInit(DBObj,param);
+			this.mega(param);
 			
 			this.addField("testInt",	FIELD.TYPES.INT		,param.testInt		);
 			this.addField("testDouble",	FIELD.TYPES.DOUBLE	,param.testDouble	);

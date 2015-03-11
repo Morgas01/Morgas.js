@@ -21,7 +21,7 @@
 
 		init:function(dbName)
 		{
-			this.superInit(DBC);
+			this.mega();
 			this.name=dbName;
 
 			SC.det.detacheAll(this,["_open"]);

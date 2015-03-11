@@ -1,18 +1,21 @@
 (function(µ,SMOD,GMOD){
 	
+	var BASECLASS=GMOD("Base");
+	
 	/**Listener Class
 	 * Holds Arrays of functions to fire or fire once when "fire" is called
 	 * When fired and a listening function returns false firing is aborted
 	 * When added a type can be passed:
 	 * 		"first" function gets prepended
-	 * 		"last" function gets appended (default)
+	 * 		"normal" function gets appended (default)
+	 * 		"last" function gets appended
 	 * 		"once" function is removed after call 
-	 * 			(will only be called when "normal" listeners haven't abort firing.
+	 * 			(will only be called when previous listeners haven't abort firing.
 	 * 			cant abort other "once" listening functions)
 	 *  
 	 * Can be disabled
 	*/
-	var LISTENER=µ.Listener=µ.Class(
+	var LISTENER=µ.Listener=µ.Class(BASECLASS,
 	{
 		init:function ListenerInit()
 		{
@@ -48,6 +51,7 @@
 					case "first":
 						entry.first.add(fn);
 						break;
+					case "normal":
                     default:
                         entry.normal.add(fn);
                         break;
@@ -185,7 +189,12 @@
 			return null;
 		},
 		setDisabled:function setDisabled(bool){this.disabled=bool===true;},
-		isDisabled:function isDisabled(){return this.disabled;}
+		isDisabled:function isDisabled(){return this.disabled;},
+		destroy:function()
+		{
+			this.removeListeners();
+			this.mega();
+		}
 	});
 	SMOD("Listener",LISTENER);
 	
@@ -198,44 +207,46 @@
 	{
 		init:function StateListenerInit(param)
 		{
-			this.superInit(LISTENER);
-			this.state=param.state===true;
+			this.mega();
+			this.state=null;
 			this.stateDisabled=false;
-			this.lastEvent=null;
+			this.disabled=true
 		},
 		setDisabled:function setDisabled(bool){this.stateDisabled=bool===true;},
 		isDisabled:function isDisabled(){return this.stateDisabled;},
 		setState:function setState(source,event)
 		{
-            event=event||{};
-            event.source=source;
-
-			this.state=true;
-			this.lastEvent=event;
+			this.state=event||{};
+			this.state.source=source;
 
 			var rtn=false;
 			if(!this.stateDisabled)
 			{
 				this.disabled=false;
-				rtn=this.fire.apply(this,this.lastEvent);
+				rtn=this.fire(this,this.state);
 				this.disabled=true
 			}
 			return rtn;
 		},
-		resetState:function resetState(){this.state=false;},
+		resetState:function resetState(){this.state=null;},
 		getState:function getState(){return this.state},
 		addListener:function addListener(fn,scope,type)
 		{
 			var doFire=this.state&&!this.stateDisabled;
 			if(doFire)
 			{
-				fn.apply(scope,this.lastEvent);
+				fn.apply(scope,this.state);
 			}
 			if(!(doFire&&typeof type=="string"&&type.toLowerCase()=="once"))
 			{
-				return LISTENER.prototype.addListener.apply(this,arguments);
+				return this.mega.apply(this,arguments);
 			}
 			return null;
+		},
+		destroy:function()
+		{
+			this.resetState();
+			this.mega();
 		}
 	});
 	SMOD("StateListener",STATELISTENER);
@@ -247,14 +258,14 @@
 	 * 	when adding a listening function the type
 	 * 	can be passed followed after the name separated by ":" 
 	 */
-	var LISTENERS=µ.Listeners=µ.Class(
+	var LISTENERS=µ.Listeners=µ.Class(BASECLASS,
 	{
 		rNames:/[\s|,]+/,
 		rNameopt:":",
 		init:function ListenersInit(dynamic)
 		{
 			this.listeners={};
-			this.createListener(".created");
+			this.createListener(".created destroy");
 			this.dynamicListeners=dynamic===true;
 		},
 		createListener:function createListener(types)
@@ -326,31 +337,35 @@
 			}
 			return undefined
 		},
-		setDisabled:function setDisabled(names,bool)
+		disableListener:function disableListener(names,bool)
 		{
-			var nameArr=names.split(this.rNames);
-			for(var i=0;i<nameArr.length;i++)
+			if(names.toLowerCase()=="all")
 			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null)
-					lstnr.setDisabled(bool);
+				for(var i in this.listeners)
+				{
+					this.listeners[i].setDisabled(bool);
+				}
+			}
+			else
+			{
+				var nameArr=names.split(this.rNames);
+				for(var i=0;i<nameArr.length;i++)
+				{
+					var lstnr=this.listeners[nameArr[i]];
+					if(lstnr!=null)
+						lstnr.setDisabled(bool);
+				}
 			}
 		},
-		isDisabled:function isDisabled(names)
+		isListenerDisabled:function isDisabled(name)
 		{
-			var rtn=true;
-			var nameArr=names.split(this.rNames);
-			for(var i=0;rtn&&i<nameArr.length;i++)
-			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null)
-					rtn&=lstnr.isDisabled();
-			}
-			return rtn;
+			var lstnr=this.listeners[name];
+			if(lstnr===undefined) return undefined;
+			else return lstnr.isDisabled();
 		},
-		setState:function setState(name,event)
+		setState:function setState(name,state)
 		{
-			event=event||{};
+			var event={value:state};
 			event.type=name;
 			var lstnr=this.listeners[name];
 			if (lstnr&&lstnr instanceof STATELISTENER)
@@ -361,29 +376,40 @@
 		},
 		resetState:function resetState(names)
 		{
-			var nameArr=names.split(this.rNames);
-			for(var i=0;i<nameArr.length;i++)
+			if(names.toLowerCase()=="all")
 			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null&&lstnr instanceof STATELISTENER)
-					lstnr.resetState();
+				for(var i in this.listeners)
+				{
+					if(this.listeners[i] instanceof STATELISTENER)
+					this.listeners[i].resetState();
+				}
+			}
+			else
+			{
+				var nameArr=names.split(this.rNames);
+				for(var i=0;i<nameArr.length;i++)
+				{
+					var lstnr=this.listeners[nameArr[i]];
+					if(lstnr!=null&&lstnr instanceof STATELISTENER)
+						lstnr.resetState();
+				}
 			}
 		},
-		getState:function getState(names)
+		getState:function getState(name)
 		{
-			var rtn=true;
-			var nameArr=names.split(this.rNames);
-			for(var i=0;rtn&&i<nameArr.length;i++)
-			{
-				var lstnr=this.listeners[nameArr[i]];
-				if(lstnr!=null&&lstnr instanceof STATELISTENER)
-					rtn&=lstnr.getState();
-			}
-			return rtn
+			var lstnr=this.listeners[name];
+			if(lstnr!=null&&lstnr instanceof STATELISTENER) return lstnr.getState();
+			return undefined;
 		},
 		destroy:function()
 		{
-			this.removeListener("all");
+			this.fire("destroy");
+			for(var i in this.listeners)
+			{
+				this.listeners[i].destroy();
+				delete this.listeners[i];
+			}
+			this.mega();
 		}
 	});
 	SMOD("Listeners",LISTENERS);
@@ -391,7 +417,7 @@
 	{
 		for(var i in LISTENERS.prototype)
 		{
-			if (i!="init"&&i!="constructor"&&i!="superInit"&&i!="superInitApply")
+			if (!(i in instance))
 				instance[i]=LISTENERS.prototype[i];
 		}
 		LISTENERS.prototype.init.call(instance);

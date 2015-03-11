@@ -4,23 +4,38 @@
 	µ.debug.verbose=3;
 	
 	var class1=µ.Class();
-	class1.prototype.init=function(val){this.value=val};
+	class1.prototype.init=function(val)
+	{
+		this.value=val
+	};
 	
-	var class2=function(){class1.apply(this,arguments);};
-	class2.prototype=new class1(µ._EXTEND);
+	var class2=function()
+	{
+		class1.apply(this,arguments);
+	};
+	class2.prototype=Object.create(class1.prototype);
+	class2.prototype.constructor=class2;
 	class2.prototype.init=function(param)
 	{
-		class1.prototype.init.call(this,param.val);
+		this.mega(param.val);
 		this.isSubClass=this instanceof class1;
 	};
-	class2.prototype.constructor=class2;
+	class2.prototype.increment=function()
+	{
+		this.value++;
+	}
 	
 	var class3=µ.Class(class2,
 	{
 		init:function(val)
 		{
-			this.superInit(class2,{val:val});
+			this.mega({val:val});
 			this.isSubSubClass=this instanceof class2;
+		},
+		increment:function()
+		{
+			this.oldValue=this.value;
+			this.mega();
 		}
 	});
 
@@ -28,7 +43,10 @@
 	{
 		propEqual(new class1(10),{value:10},"class creation");
 		propEqual(new class2({val:20}),{value:20,isSubClass:true},"class creation 2 + inheritance");
-		propEqual(new class3(30),{value:30,isSubClass:true,isSubSubClass:true},"class creation 3 + inheritance");
+		var c3=new class3(30);
+		propEqual(c3,{value:30,isSubClass:true,isSubSubClass:true},"class creation 3 + inheritance");
+		c3.increment();
+		propEqual(c3,{value:31,oldValue:30,isSubClass:true,isSubSubClass:true},"class mega on method");
 	});
 
 	test("shortcut",function()

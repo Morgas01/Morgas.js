@@ -21,7 +21,7 @@
 		db:new ORG().group("objectType","objectType"),
 		init:function(local)
 		{
-			this.superInit(DBC);
+			this.mega();
 			if(!local)
 			{
 				this.db=new ORG().group("objectType","objectType");

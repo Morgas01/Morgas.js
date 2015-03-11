@@ -17,7 +17,7 @@
 	{
 		init:function(value,patchNow)
 		{
-			this.superInit(µ.Listeners);
+			this.mega();
 			var p=new patch(this,2);
 			if(patchNow) p.patchNow();
 			this.value=value

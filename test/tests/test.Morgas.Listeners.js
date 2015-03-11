@@ -22,26 +22,37 @@
 		});
 		
 		foo.fire("event",{value:1});
+		deepEqual(result,["first 1","normal 1","last 1","once 1"],"scope and order");
+		
 		foo.fire("event",{value:2});
-		foo.setDisabled("event",true);
+		deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2",],"once removed");
+		
+		foo.disableListener("event",true);
+		ok(foo.isListenerDisabled("event"),"disabled (getter)");
+		
 		foo.fire("event",{value:3});
-		foo.setDisabled("event",false);
+		deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2"],"disabled");
+		
+		foo.disableListener("event",false);
 		foo.removeListener("event",result,"all");
 		foo.addListener("event",result,function(e){
 			this.push(e.value);
 		});
 		foo.fire("event",{value:"cleared"});
-		deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2","cleared"],"scope and order");
+		deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2","cleared"],"remove listeners");
 		
 		foo.createListener(".state");
 		result=[];
 		foo.addListener(".state",result,function(e){
 			this.push("before");
 		});
-		foo.setState(".state");
+		foo.addListener(".state",result,function(e){
+			this.push(e.value);
+		});
+		foo.setState(".state","mystate");
 		foo.addListener(".state",result,function(e){
 			this.push("after");
 		});
-		deepEqual(result,["before","after"],"state");
+		deepEqual(result,["before","mystate","after"],"state");
 	});
 })();

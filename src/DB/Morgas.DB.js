@@ -411,7 +411,7 @@
 		{
 			objectType:type,
 			init:function(){
-				this.superInit(DBFRIEND,type,fieldname1,null,fieldname2,null);
+				this.mega(type,fieldname1,null,fieldname2,null);
 			}
 		});
 	};
