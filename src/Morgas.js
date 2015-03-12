@@ -223,7 +223,7 @@
 		init:function baseInit(){},
 		mega:function mega()
 		{
-			var isFirstCall=false;
+			var isFirstCall=false,rtn;
 			if(this.__magaKey===undefined)
 			{
 				isFirstCall=true;
@@ -255,7 +255,7 @@
 				}
 				else
 				{
-					this.__megaProt[this.__megaKey].apply(this,arguments);
+					rtn=this.__megaProt[this.__megaKey].apply(this,arguments);
 				}
 			}
 			catch (e){error=e;}
@@ -266,6 +266,7 @@
 				if(error)µ.debug(error,µ.debug.LEVEL.ERROR);
 			}
 			if(error) throw error;
+			return rtn;
 		},
 		destroy:function()
 		{
