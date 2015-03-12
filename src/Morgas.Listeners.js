@@ -179,7 +179,7 @@
                         value.call(scope,event);
                     }
                     entry.once.clear();
-                    if(entry.first.size===0&&entry.normal.size===0&&entry.last.size===0)
+                    if(entry.first.size===0&&entry.normal.size===0&&entry.last.size===0 &&this.listeners)//if destroyed while firing
                     {
                         this.listeners["delete"](scope);
                     }
