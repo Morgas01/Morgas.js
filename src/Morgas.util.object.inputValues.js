@@ -59,7 +59,7 @@
 				}
 				else
 				{
-					t[inputs[i].name]=inputs[i].value;
+					t[inputs[i].name]=inputs[i].valueAsDate||inputs[i].valueAsNumber||inputs[i].value;
 				}
 			}
 		}

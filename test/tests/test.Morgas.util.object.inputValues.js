@@ -6,19 +6,22 @@
 	{
 		var domElement=document.createElement("div");
 		domElement.innerHTML='<input type="text" name="field1">'+
-		'<input type="checkbox" data-path="foo.bar" name="field2">'+
-		'<input type="checkbox" data-path="foo2.bar" name="field2">'+
+		'<input type="number" name="field2">'+
+		'<input type="checkbox" data-path="foo.bar" name="field3">'+
+		'<input type="checkbox" data-path="foo2.bar" name="field4">'+
 		'<select name="selection"><option value="select1"/><option value="select2"/></select>'+
 		'<textarea name="default">default value</textarea>';
 		
 		var set={
 			"field1":"value1",
-			"foo":{"bar":{"field2":true}},
+			"field2":5,
+			"foo":{"bar":{"field3":true}},
 			"selection":"select2"
 		};
 		var get={
 			"field1":null,
-			"foo":{"bar":{"field2":null}},
+			"field2":null,
+			"foo":{"bar":{"field3":null}},
 			"selection":null,
 			"default":null
 		};
@@ -27,7 +30,8 @@
 		
 		deepEqual(get,{
 			"field1":"value1",
-			"foo":{"bar":{"field2":true}},
+			"field2":5,
+			"foo":{"bar":{"field3":true}},
 			"selection":"select2",
 			"default":"default value"
 		},"simple");
@@ -36,8 +40,9 @@
 
 		deepEqual(get,{
 			"field1":"value1",
-			"foo":{"bar":{"field2":true}},
-			"foo2":{"bar":{"field2":false}},
+			"field2":5,
+			"foo":{"bar":{"field3":true}},
+			"foo2":{"bar":{"field4":false}},
 			"selection":"select2",
 			"default":"default value"
 		},"create new paths");

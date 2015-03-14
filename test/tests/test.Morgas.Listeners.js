@@ -54,5 +54,10 @@
 			this.push("after");
 		});
 		deepEqual(result,["before","mystate","after"],"state");
+		
+		foo.removeListener("event",result);
+		foo.addListener("event",foo,"destroy");
+		foo.fire("event");
+		ok(true,"destroyed")
 	});
 })();
