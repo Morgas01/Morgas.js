@@ -1,9 +1,13 @@
 µ.Detached:
 	-	abort function -> rejects with "abort"
 	-	add signal.scope
-	-	add signal.abort listener
+	-	add signal.abort listener?
 µ.Worker:
 	-	DBWorker
+µ.util.converter.csvToObject:
+	-	support seperators [,;\t] and/or custom
+	-	quote enclosed linebreak
+	-	rename to converter.csv={from:(),to:()}
 NEW:
 	RequestCache
 	SQLiteConnector for moz extensions
