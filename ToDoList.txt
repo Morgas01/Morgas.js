@@ -1,14 +1,17 @@
 µ.Detached:
+	-	use listeners
 	-	abort function -> rejects with "abort"
+	-	progress / signal.progress
+	-	rename "always" to something like "finish" or "end"
+	-	add signal.abort
 	-	add signal.scope
-	-	add signal.abort listener?
 µ.Worker:
 	-	DBWorker
+	-	batch
 µ.util.request:
 	-	fallback urls
 NEW:
-	RequestCache
 	SQLiteConnector for moz extensions
-	RemoteDBConnector
+	RemoteDBConnector (worker/REST)
 	(Indexed)DB GUI
 	simple tool for custom builds (concating files)
