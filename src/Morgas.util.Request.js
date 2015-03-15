@@ -6,7 +6,7 @@
 		det:"Detached"
 	});
 
-	REQ=µ.util.Request=function Request_init(param,scope)
+	REQ=µ.util.Request=function Request_init(param)
 	{
 		if(typeof param ==="string")
 		{
@@ -24,7 +24,7 @@
 			contentType:param.contentType,//||undefined
 			data:param.data//||undefined
 		};
-		return new SC.det([function()
+		return new SC.det(function()
 		{
 			var signal=this;
 			var req=new XMLHttpRequest();
@@ -52,7 +52,7 @@
 			{
 				if (req.status == 200)
 				{
-					signal.complete(req);
+					signal.complete(req.response);
 				}
 				else
 				{
@@ -70,21 +70,18 @@
 				req.onprogress=param.progress;
 			}
 			req.send(param.data);
-		},scope]);
+		});
 	};
-	SMOD("Request",REQ);
+	SMOD("request",REQ);
 
-	REQ.json=function Request_Json(param,scope)
+	REQ.json=function Request_Json(param)
 	{
-		if(typeof param ==="string")//TODO ||Array.isArray(param))
+		if(typeof param ==="string")
 		{
 			param={url:param};
 		}
 		param.responseType="json";
-		var det=REQ(param);
-		var jDet=det.then(function(r){return r.response},true);
-		jDet.fn.push(scope);
-		return jDet;
+		return REQ(param);
 	};
-	SMOD("Request.json",REQ.json);
+	SMOD("request.json",REQ.json);
 })(Morgas,Morgas.setModule,Morgas.getModule);

@@ -34,9 +34,9 @@
         "Morgas.util.object.uniquify.js":"Morgas.js",
         "Morgas.util.download.js":"Morgas.js",
         "Morgas.util.crc32.js":"Morgas.js",
-        "Morgas.util.converter.csvToObject.js":"Morgas.js",
+        "Morgas.util.converter.csv.js":"Morgas.js",
         "Morgas.util.queryParam.js":"Morgas.js",
-		"Morgas.util.Request.js":{
+		"Morgas.util.request.js":{
 			deps:["Morgas.js"],
 			uses:["Morgas.Detached.js"]
 		},

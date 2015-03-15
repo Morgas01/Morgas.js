@@ -55,11 +55,14 @@
 	WR(srcDir+"Morgas.util.object.iterateAsync.js");
 	WR(testDir+"test.Morgas.util.object.iterateAsync.js");
 	
-	WR(srcDir+"Morgas.util.Request.js");
-	WR(testDir+"test.Morgas.util.Request.js");
+	WR(srcDir+"Morgas.util.request.js");
+	WR(testDir+"test.Morgas.util.request.js");
 	
 	WR(srcDir+"Morgas.util.object.uniquify.js");
 	WR(testDir+"test.Morgas.util.object.uniquify.js");
+	
+	WR(srcDir+"Morgas.util.converter.csv.js");
+	WR(testDir+"test.Morgas.util.converter.csv.js");
 
 	WR(srcDir+"Morgas.Organizer.js");
 	WR(testDir+"test.Morgas.Organizer.js");

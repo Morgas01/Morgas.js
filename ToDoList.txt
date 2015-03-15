@@ -4,10 +4,8 @@
 	-	add signal.abort listener?
 µ.Worker:
 	-	DBWorker
-µ.util.converter.csvToObject:
-	-	support seperators [,;\t] and/or custom
-	-	quote enclosed linebreak
-	-	rename to converter.csv={from:(),to:()}
+µ.util.request:
+	-	fallback urls
 NEW:
 	RequestCache
 	SQLiteConnector for moz extensions
