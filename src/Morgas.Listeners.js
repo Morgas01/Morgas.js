@@ -205,7 +205,7 @@
 	 */
 	var STATELISTENER=LISTENER.StateListener=µ.Class(LISTENER,
 	{
-		init:function StateListenerInit(param)
+		init:function StateListenerInit()
 		{
 			this.mega();
 			this.state=null;
