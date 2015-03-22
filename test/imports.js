@@ -21,6 +21,9 @@
 
 	WR(srcDir+"Morgas.Detached.js");
 	WR(testDir+"test.Morgas.Detached.js");
+	
+	WR(srcDir+"Morgas.Promise.js");
+	WR(testDir+"test.Morgas.Promise.js");
 
 	WR(srcDir+"Morgas.util.crc32.js");
 	WR(testDir+"test.Morgas.util.crc32.js");
