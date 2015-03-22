@@ -1,6 +1,5 @@
 (function(µ,SMOD,GMOD){
-    var DepRes=GMOD("DepRes");
-    µ.dependencies=new DepRes({
+    µ.dependencies={
         "Morgas.js":true,
         "Morgas.Patch.js":{
         	deps:["Morgas.js"],
@@ -45,6 +44,7 @@
         	uses:["Morgas.util.object.equals.js","Morgas.util.object.iterate.js","Morgas.util.object.goPath.js"]
         },
         "Morgas.Detached.js":"Morgas.js",
+        "Morgas.Promise.js":"Morgas.js",
 
         "DB/Morgas.DB.js":{
         	deps:["Morgas.js"],
@@ -62,5 +62,5 @@
         	deps:["Morgas.js","Morgas.Organizer.js"],
         	uses:["Morgas.Detached.js","Morgas.util.object.iterate.js"]
         }
-    });
+    };
 })(Morgas,Morgas.setModule,Morgas.getModule);
