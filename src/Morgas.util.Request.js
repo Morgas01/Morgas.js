@@ -3,85 +3,78 @@
 	µ.util=µ.util||{};
 
 	var SC=GMOD("shortcut")({
-		det:"Detached"
+		debug:"debug",
+		prom:"Promise"
 	});
-
-	REQ=µ.util.Request=function Request_init(param)
+	var doRequest=function(signal,urls,param)
 	{
-		if(typeof param ==="string")
+		if(urls.length==0) signal.reject();
+		else
 		{
-			param={url:param};
-		}
-		param={
-			url:param.url,
-			method:param.data?"POST":"GET",
-			async:true,
-			user:param.user,//||undefined
-			password:param.password,//||undefined
-			responseType:param.responseType||"",
-			upload:param.upload,//||undefined
-			withCredentials:param.withCredentials===true,
-			contentType:param.contentType,//||undefined
-			data:param.data//||undefined
-		};
-		return new SC.det(function()
-		{
-			var signal=this;
+			var url=urls.shift();
 			var req=new XMLHttpRequest();
-			req.open(param.method,param.url,param.async,param.user,param.password);
+			req.open(param.method,url,true,param.user,param.password);
 			req.responseType=param.responseType;
-			if(param.contentType)
-			{
-				req.setRequestHeader("contentType", value);
-			}
-			else if (param.data)
-			{
-				param.contentType="application/x-www-form-urlencoded;charset=UTF-8";
-				if(param.data.consctuctor===Object)
-				{//is plain object
-					param.contentType="application/json;charset=UTF-8";
-					param.data=JSON.stringify(data);
-				}
-				req.setRequestHeader("contentType", param.contentType);
-			}
-			if(param.upload)
-			{
-				req.upload=param.upload;
-			}
 			req.onload=function()
 			{
 				if (req.status == 200)
 				{
-					signal.complete(req.response);
+					signal.resolve(req.response);
 				}
 				else
 				{
-					// todo try next if(Array.isArray(param.url))
-					signal.error(req.statusText);
+					SC.debug({url:url,status:req.statusText})
+					doRequest(signal,urls,param);
 				}
 			};
 			req.onerror=function()
 			{
-				// todo try next if(Array.isArray(param.url))
-				signal.error("Network Error");
+				SC.debug({url:url,status:"Network Error"})
+				doRequest(signal,urls,param);
 			};
 			if(param.progress)
 			{
 				req.onprogress=param.progress;
 			}
+			signal.onAbort(function(){
+				urls.length=0;
+				req.abort();
+			});
 			req.send(param.data);
-		});
+		}
+	}
+	REQ=µ.util.Request=function Request_init(param,scope)
+	{
+		var urls;
+		if(typeof param ==="string")
+		{
+			urls=[param];
+		}
+		else
+		{
+			urls=[].concat(param.url);
+		}
+		param={
+			method:param.method||(param.data?"POST":"GET"),
+			user:param.user,//||undefined
+			password:param.password,//||undefined
+			responseType:param.responseType||"",
+			withCredentials:param.withCredentials===true,
+			contentType:param.contentType,//||undefined
+			data:param.data//||undefined
+		};
+		return new SC.prom(doRequest,[urls,param],scope);
 	};
 	SMOD("request",REQ);
 
-	REQ.json=function Request_Json(param)
+	REQ.json=function Request_Json(param,scope)
 	{
 		if(typeof param ==="string")
 		{
 			param={url:param};
 		}
 		param.responseType="json";
-		return REQ(param);
+		return REQ(param,scope);
 	};
 	SMOD("request.json",REQ.json);
 })(Morgas,Morgas.setModule,Morgas.getModule);

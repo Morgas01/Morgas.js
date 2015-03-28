@@ -101,6 +101,10 @@
 				console.log(msg);
 		}
 	};
+	µ.debug.error=function(msg){µ.debug(msg,µ.debug.LEVEL.ERROR)};
+	µ.debug.warning=function(msg){µ.debug(msg,µ.debug.LEVEL.WARNING)};
+	µ.debug.info=function(msg){µ.debug(msg,µ.debug.LEVEL.INFO)};
+	µ.debug.debug=function(msg){µ.debug(msg,µ.debug.LEVEL.DEBUG)};
 	
 	/** shortcut
 	 * creates an object that will evaluate its values defined in {map} on its first call.

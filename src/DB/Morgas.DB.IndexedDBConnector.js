@@ -7,6 +7,7 @@
 	 *
 	 */
 	var DBC=GMOD("DBConn"),
+	LOGGER=GMOD("debug"),
 	SC=GMOD("shortcut")({
 		det:"Detached",
 		it:"iterate",
@@ -39,12 +40,12 @@
 					var trans=db.transaction(objectType,"readwrite");
 					trans.onerror=function(event)
 					{
-						µ.debug(event, 0);
+						LOGGER.error(event);
 						tSignal.complete(event);
 					};
 					trans.oncomplete=function(event)
 					{
-						µ.debug(event, 2);
+						LOGGER.info(event);
 						tSignal.complete();
 					};
 					
@@ -59,10 +60,10 @@
 							method="add";
 						}
 						var req=store[method](obj);
-						req.onerror=function(event){µ.debug(event,0)};
+						req.onerror=LOGGER.error;
 						req.onsuccess=function(event)
 						{
-							µ.debug(event, 3);
+							LOGGER.debug(event);
 							object.setID&&object.setID(req.result);//if (!(object instanceof DBFRIEND)) {object.setID(req.result)} 
 						}
 					});
@@ -87,7 +88,7 @@
 					rtn=[];
 					trans.onerror=function(event)
 					{
-						µ.debug(event,0);
+						LOGGER.error(event);
 						db.close();
 						signal.error(event);
 					};
@@ -105,11 +106,11 @@
 							var req=store.get(ID);
 							req.onerror=function(event)
 							{
-								µ.debug(event,0);
+								LOGGER.error(event);
 							};
 							req.onsuccess=function(event)
 							{
-								µ.debug(event, 3);
+								LOGGER.debug(event);
 								if(SC.eq(req.result,pattern))
 								{
 									var inst=new objClass();
@@ -124,7 +125,7 @@
 						var req=store.openCursor();
 						req.onerror=function(event)
 						{
-							µ.debug(event,0);
+							LOGGER.error(event);
 							db.close();
 							signal.error(event);
 						};
@@ -165,7 +166,7 @@
 					trans=db.transaction(objectType,"readonly");
 					trans.onerror=function(event)
 					{
-						µ.debug(event,0);
+						LOGGER.error(event);
 						db.close();
 						signal.error(event);
 						_collectingSelf.error(event);
@@ -180,7 +181,7 @@
 					var req=store.openCursor();
 					req.onerror=function(event)
 					{
-						µ.debug(event,0);
+						LOGGER.error(event);
 						db.close();
 						signal.error(event);
 						_collectingSelf.error(event);
@@ -208,7 +209,7 @@
 						var trans=db.transaction(objClass.prototype.objectType,"readwrite");
 						trans.onerror=function(event)
 						{
-							µ.debug(event,0);
+							LOGGER.error(event);
 							db.close();
 							signal.error(event);
 						};
@@ -219,12 +220,12 @@
 							var req=store["delete"](ID);
 							req.onerror=function(event)
 							{
-								µ.debug(event,0);
+								LOGGER.error(event);
 								rSignal.complete(ID);
 							};
 							req.onsuccess=function(event)
 							{
-								µ.debug(event, 3);
+								LOGGER.debug(event);
 								rSignal.complete();
 							}
 						}));
@@ -233,7 +234,7 @@
 							db.close();
 							signal.complete(Array.slice(arguments));
 							this.complete();
-						},µ.debug);
+						},LOGGER.error);
 					});
 				}
 				else

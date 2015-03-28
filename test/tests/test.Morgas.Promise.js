@@ -33,6 +33,14 @@
 			signal.resolve();
 		});
 	});
+	asyncTest("on complete no signal",function()
+	{
+		new PROM(function(signal){signal.resolve("some arg");}).complete(function(arg)
+		{
+			strictEqual(arg,"some arg");
+			start();
+		});
+	});
 	asyncTest("on complete return",function()
 	{
 		new PROM(function(){return "some other arg"}).complete(function(signal,arg)
@@ -168,6 +176,46 @@
 			strictEqual(Array.slice(arguments,1).join(" "),"Hello Promise World !");
 			start();
 			signal.resolve();
+		})
+	});
+	
+	asyncTest("wait for native",function()
+	{
+		new PROM(function(signal)
+		{
+			signal.resolve(new Promise(function(resolve,reject)
+			{
+				resolve("args");
+			}));
+		}).then(function(signal,fromNative)
+		{
+			strictEqual(fromNative,"args");
+			start();
+			signal.resolve();
+		});
+	});
+	
+	asyncTest("chain native",function()
+	{
+		new PROM(function(signal)
+		{
+			signal.resolve("args");
+		}).original.then(function(fromNative)
+		{
+			propEqual(fromNative,["args"]);
+			start();
+		});
+	});
+	
+	asyncTest("chain native2",function()
+	{
+		Promise.all([new PROM(function(signal)
+		{
+			signal.resolve("args2");
+		})]).then(function(asNative)
+		{
+			propEqual(asNative,["args2"]);
+			start();
 		})
 	});
 })(Morgas,Morgas.getModule);

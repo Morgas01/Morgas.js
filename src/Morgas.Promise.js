@@ -77,14 +77,18 @@
 		{
 			if(typeof fn==="function")return new Promise(function(rs,rj)
 			{
-				var signal={
-					resolve:rs,
-					reject:rj,
-					scope:scope,
-					onAbort:onAbort
-				};
 				var sArgs=args.slice();
-				sArgs.unshift(signal);
+				var hasSignal=/\(\s*signal\s*[,\)]/.exec(fn);
+				if(hasSignal)
+				{
+					var signal={
+						resolve:rs,
+						reject:rj,
+						scope:scope,
+						onAbort:onAbort
+					};
+					sArgs.unshift(signal);
+				}
 				try
 				{
 					var result=fn.apply(scope,sArgs);
@@ -93,7 +97,7 @@
 						if(result instanceof PROM)result.original.then(r=>rs(r[0]),rj);
 						else result.then(rs,rj);
 					}
-					else if (result!==undefined)
+					else if (result!==undefined||!hasSignal)
 					{
 						rs(result);
 					}

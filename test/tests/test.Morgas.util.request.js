@@ -7,7 +7,7 @@
 	
 	asyncTest("request",function()
 	{
-		REQ("resources/request.json").then(function(text)
+		REQ("resources/request.json").then(function(signal,text)
 		{
 			strictEqual(text,'{\r\n	"name":"test response",\r\n	"value":"something"\r\n}',"response");
 			start();
@@ -15,7 +15,7 @@
 	});
 	asyncTest("request json",function()
 	{
-		RJS("resources/request.json").then(function(json)
+		RJS("resources/request.json").then(function(signal,json)
 		{
 			deepEqual(json,{"name":"test response","value":"something"},"response");
 			start();

@@ -4,7 +4,7 @@
 	var obj=util.object||{};
 	
 	var SC=GMOD("shortcut")({
-		DET:"Detached",
+		PROM:"Promise",
 		It:"Iterator"
 	});
 	/** iterateAsync
@@ -22,9 +22,8 @@
 		{
 			chunk=obj.iterateAsync.chunk;
 		}
-		return new SC.DET(function()
+		return new SC.PROM(function(signal)
 		{
-			var signal=this;
 			var it=SC.It(any,backward,isObject);
 			var interval=setInterval(function iterateStep()
 			{
@@ -37,15 +36,16 @@
 					}
 					if(step.done)
 					{
-						signal.complete();
+						signal.resolve();
 						clearInterval(interval);
 					}
 				}
 				catch (e)
 				{
-					signal.error(e);
+					signal.reject(e);
 				}
-			},0)
+			},0);
+			signal.onAbort(function(){chunk=0;clearInterval(interval);});
 		});
 	};
 	obj.iterateAsync.chunk=1E4;

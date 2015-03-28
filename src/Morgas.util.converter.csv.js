@@ -7,6 +7,8 @@
 		defaultSeperator:",",
 		from:function(csvData,columnNames,seperator)
 		{
+			csvData+="";
+			
 			seperator=seperator||uCon.csv.defaultSeperator;
 			var cellEXP=new RegExp('(?:"((?:[^"]|"")*)"|([^"\r\n'+seperator+']*))'+seperator+'?','g'), cleanUpEXP=/"(")/g;
 

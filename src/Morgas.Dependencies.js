@@ -28,7 +28,7 @@
         "Morgas.util.object.iterate.js":"Morgas.js",
         "Morgas.util.object.iterateAsync.js":{
         	deps:["Morgas.js"],
-        	uses:["Morgas.util.object.iterate.js","Morgas.Detached.js"]
+        	uses:["Morgas.util.object.iterate.js","Morgas.Promise.js"]
         },
         "Morgas.util.object.uniquify.js":"Morgas.js",
         "Morgas.util.download.js":"Morgas.js",
