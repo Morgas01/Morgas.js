@@ -11,8 +11,8 @@
 	uObj.goPath=function(obj,path,create)
 	{
 		var todo=path;
-		if(typeof todo=="string")
-			todo=todo.split(".");
+		if(typeof todo=="string")todo=todo.split(".");
+		else todo=todo.slice();
 		
 		while(todo.length>0&&obj)
 		{

@@ -3,6 +3,9 @@
 	-	batch
 µ.util.request:
 	-	fallback urls
+
+use µ.Promise instead of µ.Detached
+
 NEW:
 	SQLiteConnector for moz extensions
 	RemoteDBConnector (worker/REST)
