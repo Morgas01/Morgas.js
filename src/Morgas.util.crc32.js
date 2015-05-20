@@ -4,14 +4,16 @@
 	
 	// found somewhere on the internet
 	
-	var that=util.crc32=function(str)
+	var that=util.crc32=function(data)
 	{
-	   var crc=0^(-1);
-	   for (var i=0;i<str.length;i++)
-	   {
-		   crc=(crc>>>8)^that.get((crc^str.charCodeAt(i))&0xFF);
-	   }
-	   return (crc^(-1))>>>0;
+		var isString=typeof data==="string";
+		var crc=0^(-1);
+		for (var i=0;i<data.length;i++)
+		{
+			var b=isString ? data.charCodeAt(i) : data[i];
+			crc=(crc>>>8)^that.get((crc^b)&0xFF);
+		}
+		return (crc^(-1))>>>0;
 	};
 	that.table={};
 	that.get=function(n)
