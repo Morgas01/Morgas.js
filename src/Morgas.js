@@ -81,7 +81,7 @@
 		DEBUG:3
 	};
 	µ.debug.verbose=µ.debug.LEVEL.WARNING;
-	µ.getDebug=function(debug){µ.debug.verbose=debug};
+	µ.getDebug=function(){return µ.debug.verbose};
 	µ.setDebug=function(debug){µ.debug.verbose=debug};
 	µ.debug.out=function(msg,verbose)
 	{
@@ -208,7 +208,6 @@
 			newClass.prototype=Object.create(superClass.prototype);
 			newClass.prototype.constructor=newClass;
 		}
-		else newClass.prototype.__superClasses=[];
 		
 		for(var i in prot)
 		{
@@ -237,8 +236,10 @@
 					{
 						if(this.mega.caller===prot[names[i]])
 						{
-							this.__megaKey=names[i];
-							this.__megaProt=prot;
+							Object.defineProperties(this,{
+								__megaKey:{configurable:true,writable:true,value:names[i]},
+								__megaProt:{configurable:true,writable:true,value:prot}
+							});
 							break searchPrototype;
 						}
 					}
@@ -276,6 +277,7 @@
 		{
 			for(var i in this)
 			{
+				if(this[i]&&typeof this[i].destroy==="function")this[i].destroy();
 				delete this[i];
 			}
 		}
