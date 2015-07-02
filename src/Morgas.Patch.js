@@ -94,7 +94,13 @@
 				this.patch(this._patchParam,false);
 			}
 		},
-		patch:function patch(param,noListeners){}
+		patch:function patch(param,noListeners){},
+		destroy:function()
+		{
+			if(this.instance.patches[this.patchID]==this) delete this.instance.patches[this.patchID]
+			delete this.instance;
+			this.mega();
+		}
 	});
 	SMOD("Patch",PATCH);
 	PATCH.hasPatch=function(instance, patch)
