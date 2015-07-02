@@ -17,25 +17,27 @@
 				var keys=Object.keys(obj);
 				for(var l=keys.length,i=0;i<l;i++)
 				{
-					var k=prefix+keys[i];
+					var k=keys[i];
 					if(this.config[k]===undefined||overwrite)
 					{
+						var v=null;
                         if(typeof obj[k]==="string")
                         {
-                            this.config[k]={deps:[prefix+obj[k]],uses:[]};
+                            v={deps:[prefix+obj[k]],uses:[]};
                         }
                         else if (Array.isArray(obj[k]))
                         {
-                            this.config[k]={deps:applyPrefix(obj[k],prefix),uses:[]};
+                            v={deps:applyPrefix(obj[k],prefix),uses:[]};
                         }
                         else if (obj[k]!==true)
                         {
-                            this.config[k]={deps:applyPrefix(obj[k].deps,prefix),uses:applyPrefix(obj[k].uses,prefix)}
+                            v={deps:applyPrefix(obj[k].deps,prefix),uses:applyPrefix(obj[k].uses,prefix)}
                         }
                         else
                         {
-                            this.config[k]=true;
+                            v=true;
                         }
+						this.config[prefix+k]=v;
 					}
 				}
 				return true;
