@@ -1,32 +1,36 @@
 (function(µ,SMOD,GMOD){
-	
+	var applyPrefix=function(arr,prefix)
+	{
+		return (arr||[]).map(function(a){return prefix+a});
+	};
 	µ.DependencyResolver=µ.Class({
-		init:function(config)
+		init:function(config,prefix)
 		{
 			this.config={};
-			this.addConfig(config);
+			this.addConfig(config,prefix);
 		},
-		addConfig:function(obj,overwrite)
+		addConfig:function(obj,prefix,overwrite)
 		{
+			prefix=prefix||"";
 			if(typeof obj==="object")
 			{
 				var keys=Object.keys(obj);
 				for(var l=keys.length,i=0;i<l;i++)
 				{
-					var k=keys[i];
+					var k=prefix+keys[i];
 					if(this.config[k]===undefined||overwrite)
 					{
                         if(typeof obj[k]==="string")
                         {
-                            this.config[k]={deps:[obj[k]],uses:[]};
+                            this.config[k]={deps:[prefix+obj[k]],uses:[]};
                         }
                         else if (Array.isArray(obj[k]))
                         {
-                            this.config[k]={deps:obj[k].slice(),uses:[]};
+                            this.config[k]={deps:applyPrefix(obj[k],prefix),uses:[]};
                         }
                         else if (obj[k]!==true)
                         {
-                            this.config[k]={deps:(obj[k].deps||[]).slice(),uses:(obj[k].uses||[]).slice()}
+                            this.config[k]={deps:applyPrefix(obj[k].deps,prefix),uses:applyPrefix(obj[k].uses,prefix)}
                         }
                         else
                         {
@@ -94,17 +98,7 @@
 		},
         clone:function(prefix)
         {
-            var config=null;
-            if(prefix)
-            {
-                config={};
-                var mapFn=function(v){return prefix+v};
-                for(var i in this.config)
-                {
-                    config[prefix+i]=(this.config[i]===true ? true : {deps:this.config[i].deps.map(mapFn),uses:this.config[i].uses.map(mapFn)})
-                }
-            }
-            return new µ.DependencyResolver(config);
+            return new µ.DependencyResolver(this.config,prefix);
         }
 	});
 	SMOD("DepRes",µ.DependencyResolver);
