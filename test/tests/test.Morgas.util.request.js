@@ -13,7 +13,7 @@
 			start();
 		});
 	});
-	asyncTest("request",function()
+	asyncTest("request fallback",function()
 	{
 		REQ(["bad/url","resources/request.json"]).then(function(signal,text)
 		{
