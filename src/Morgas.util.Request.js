@@ -50,6 +50,10 @@
 		{
 			urls=[param];
 		}
+		else if (Array.isArray(param))
+		{
+			urls=param.slice();
+		}
 		else
 		{
 			urls=[].concat(param.url);
