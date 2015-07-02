@@ -275,6 +275,7 @@
 		},
 		destroy:function()
 		{
+			if(this.patches)for(var p in this.patches)this.patches[p].destroy();
 			for(var i in this)
 			{
 				if(this[i]&&typeof this[i].destroy==="function")this[i].destroy();
