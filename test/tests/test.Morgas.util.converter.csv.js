@@ -31,10 +31,10 @@
 						field3:"6"
 					},
 					{
-						_line:'9,"""special"", \r\ncharacters",10',
+						_line:'9,"""special"", \ncharacters",10',
 						_overflowCells:[],
 						field1:"9",
-						field2:'"special", \r\ncharacters',
+						field2:'"special", \ncharacters',
 						field3:"10"
 					},
 				]
@@ -59,10 +59,10 @@
 							field3:"6"
 						},
 						{
-							_line:'9\t"""special""\t\r\ncharacters"\t10',
+							_line:'9\t"""special""\t\ncharacters"\t10',
 							_overflowCells:[],
 							field1:"9",
-							field2:'"special"\t\r\ncharacters',
+							field2:'"special"\t\ncharacters',
 							field3:"10"
 						},
 					]
