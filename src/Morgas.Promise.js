@@ -78,6 +78,7 @@
 			if(typeof fn==="function")return new Promise(function(rs,rj)
 			{
 				var sArgs=args.slice();
+				//TODO change signal detection
 				var hasSignal=/\(\s*signal\s*[,\)]/.exec(fn);
 				if(hasSignal)
 				{
