@@ -281,6 +281,7 @@
 				if(this[i]&&typeof this[i].destroy==="function")this[i].destroy();
 				delete this[i];
 			}
+			this.destroy==undefined;//overwrite prototype method
 		}
 	});
 	SMOD("Base",BASE);
