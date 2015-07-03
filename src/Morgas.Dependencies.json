@@ -12,7 +12,10 @@
         	"uses":["Morgas.util.object.iterate.js"]
         },
         "Morgas.DependencyResolver.js":"Morgas.js",
-        "Morgas.NodePatch.js":{"deps":["Morgas.js","Morgas.Patch.js"],"uses":["Morgas.util.function.proxy.js"]},
+        "Morgas.NodePatch.js":{
+			"deps":["Morgas.js","Morgas.Patch.js"],
+			"uses":["Morgas.util.function.proxy.js"]
+		},
         "Morgas.util.object.adopt.js":"Morgas.js",
         "Morgas.util.object.goPath.js":"Morgas.js",
         "Morgas.util.object.equals.js":"Morgas.js",
@@ -34,9 +37,9 @@
         "Morgas.util.crc32.js":"Morgas.js",
         "Morgas.util.converter.csv.js":"Morgas.js",
         "Morgas.util.queryParam.js":"Morgas.js",
-		"Morgas.util.request.js":{
+		"Morgas.util.Request.js":{
 			"deps":["Morgas.js"],
-			"uses":["Morgas.Detached.js"]
+			"uses":["Morgas.Promise.js"]
 		},
         "Morgas.Organizer.js":{
         	"deps":["Morgas.js"],
