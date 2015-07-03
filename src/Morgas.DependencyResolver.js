@@ -7,7 +7,7 @@
 		init:function(config,prefix)
 		{
 			this.config={};
-			this.addConfig(config,prefix);
+			if(config)this.addConfig(config,prefix);
 		},
 		addConfig:function(obj,prefix,overwrite)
 		{
@@ -18,7 +18,7 @@
 				for(var l=keys.length,i=0;i<l;i++)
 				{
 					var k=keys[i];
-					if(this.config[k]===undefined||overwrite)
+					if(this.config[prefix+k]===undefined||overwrite)
 					{
 						var v=null;
                         if(typeof obj[k]==="string")
