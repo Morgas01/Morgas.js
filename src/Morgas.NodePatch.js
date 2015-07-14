@@ -208,7 +208,20 @@
         {
             var parentPatch=getNode(parent);
             return parent&&parent.hasChild(this.instance);
-        }
+        },
+		destroy:function()
+		{
+			this.remove();
+			for(var c of this.children.slice())
+			{
+				this.removeChild(c);
+			}
+			for( var alias of this.aliasMap)
+			{
+				delete this.instance[alias];
+			}
+			this.mega();
+		}
 	});
 	NODE.Aliases=["addChild","removeChild","remove","setParent","hasChild"];
     NODE.Symbols=["parent","children"];
@@ -240,6 +253,14 @@
 				}
 			}
 			new NODE(this,map);
+		},
+		destroy:function()
+		{
+			for(var c of this.children.slice())
+			{
+				if(typeof c.destroy==="function")c.destroy();
+			}
+			this.mega();
 		}
 	});
 	
@@ -264,6 +285,8 @@
         if(typeof node[symbol]!=="function")
         {
             Object.defineProperty(node.instance,alias,{
+            	configurable:true,
+            	enumerable:true,
                 get:function()
                 {
                     return node[symbol];
@@ -272,7 +295,7 @@
                 {
                     node[symbol]=arg;
                 }
-            })
+            });
         }
         else
         {

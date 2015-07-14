@@ -2,6 +2,11 @@
 	
 	module("util.object.inputValues");
 	
+	var SC=GMOD("shortcut")({
+		s:"setInputValues",
+		g:"getInputValues"
+	});
+	
 	test("inputValues",function()
 	{
 		var domElement=document.createElement("div");
@@ -25,8 +30,8 @@
 			"selection":null,
 			"default":null
 		};
-		GMOD("setInputValues")(domElement.children,set);
-		GMOD("getInputValues")(domElement.children,get);
+		SC.s(domElement.children,set);
+		SC.g(domElement.children,get);
 		
 		deepEqual(get,{
 			"field1":"value1",
@@ -36,7 +41,7 @@
 			"default":"default value"
 		},"simple");
 		
-		GMOD("getInputValues")(domElement.children,get,true);
+		SC.g(domElement.children,get,true);
 
 		deepEqual(get,{
 			"field1":"value1",

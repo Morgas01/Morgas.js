@@ -97,8 +97,7 @@
 		patch:function patch(param,noListeners){},
 		destroy:function()
 		{
-			if(this.instance.patches[this.patchID]==this) delete this.instance.patches[this.patchID]
-			delete this.instance;
+			if(this.instance.patches[this.patchID]==this) delete this.instance.patches[this.patchID];
 			this.mega();
 		}
 	});

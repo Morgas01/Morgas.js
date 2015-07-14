@@ -18,7 +18,7 @@
 		DBFriend:"DBFriend"
 	});
 	
-	var ICON=µ.Class(DBC,{
+	var ICON=DBC.IndexedDBConnector=µ.Class(DBC,{
 
 		init:function(dbName)
 		{
