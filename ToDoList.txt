@@ -1,6 +1,6 @@
 µ.Worker:
 	-	DBWorker
-	-	batch
+	-	batch ?
 
 use µ.Promise instead of µ.Detached
 
