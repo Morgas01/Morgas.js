@@ -10,13 +10,14 @@
 	};
 	
 	µ.constantFunctions={
-			"ndef":function(){return undefined},
-			"nul":function(){return null},
-			"f":function(){return false},
-			"t":function(){return true;},
-			"zero":function(){return 0;},
-			"boolean":function(val){return !!val}
-		};
+		"ndef":function(){return undefined},
+		"nul":function(){return null},
+		"f":function(){return false},
+		"t":function(){return true;},
+		"zero":function(){return 0;},
+		"boolean":function(val){return !!val},
+		"pass":function(a){return a}
+	};
 
 	/** Modules
 	 *	Every class and utility function should define a Module, which can

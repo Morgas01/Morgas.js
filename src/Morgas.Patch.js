@@ -63,6 +63,7 @@
 	
 	var PATCH=µ.Patch=µ.Class(
 	{
+		//patchID:"myID",		//abstract core patch
 		init:function Patchinit(instance,param,doPatchNow)
 		{
 			if(instance.patches==null)
