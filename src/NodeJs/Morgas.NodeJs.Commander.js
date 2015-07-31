@@ -21,29 +21,30 @@
 				{
 					if(line.length===0)return [Object.keys(self.commands).sort(),line];
 					var rtn=[];
-					var match=line.match(/(\S+)\s+(.*)/);
+					var match=line.match(/((\S+)\s+)(.*)/);
 					if(!match)
 					{
 						rtn=Object.keys(self.commands).filter(function(a){return a.indexOf(line)==0}).sort();
 					}
-					else if ([match[1]] in self.commands&&"completer" in self[match[1]])
+					else if ([match[2]] in self.commands&&"completer" in self.commands[match[2]])
 					{
-						var cmd=self.commands[match[1]];
-						rtn=cmd.completer.call(cmd.scope,match[2]);
+						var cmd=self.commands[match[2]];
+						rtn=cmd.completer.call(cmd.scope,match[3]).map(function(a){return match[1]+a});
 					}
-					
 					return [rtn,line];
 				}
 			});
+			var closed=false;
 			this.rl.on("line",function(line)
 			{
 				var match=line.match(/(\S+)\s*(.*)/);
 				if(match&&match[1] in self.commands)
 				{
 					var cmd=self.commands[match[1]];
-					return cmd.call(cmd.scope,match[2]);
+					cmd.call(cmd.scope,match[2]);
+					if(!closed)self.rl.prompt();
 				}
-			});
+			}).on("close",function(){closed=true});
 			
 			for(var i=0;i<commandPackages.length;i++)
 			{
@@ -66,6 +67,14 @@
 				if(c in this.instance.commands) console.warn("command name "+c+" is already used");
 				else this.instance.commands[c]=this.commands[c];
 			}
+		},
+		out:function(msg)
+		{
+			/*
+			this.instance.rl.write(msg+"\n");
+			this.instance.rl.prompt();
+			*/
+			console.log(msg);
 		}
 	});
 	SMOD("CommandPackage",COM.CommandPackage);
