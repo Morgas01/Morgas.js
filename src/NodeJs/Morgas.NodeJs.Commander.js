@@ -44,6 +44,13 @@
 					cmd.call(cmd.scope,match[2]);
 					if(!closed)self.rl.prompt();
 				}
+				else
+				{
+					//TODO
+					var cmd=match&&match[1]||line;
+					console.log("unknown command "+cmd);
+					if(!closed)self.rl.prompt();
+				}
 			}).on("close",function(){closed=true});
 			
 			for(var i=0;i<commandPackages.length;i++)
@@ -70,7 +77,7 @@
 		},
 		out:function(msg)
 		{
-			/*
+			/* TODO
 			this.instance.rl.write(msg+"\n");
 			this.instance.rl.prompt();
 			*/

@@ -3,6 +3,29 @@
 	var SC=GMOD("shortcut")({
 		FH:"FileHelper"
 	});
+
+	var FS=require("fs");
+	var PATH=require("path");
+	
+	var filePatternCompleter=function(line){return ["empty","noCRC","selected"].filter(function(a){return a.indexOf(line)==0;});};
+	var fileNameCompleter=function(line)
+	{
+		var addition=PATH.join(line+"dirt","..");
+		if(addition!==".")line=line.substr(addition.length+1);
+		else addition="";
+		return this.fh.ls(addition).filter(function(a){return a.indexOf(line)==0}).map(function(a){return PATH.join(addition,a)});
+	};
+	var pathCompleter=function(line)
+	{
+		var addition=PATH.join(line+"dirt","..");
+		if(addition!==".")line=line.substr(addition.length+1);
+		else addition="";
+		var root=this.fh.dir;
+		return this.fh.ls(addition).filter(function(a)
+		{
+			return a.indexOf(line)==0&&FS.statSync(PATH.resolve(root,addition,a)).isDirectory();
+		}).map(function(a){return PATH.join(addition,a)+PATH.sep});
+	};
 	
 	GMOD("ComPackFactory")("file",function()
 	{
@@ -12,38 +35,51 @@
 		ls:function(){
 			this.out(this.fh.ls().join("\n"));
 		},
-		select:function(pattern){
-			this.out(this.fh.select(pattern).join("\n"));
-		},
-		selected:(function()
+		cd:(function()
 		{
-			var cmd=function(){this.out(this.fh.selected.join("\n"));};
-			cmd.completer=function(line){return ["empty","noCRC"].filter(function(a){return a.indexOf(line)!=0;});};
+			var cmd=function(pattern){this.out(this.fh.changeDir(pattern).join("\n"))};
+			cmd.completer=fileNameCompleter;
 			return cmd;
 		})(),
-		deselect:function(pattern){
-			this.out(this.fh.deselect(pattern).join("\n"));
-		},
+		select:(function()
+		{
+			var cmd=function(pattern){this.out(this.fh.select(pattern).join("\n"))};
+			cmd.completer=filePatternCompleter;
+			return cmd;
+		})(),
+		selected:function(){this.out(this.fh.selected.join("\n"));},
+		deselect:(function()
+		{
+			var cmd=function(pattern){this.out(this.fh.deselect(pattern).join("\n"))};
+			cmd.completer=filePatternCompleter;
+			return cmd;
+		})(),
 		rename:function(line){
 			var match=line.match(/(\/.*\/|".*")\s+(".*")/);
-			if(!match)this.out('rename pattern replacement\n\tpattern:\/regex\/ or "string"\n\treplacement:"string"');
+			if(!match)this.out('rename pattern replacement\n\tpattern:\t\/regex\/ or "string"\n\treplacement:\t"string"');
 			else this.out(this.fh.rename(match[1],match[2]).map(function(a){return a.join("\t=>\t");}).join("\n"));
 		},
 		calcCRC:(function()
 		{
 			var cmd=function(filenName){this.out(this.fh.calcCRC(filenName));};
-			cmd.completer=function(line)
-			{
-				return this.fh.ls().filter(function(a){return a.indexOf(line)==0})
-			};
+			cmd.completer=fileNameCompleter
 			return cmd;
 		})(),
 		checkCRC:function(){
 			this.out(this.fh.checkCRC().map(function(a){return (a[0]==null?"NONE":a[0]==false?"DIFFERENT":"OK")+"\t"+a[1];}).join("\n"));
 		},
-		"delete":function(){
-			this.out(this.fh.ls().join("\n"));
-		},
+		"delete":(function()
+		{
+			var cmd=function(pattern){this.out(this.fh["delete"](pattern).join("\n"))};
+			cmd.completer=filePatternCompleter;
+			return cmd;
+		})(),
+		moveToDir:(function()
+		{
+			var cmd=function(dir){this.fh.moveToDir(dir)};
+			cmd.completer=pathCompleter;
+			return cmd;
+		})()
 	});
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule);

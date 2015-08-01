@@ -2,54 +2,66 @@
 
 	µ.NodeJs=µ.NodeJs||{};
 
-	var fs=require("fs");
+	var FS=require("fs");
+	var PATH=require("path");
 
 	var calcCRC32=GMOD("util.crc32");
 	
+	var regexLike=/^\/((?:[^\/]||\\\/)+)\/([gimy]*)$/;
+	var convertRegex=function(pattern)
+	{
+		if(pattern instanceof RegExp || !regexLike.test(pattern)) return pattern;
+		else
+		{
+			var match=pattern.match(regexLike);
+			return new RegExp(match[1],match[2]);
+		}
+	}
+	
 	var FH=µ.NodeJs.FileHelper=µ.Class({
-		regexLike:/^\/((?:[^\/]||\\\/)+)\/([gimy]*)$/,
 		extractChecksum:/\[([0-9A-Z]{8})\]\..{3,4}$/,
 		init:function(dir)
 		{
-			this.dir=dir||"./";
+			this.dir=PATH.resolve(dir||"./");
 			this.selected=[];
 		},
-		ls:function()
+		ls:function(addition)
 		{
-			return fs.readdirSync(this.dir);
+			if(addition)return FS.readdirSync(PATH.resolve(this.dir,addition));
+			return FS.readdirSync(this.dir);
 		},
-		changeDir:function(change)
+		changeDir:function(dir)
 		{
 			this.selected.length=0;
-			//TODO
+			this.dir=PATH.resolve(dir);
 		},
 		_getFiles:function(pattern,files)
 		{
-			var t=false;
-			if(pattern instanceof RegExp || (t=this.regexLike.test(pattern)) )
+			pattern=convertRegex(pattern);
+			if(pattern instanceof RegExp)
 			{
-				if(t)
-				{
-					var match=pattern.match(this.regexLike);
-					if(match)pattern=new RegExp(match[1],match[2]);
-					else return [];
-				}
-				console.log(pattern);
 				return (files||this.ls()).filter(function(a){return pattern.test(a)});
 			}
 			else if (!pattern) return [];
-			else
+			else if(pattern==="empty")
 			{
-				if(pattern==="empty")
-				{
-					//TODO
-				}
-				else if (pattern==="noCRC")
-				{
-					//TODO
-				}
-				else return (files||this.ls()).filter(function(a){return a.indexOf(pattern)==0});
+				//TODO
 			}
+			else if (pattern==="noCRC")
+			{
+				//TODO
+			}
+			else if (pattern==="selected")
+			{
+				return this.selected
+			}
+			else return (files||this.ls()).filter(function(a){return a.indexOf(pattern)==0});
+		},
+		isEmpty:function(fileName)
+		{
+			var size=FS.statSync(PATH.resolve(this.dir,fileName)).size;
+			console.log("size:"+size);
+			return size==0;
 		},
 		select:function(pattern)
 		{
@@ -62,6 +74,7 @@
 		},
 		rename:function(pattern,replacement)
 		{
+			pattern=convertRegex(pattern)
 			var rtn=[];
 			for(var i=0;i<this.selected.length;i++)
 			{
@@ -69,7 +82,7 @@
 				if(file!==this.selected[i])
 				{
 					rtn.push([this.selected[i],file]);
-					fs.renameSync(this.dir+"/"+this.selected[i],this.dir+"/"+file);
+					FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(this.dir,file));
 					
 					var fileIndex=this.files.indexOf(this.selected[i]);
 					this.files[fileIndex]=this.selected[i]=file;
@@ -79,7 +92,7 @@
 		},
 		calcCRC:function(filename)
 		{
-			return calcCRC32(fs.readFileSync(this.dir+filename)).toString(16).toUpperCase();
+			return calcCRC32(FS.readFileSync(this.dir+filename)).toString(16).toUpperCase();
 		},
 		checkCRC:function()
 		{
@@ -96,9 +109,26 @@
 			}
 			return rtn;
 		},
-		"delete":function()
+		"delete":function(pattern)
 		{
-			
+			if(pattern)this.select(pattern);
+			for(var i=0;i<this.selected.length;i++)
+			{
+				FS.unlinkSync(PATH.resolve(this.dir,this.selected[i]));
+			}
+			var deleted=this.selected;
+			this.selected=[];
+			return deleted;
+		},
+		moveToDir:function(dir)
+		{
+			var target=PATH.resolve(this.dir,dir);
+			FS.mkdirSync(target);
+			for(var i=0;i<this.selected.length;i++)
+			{
+				FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(target,this.selected[i]));
+			}
+			this.selected.length=0;
 		}
 	});
 	SMOD("FileHelper",FH);
