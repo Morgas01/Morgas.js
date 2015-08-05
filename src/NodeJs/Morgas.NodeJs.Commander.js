@@ -14,6 +14,7 @@
 			
 			var self=this;
 			this.commands={};
+			this.prompt=">";
 			this.rl = readline.createInterface({
 				input: process.stdin,
 				output: process.stdout,
@@ -29,7 +30,8 @@
 					else if ([match[2]] in self.commands&&"completer" in self.commands[match[2]])
 					{
 						var cmd=self.commands[match[2]];
-						rtn=cmd.completer.call(cmd.scope,match[3]).map(function(a){return match[1]+a});
+						rtn=cmd.completer.call(cmd.scope,match[3])//.map(function(a){return match[1]+a});
+						line=match[3];
 					}
 					return [rtn,line];
 				}
@@ -42,14 +44,14 @@
 				{
 					var cmd=self.commands[match[1]];
 					cmd.call(cmd.scope,match[2]);
-					if(!closed)self.rl.prompt();
+					if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
 				}
 				else
 				{
 					//TODO
 					var cmd=match&&match[1]||line;
 					console.log("unknown command "+cmd);
-					if(!closed)self.rl.prompt();
+					if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
 				}
 			}).on("close",function(){closed=true});
 			
@@ -57,7 +59,7 @@
 			{
 				new COM.Packages[commandPackages[i]](this);
 			}
-			this.rl.prompt();
+			if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
 		}
 	});
 	COM.Packages={};

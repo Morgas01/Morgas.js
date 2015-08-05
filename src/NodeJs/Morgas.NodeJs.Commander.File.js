@@ -7,13 +7,19 @@
 	var FS=require("fs");
 	var PATH=require("path");
 	
-	var filePatternCompleter=function(line){return ["empty","noCRC","selected"].filter(function(a){return a.indexOf(line)==0;});};
 	var fileNameCompleter=function(line)
 	{
 		var addition=PATH.join(line+"dirt","..");
-		if(addition!==".")line=line.substr(addition.length+1);
-		else addition="";
-		return this.fh.ls(addition).filter(function(a){return a.indexOf(line)==0}).map(function(a){return PATH.join(addition,a)});
+		if(addition!==".")
+		{
+			line=line.substr(addition.length+1);
+			return this.fh.ls(addition).filter(function(a){return a.indexOf(line)==0}).map(function(a){return PATH.join(addition,a)});
+		}
+		else return ["empty","noCRC","selected"].concat(this.fh.ls()).filter(function(a){return a.indexOf(line)==0});
+	};
+	var selectedFileNameCompleter=function(line)
+	{
+		return ["empty","noCRC","selected"].concat(this.fh.selected).filter(function(a){return a.indexOf(line)==0});
 	};
 	var pathCompleter=function(line)
 	{
@@ -31,7 +37,9 @@
 	{
 		this.mega();
 		this.fh=new SC.FH();
+		this.instance.prompt=this.fh.dir+">>";
 	},{
+		dir:function(){this.out(this.fh.dir)},
 		ls:function(){
 			this.out(this.fh.ls().join("\n"));
 		},
@@ -44,14 +52,14 @@
 		select:(function()
 		{
 			var cmd=function(pattern){this.out(this.fh.select(pattern).join("\n"))};
-			cmd.completer=filePatternCompleter;
+			cmd.completer=fileNameCompleter;
 			return cmd;
 		})(),
 		selected:function(){this.out(this.fh.selected.join("\n"));},
 		deselect:(function()
 		{
 			var cmd=function(pattern){this.out(this.fh.deselect(pattern).join("\n"))};
-			cmd.completer=filePatternCompleter;
+			cmd.completer=fileNameCompleter;
 			return cmd;
 		})(),
 		rename:function(line){
@@ -71,7 +79,7 @@
 		"delete":(function()
 		{
 			var cmd=function(pattern){this.out(this.fh["delete"](pattern).join("\n"))};
-			cmd.completer=filePatternCompleter;
+			cmd.completer=fileNameCompleter;
 			return cmd;
 		})(),
 		moveToDir:(function()
