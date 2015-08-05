@@ -216,9 +216,9 @@
 			{
 				this.removeChild(c);
 			}
-			for( var alias of this.aliasMap)
+			for( var a in this.aliasMap)
 			{
-				delete this.instance[alias];
+				delete this.instance[this.aliasMap[a]];
 			}
 			this.mega();
 		}
