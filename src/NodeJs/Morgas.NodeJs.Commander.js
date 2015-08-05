@@ -43,7 +43,14 @@
 				if(match&&match[1] in self.commands)
 				{
 					var cmd=self.commands[match[1]];
-					cmd.call(cmd.scope,match[2]);
+					try
+					{
+						cmd.call(cmd.scope,match[2]);
+					}
+					catch (e)
+					{
+						console.error(e);
+					}
 					if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
 				}
 				else

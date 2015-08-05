@@ -45,7 +45,11 @@
 		},
 		cd:(function()
 		{
-			var cmd=function(pattern){this.out(this.fh.changeDir(pattern).join("\n"))};
+			var cmd=function(pattern)
+			{
+				this.fh.changeDir(pattern);
+				this.instance.prompt=this.fh.dir+">>";
+			};
 			cmd.completer=fileNameCompleter;
 			return cmd;
 		})(),
@@ -63,9 +67,9 @@
 			return cmd;
 		})(),
 		rename:function(line){
-			var match=line.match(/(\/.*\/|".*")\s+(".*")/);
+			var match=line.match(/(?:(\/.*\/)|"(.*)")\s+"(.*)"/);
 			if(!match)this.out('rename pattern replacement\n\tpattern:\t\/regex\/ or "string"\n\treplacement:\t"string"');
-			else this.out(this.fh.rename(match[1],match[2]).map(function(a){return a.join("\t=>\t");}).join("\n"));
+			else this.out(this.fh.rename(match[1]||match[2],match[3]).map(function(a){return a.join("\t=>\t");}).join("\n"));
 		},
 		calcCRC:(function()
 		{
@@ -75,6 +79,10 @@
 		})(),
 		checkCRC:function(){
 			this.out(this.fh.checkCRC().map(function(a){return (a[0]==null?"NONE":a[0]==false?"DIFFERENT":"OK")+"\t"+a[1];}).join("\n"));
+		},
+		appendCRC:function()
+		{
+			this.out(this.fh.appendCRC().join("\n"));
 		},
 		"delete":(function()
 		{

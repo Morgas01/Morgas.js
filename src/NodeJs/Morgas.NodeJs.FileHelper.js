@@ -4,8 +4,6 @@
 
 	var FS=require("fs");
 	var PATH=require("path");
-
-	var calcCRC32=GMOD("util.crc32");
 	
 	var regexLike=/^\/((?:[^\/]||\\\/)+)\/([gimy]*)$/;
 	var convertRegex=function(pattern)
@@ -33,7 +31,7 @@
 		changeDir:function(dir)
 		{
 			this.selected.length=0;
-			this.dir=PATH.resolve(dir);
+			this.dir=PATH.resolve(this.dir,dir);
 		},
 		_getFiles:function(pattern,files)
 		{
@@ -84,15 +82,14 @@
 					rtn.push([this.selected[i],file]);
 					FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(this.dir,file));
 					
-					var fileIndex=this.files.indexOf(this.selected[i]);
-					this.files[fileIndex]=this.selected[i]=file;
+					this.selected[i]=file;
 				}
 			}
 			return rtn;
 		},
 		calcCRC:function(filename)
 		{
-			return calcCRC32(FS.readFileSync(this.dir+filename)).toString(16).toUpperCase();
+			return GMOD("util.crc32")(FS.readFileSync(PATH.resolve(this.dir,filename))).toString(16).toUpperCase();
 		},
 		checkCRC:function()
 		{
@@ -106,6 +103,25 @@
 					rtn.push[fileName,this.calcCRC(fileName)===match[1]];
 				}
 				else rtn.push[fileName,null];
+			}
+			return rtn;
+		},
+		appendCRC:function()
+		{
+			rtn=[];
+			for(var i=0;i<this.selected.length;i++)
+			{
+				var fileName=this.selected[i];
+				var match=fileName.match(this.extractChecksum);
+				if(!match)
+				{
+					var crc=this.calcCRC(fileName);
+					var fext=PATH.extname(fileName);
+					var newFileName=fileName.slice(0,-fext.length)+"["+crc+"]"+fext;
+					FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(this.dir,newFileName));
+					this.selected[i]=newFileName;
+					rtn.push(newFileName);
+				}
 			}
 			return rtn;
 		},
@@ -123,7 +139,14 @@
 		moveToDir:function(dir)
 		{
 			var target=PATH.resolve(this.dir,dir);
-			FS.mkdirSync(target);
+			try
+			{
+				FS.mkdirSync(target);
+			}
+			catch(e)
+			{
+				if(e.code!=="EEXIST")throw e;
+			}
 			for(var i=0;i<this.selected.length;i++)
 			{
 				FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(target,this.selected[i]));
