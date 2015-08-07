@@ -17,7 +17,7 @@
 	}
 	
 	var FH=µ.NodeJs.FileHelper=µ.Class({
-		extractChecksum:/\[([0-9A-Z]{8})\]\..{3,4}$/,
+		extractChecksum:/[\[\(]([0-9A-Z]{8})[\)\]]\..{3,4}$/,
 		init:function(dir)
 		{
 			this.dir=PATH.resolve(dir||"./");
@@ -41,6 +41,10 @@
 				return (files||this.ls()).filter(function(a){return pattern.test(a)});
 			}
 			else if (!pattern) return [];
+			else if(pattern==="all")
+			{
+				return files||this.ls();
+			}
 			else if(pattern==="empty")
 			{
 				//TODO
@@ -89,9 +93,11 @@
 		},
 		calcCRC:function(filename)
 		{
-			return GMOD("util.crc32")(FS.readFileSync(PATH.resolve(this.dir,filename))).toString(16).toUpperCase();
+			var csm=GMOD("util.crc32")(FS.readFileSync(PATH.resolve(this.dir,filename))).toString(16).toUpperCase();
+			cms=("00000000"+csm).slice(-8);//fillup missing 0s
+			return cms;
 		},
-		checkCRC:function()
+		checkCRC:function(cb)
 		{
 			rtn=[];
 			for(var i=0;i<this.selected.length;i++)
@@ -100,9 +106,11 @@
 				var match=fileName.match(this.extractChecksum);
 				if(match)
 				{
-					rtn.push[fileName,this.calcCRC(fileName)===match[1]];
+					var csm=this.calcCRC(fileName);
+					rtn.push([fileName,csm,csm===match[1]]);
+					if(cb)cb(rtn[rtn.length-1]);
 				}
-				else rtn.push[fileName,null];
+				else rtn.push([fileName,null,null]);
 			}
 			return rtn;
 		},

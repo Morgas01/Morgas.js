@@ -15,11 +15,11 @@
 			line=line.substr(addition.length+1);
 			return this.fh.ls(addition).filter(function(a){return a.indexOf(line)==0}).map(function(a){return PATH.join(addition,a)});
 		}
-		else return ["empty","noCRC","selected"].concat(this.fh.ls()).filter(function(a){return a.indexOf(line)==0});
+		else return ["all","empty","noCRC","selected"].concat(this.fh.ls()).filter(function(a){return a.indexOf(line)==0});
 	};
 	var selectedFileNameCompleter=function(line)
 	{
-		return ["empty","noCRC","selected"].concat(this.fh.selected).filter(function(a){return a.indexOf(line)==0});
+		return ["all","empty","noCRC","selected"].concat(this.fh.selected).filter(function(a){return a.indexOf(line)==0});
 	};
 	var pathCompleter=function(line)
 	{
@@ -78,7 +78,9 @@
 			return cmd;
 		})(),
 		checkCRC:function(){
-			this.out(this.fh.checkCRC().map(function(a){return (a[0]==null?"NONE":a[0]==false?"DIFFERENT":"OK")+"\t"+a[1];}).join("\n"));
+			//this.out(this.fh.checkCRC().map(function(a){return (a[1]==null?"NONE":a[1]==false?"DIFFERENT":"OK")+"\t"+a[0];}).join("\n"));
+			var o=this.out;
+			this.fh.checkCRC(function(a){o((a[2]==null?"NONE\t\t":a[2]==false?"DIFFERENT\t"+a[1]:"OK\t\t")+"\t"+a[0])});
 		},
 		appendCRC:function()
 		{
