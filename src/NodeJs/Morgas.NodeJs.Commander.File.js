@@ -59,13 +59,19 @@
 			cmd.completer=fileNameCompleter;
 			return cmd;
 		})(),
-		selected:function(){this.out(this.fh.selected.join("\n"));},
+		selectAdd:(function()
+		{
+			var cmd=function(pattern){this.out(this.fh.selectAdd(pattern).join("\n"))};
+			cmd.completer=fileNameCompleter;
+			return cmd;
+		})(),
 		deselect:(function()
 		{
 			var cmd=function(pattern){this.out(this.fh.deselect(pattern).join("\n"))};
 			cmd.completer=fileNameCompleter;
 			return cmd;
 		})(),
+		selected:function(){this.out(this.fh.selected.join("\n"));},
 		rename:function(line){
 			var match=line.match(/(?:(\/.*\/)|"(.*)")\s+"(.*)"/);
 			if(!match)this.out('rename pattern replacement\n\tpattern:\t\/regex\/ or "string"\n\treplacement:\t"string"');
@@ -97,7 +103,10 @@
 			var cmd=function(dir){this.fh.moveToDir(dir)};
 			cmd.completer=pathCompleter;
 			return cmd;
-		})()
+		})(),
+		
+		cleanNames:function(){this.out(this.fh.cleanNames().join("\n"))},
+		mergeParts:function(){this.out(this.fh.mergeParts().join("\n"))}
 	});
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule);

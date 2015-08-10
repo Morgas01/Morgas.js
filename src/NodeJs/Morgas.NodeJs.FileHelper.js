@@ -47,11 +47,17 @@
 			}
 			else if(pattern==="empty")
 			{
-				//TODO
+				var dir=this.dir;
+				return (files||this.ls()).filter(function(a)
+				{
+					var s=FS.statSync(PATH.resolve(dir,a))
+					return s&&s.size==0
+				});
 			}
 			else if (pattern==="noCRC")
 			{
-				//TODO
+				var hasCRC=this.extractChecksum;
+				return (files||this.ls()).filter(function(a){return !a.match(hasCRC)});
 			}
 			else if (pattern==="selected")
 			{
@@ -68,6 +74,10 @@
 		select:function(pattern)
 		{
 			return this.selected=this._getFiles(pattern);
+		},
+		selectAdd:function(pattern)
+		{
+			return this.selected=this.selected.concat(this._getFiles(pattern));
 		},
 		deselect:function(pattern)
 		{
@@ -160,6 +170,73 @@
 				FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(target,this.selected[i]));
 			}
 			this.selected.length=0;
+		},
+		
+		cleanNames:function()
+		{
+			var rtn=[];
+			for(var i=0;i<this.selected.length;i++)
+			{
+				var file=this.selected[i];
+				var entry=[file];
+				
+				file=file.replace(/_/g," ");
+				file=file.replace(/\.(?![^\.]+$)/g," ");
+				if(file.indexOf("%20")!==-1) file=decodeURIComponent(file);
+				if(file.match(/\[\d\]\./))
+				{
+					var originalName=file.replace(/\[\d\]\./,".");
+					if(this._getFiles(originalName).length>0)
+					{
+
+						if(this._getFiles("empty",[originalName]).length>0)
+						{
+							FS.unlinkSync(PATH.resolve(this.dir,originalName));
+							file=originalName;
+							entry.push(" - is dublicate but original was empty");
+						}
+						else if(this._getFiles("empty",[this.selected[i]]).length>0)
+						{
+							FS.unlinkSync(PATH.resolve(this.dir,this.selected[i]));
+							entry.push(" - is dublicate and empty");
+							entry.push(" - delete");
+							rtn=rtn.concat(entry);
+							continue;
+						}
+						else entry.push(" - is dublicate but original was found");
+					}
+					else file=originalName;
+				}
+				
+				if(file!==this.selected[i])
+				{
+					entry.push(" - rename to : "+file);
+					rtn=rtn.concat(entry);
+					FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(this.dir,file));
+				}
+			}
+			return rtn
+		},
+		mergeParts:function()
+		{
+			var rtn=[];
+			var selectedParts=this.selected.filter(function(a){return a.match(/\.part$/)});
+			while(selectedParts.length>0)
+			{
+				var selectedPart=selectedParts.shift();
+				var match=selectedPart.match(/^(.+).(\d{5}).(.+).(part)$/);
+				var parts=this._getFiles(match[1]);
+				var fileName=match[1]+"."+match[3];
+				for(var p=0;p<parts.length;p++)
+				{
+					FS.appendFileSync(PATH.resolve(this.dir,fileName),FS.readFileSync(PATH.resolve(this.dir,parts[p])));
+					var index=selectedParts.indexOf(parts[p]);
+					if(index!==-1) selectedParts.splice(index,1);
+				}
+				
+				rtn.push(fileName);
+			}
+			return rtn;
 		}
 	});
 	SMOD("FileHelper",FH);
