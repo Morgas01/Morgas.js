@@ -50,7 +50,7 @@
 				this.fh.changeDir(pattern);
 				this.instance.prompt=this.fh.dir+">>";
 			};
-			cmd.completer=fileNameCompleter;
+			cmd.completer=pathCompleter;
 			return cmd;
 		})(),
 		select:(function()

@@ -25,7 +25,8 @@
 					var match=line.match(/((\S+)\s+)(.*)/);
 					if(!match)
 					{
-						rtn=Object.keys(self.commands).filter(function(a){return a.indexOf(line)==0}).sort();
+						rtn=Object.keys(self.commands).filter(function(a){return a.indexOf(line)==0})
+						.map(function(a){return a+" ";}).sort();
 					}
 					else if ([match[2]] in self.commands&&"completer" in self.commands[match[2]])
 					{

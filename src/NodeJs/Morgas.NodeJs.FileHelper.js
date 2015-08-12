@@ -213,6 +213,7 @@
 					entry.push(" - rename to : "+file);
 					rtn=rtn.concat(entry);
 					FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(this.dir,file));
+					this.selectedFiles[i]=file;
 				}
 			}
 			return rtn
