@@ -1,4 +1,4 @@
-(function(){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	module("DependencyResolver");
 	var dr=new (µ.getModule("DepRes"))({
 		a:true,
@@ -22,4 +22,4 @@
 		deepEqual(dr.resolve("abcc"),["a","b","ab","c","cc","abcc"]);
 	});
 	
-})();
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

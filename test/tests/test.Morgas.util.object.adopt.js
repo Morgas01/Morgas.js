@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	module("util.object.adopt");
 	
@@ -16,4 +16,4 @@
 		deepEqual(adopt(target,{v3:30,v4:4},true),{v1:-1,v2:0.2,v3:30,v4:4},"extend");
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

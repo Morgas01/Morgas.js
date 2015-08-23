@@ -13,7 +13,6 @@ use µ.Promise instead of µ.Detached
 Morgas.util.object.inputValues.js:
 	-	array support
 NEW:
-	SQLiteConnector for moz extensions
 	generic DB Object
 	RemoteDBConnector (worker/REST)
 	(Indexed)DB GUI
@@ -21,4 +20,3 @@ NEW:
 	resource handler
 	translations
 	translated resources
-	

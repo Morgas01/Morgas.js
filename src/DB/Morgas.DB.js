@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	/**
 	 * Depends on	: Morgas
 	 * Uses			: util.object, Detached
@@ -7,7 +7,7 @@
 	 *
 	 */
 
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		debug:"debug",
 		det:"Detached"
 	});
@@ -516,4 +516,4 @@
 		"BLOB"		:6
 	};
 	SMOD("DBField",FIELD);
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

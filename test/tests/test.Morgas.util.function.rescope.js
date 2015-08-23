@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	module("util.function.rescope");
 	
@@ -14,4 +14,4 @@
 		scope.fn=GMOD("rescope")(scope.fn,otherScope);
 		scope.fn();
 	})
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

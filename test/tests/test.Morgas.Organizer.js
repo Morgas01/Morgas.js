@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	module("Organizer");
 	
 	var ORG=GMOD("Organizer");
@@ -83,4 +83,4 @@
 		deepEqual(org.getMap("id map"),{0:data[0],1:data[1],2:data[2],3:data[3],4:data[4]},"map");
 		deepEqual(org.getGroup("animal group"),{rabbit:[data[0],data[1]],hedgehog:[data[2],data[3],data[4]]},"group");
 	});
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

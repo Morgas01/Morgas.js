@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	var util=µ.util=µ.util||{};
 	var uFn=util.function||{};
@@ -23,4 +23,4 @@
 	};
 	SMOD("rescope",uFn.rescope);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	module("util.object.uniquify");
 	
@@ -27,4 +27,4 @@
 		
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

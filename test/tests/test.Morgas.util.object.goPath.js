@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	module("util.object.goPath");
 	
@@ -21,4 +21,4 @@
 		strictEqual(goPath(obj,["path","to","arr[1]"],true),obj.path.to.arr[1],"array notation");
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

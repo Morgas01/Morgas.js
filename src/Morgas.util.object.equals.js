@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	var util=µ.util=µ.util||{};
 	var uObj=util.object||{};

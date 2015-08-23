@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	var DBObj=GMOD("DBObj"),
 	FIELD=GMOD("DBField"),
 	REL=GMOD("DBRel");
@@ -56,7 +56,7 @@
 			{
 				notEqual(obj1.getID(),undefined,"ID generated");
 				start();
-			},µ.debug);
+			},µ.logger.error);
 		});
 		asyncTest("save multiple",function()
 		{
@@ -64,26 +64,26 @@
 			{
 				obj1.setValueOf("testDouble",1.2);
 				return dbConn.save([obj1,obj2,obj3]);
-			},µ.debug);
+			},µ.logger.error);
 			p.then(function()
 			{
 				notEqual(obj1.getID(),undefined,"ID generated");
 				notEqual(obj2.getID(),undefined,"ID generated");
 				notEqual(obj3.getID(),undefined,"ID generated");
 				start();
-			},µ.debug);
+			},µ.logger.error);
 		});
 		asyncTest("save friendships",function()
 		{
 			p=p.then(function()
 			{
 				return dbConn.saveFriendships(obj2,"friendRel");
-			},µ.debug);
+			},µ.logger.error);
 			p.then(function()
 			{
 				ok(true);
 				start();
-			},µ.debug);
+			},µ.logger.error);
 		});
 		asyncTest("load single via int",function()
 		{
@@ -96,8 +96,8 @@
 					this.complete();
 
 					start();
-				},µ.debug)
-			},µ.debug);
+				},µ.logger.error)
+			},µ.logger.error);
 		});
 		asyncTest("load multiple via string",function()
 		{
@@ -110,8 +110,8 @@
 					equal(result.length,2,"result count");
 					this.complete();
 					start();
-				},µ.debug)
-			},µ.debug);
+				},µ.logger.error)
+			},µ.logger.error);
 		});
 		asyncTest("load relations",function()
 		{
@@ -124,15 +124,15 @@
 					o2=result[0];
 					deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
 					return dbConn.loadParent(o2,"parentRel");
-				},µ.debug)
+				},µ.logger.error)
 				.then(function(result)
 				{
 					o1=result;
 					deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
 					this.complete();
 					start();
-				},µ.debug)
-			},µ.debug);
+				},µ.logger.error)
+			},µ.logger.error);
 		});
 		asyncTest("deleteFriendships",function()
 		{
@@ -142,14 +142,14 @@
 				.then(function()
 				{
 					return dbConn.loadFriends(obj3,"friendRel",{testInt:20});
-				},µ.debug)
+				},µ.logger.error)
 				.then(function(result)
 				{
 					strictEqual(result.length,0,"firendship deleted");
 					this.complete();
 					start();
-				},µ.debug)
-			},µ.debug);
+				},µ.logger.error)
+			},µ.logger.error);
 		});
 		asyncTest("delete",function()
 		{
@@ -159,27 +159,27 @@
 				.then(function()
 				{
 					return dbConn.load(testObject,{testInt:10});
-				},µ.debug)
+				},µ.logger.error)
 				.then(function(result)
 				{
 					strictEqual(result.length,0,"deleted Object");
 					return dbConn["delete"](testObject,{testBool:true});
-				},µ.debug)
+				},µ.logger.error)
 				.then(function()
 				{
 					return dbConn.load(testObject,{testBool:true});
-				},µ.debug)
+				},µ.logger.error)
 				.then(function(result)
 				{
 					strictEqual(result.length,0,"deleted pattern");
 					this.complete();
 					start();
-				},µ.debug)
-			},µ.debug);
+				},µ.logger.error)
+			},µ.logger.error);
 		});
 		if(extra)
 		{
-			p=p.then(extra,µ.debug)
+			p=p.then(extra,µ.logger.error)
 		}
 	};
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

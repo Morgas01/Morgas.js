@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	var applyPrefix=function(arr,prefix)
 	{
 		return (arr||[]).map(function(a){return prefix+a});
@@ -42,7 +42,7 @@
 				}
 				return true;
 			}
-			µ.debug("DependencyResolver.addConfig: obj is not an object", 0);
+			µ.logger.error(new TypeError("DependencyResolver.addConfig: obj is not an object"));
 			return false;
 		},
 		resolve:function(items)
@@ -54,7 +54,7 @@
 				var resolved=true,conf=this.config[list[0]];
 				if(conf===undefined)
 				{
-					µ.debug("DependencyResolver.resolve: "+list[0]+" is undefined", 2);
+					µ.logger.info(new µ.Warning("DependencyResolver.resolve: "+list[0]+" is undefined"));
 				}
 				else if(conf!==true)
 				{
@@ -105,4 +105,4 @@
 	});
 	SMOD("DepRes",µ.DependencyResolver);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

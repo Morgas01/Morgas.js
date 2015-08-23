@@ -1,9 +1,11 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
     var util=µ.util=µ.util||{};
     var uCon=util.converter||{};
 	uCon.csv={
-		to:function(){},
+		to:function(){
+			//TODO
+		},
 		defaultSeperator:",",
 		from:function(csvData,columnNames,seperator)
 		{
@@ -61,4 +63,4 @@
 	};
     SMOD("CSV",uCon.csv);
 
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

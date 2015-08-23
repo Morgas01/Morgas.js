@@ -1,14 +1,15 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	var util=µ.util=µ.util||{};
 	var uFn=util["function"]||{};
 	
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		it:"iterate"
 	});
 	
-	/** proxy
+	/**
 	 * proxy methods from source to target.
+	 * called methods have scope of its source
 	 */
 	uFn.proxy=function(source,listOrMapping,target)
 	{
@@ -45,4 +46,4 @@
 	};
 	SMOD("proxy",uFn.proxy);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

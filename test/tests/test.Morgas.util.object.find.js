@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	module("util.object.find");
 	
@@ -31,4 +31,4 @@
 		deepEqual(find(obj,5),[{index:"id",value:5},{index:"stock",value:5}],"object 2");
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

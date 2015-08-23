@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	var util=µ.util=µ.util||{};
 	
@@ -29,4 +29,4 @@
 	   return that.table[n];
 	};
 	SMOD("util.crc32",util.crc32);
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

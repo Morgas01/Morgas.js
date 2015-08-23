@@ -1,5 +1,4 @@
-(function(µ,SMOD,GMOD)
-{
+(function(µ,SMOD,GMOD,HMOD,SC){
 	 /**
 	 * Depends on	: Morgas, Organizer
 	 * Uses			: util.object, DB
@@ -9,7 +8,7 @@
 	 */
 	var ORG=GMOD("Organizer");
 
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		it:"iterate",
 		debug:"debug",
 		det:"Detache"
@@ -143,4 +142,4 @@
 		}
 		return ORG.filterPattern(newPattern);
 	};
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

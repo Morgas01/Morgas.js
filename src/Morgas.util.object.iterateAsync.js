@@ -1,9 +1,9 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	var util=µ.util=µ.util||{};
 	var obj=util.object||{};
 	
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		PROM:"Promise",
 		It:"Iterator"
 	});
@@ -52,4 +52,4 @@
 	
 	SMOD("iterateAsync",obj.iterateAsync);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

@@ -1,7 +1,7 @@
-(function(){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	module("core");
 	
-	µ.debug.verbose=3;
+	µ.logger.setLevel(µ.logger.LEVEL.trace);
 	
 	var class1=µ.Class();
 	class1.prototype.init=function(val)
@@ -70,4 +70,4 @@
 		strictEqual(SC.s3,2,"context with path");
 		strictEqual(SC.s4,4,"context with path and dynamic");
 	});
-})();
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

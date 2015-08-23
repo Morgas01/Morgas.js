@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	module("util.object.iterate");
 	
@@ -75,4 +75,4 @@
 		ok(it.next().done===true,"object 2");
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

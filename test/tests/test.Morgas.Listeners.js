@@ -1,4 +1,4 @@
-(function(){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	module("Listeners");
 	
 	
@@ -60,4 +60,4 @@
 		foo.fire("event");
 		ok(true,"destroyed")
 	});
-})();
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

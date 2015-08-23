@@ -1,67 +1,117 @@
-(function(µ,SMOD,GMOD,HMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
-	var SC=GMOD("shortcut")({
-		debug:"debug",
+	var SC=SC({
+		adopt:"adopt",
 		rs:"rescope"
 	});
-	var PROM=µ.Promise=µ.Class({
-		init:function(fns,args,scope)
+	
+	var rescopeApply=function(fn,scope)
+	{
+		if(fn)return function(arr)
 		{
-			SC.rs.all(this,["_start","_error"]);
+			arr=[].concat(arr);
+			return fn.apply(scope,arr);
+		};
+	};
+	/**
+	 * Promise wrapper to provide arguments,scope and abort().
+	 * scope is also provided to all "child" promises.
+	 */
+	var PROM=µ.Promise=µ.Class({
+		/**
+		 * 
+		 * @param {any|any[]} fns
+		 * @param {object} (opts)
+		 */
+		init:function(fns,opts)
+		{
+			opts=SC.adopt({
+				scope:null,
+				args:[],
+				simple:false //set to true to omit the signal in call
+			},opts);
+			this.scope=opts.scope;
 			
-			this.scope=scope;
-			var _=this._={};
+			var _rs,abort;
 			this.original=new Promise(function(rs,rj)
 			{
-				_.rs=rs;
-				_.rj=rj;
+				_rs=rs;
+				abort=rj;
 			});
-			if(!args||args!==PROM._WAIT)
+			this._abort=abort;
+			
+			//prepare functions
+			opts.args=[].concat(opts.args);
+			var onAbort=(fn)=>this.original.catch((reason)=>{if(reason==="abort")fn()});
+			fns=[].concat(fns).map((fn)=>
 			{
-				Promise.all(PROM._MAPFNS(fns,args,scope,SC.rs(this.original.catch,this.original))).then(_.rs,_.rj);
-				delete _.rs
-			}
-			else
-			{
-				_.fns=fns;
-			}
-			var cleanup=()=>delete this._;
-			this.original.then(cleanup,cleanup);
+				if(typeof fn==="function")return new Promise((rs,rj)=>
+				{
+					if(!opts.simple)
+					{
+						var sArgs=opts.args.slice();
+						var signal={
+							resolve:rs,
+							reject:rj,
+							scope:opts.scope,
+							onAbort:onAbort
+						};
+					}
+					sArgs.unshift(signal);
+					try
+					{
+						var result=fn.apply(opts.scope,sArgs);
+						if(opts.simple)
+						{
+							rs(result);
+						}
+						else if (result)
+						{
+							µ.logger.warn(new µ.Warning("function has a result but isn't called in simple mode"));
+						}
+					}
+					catch (e)
+					{
+						µ.logger.error(e);
+						rj(e);
+					}
+				});
+				return fn;
+			});
+			Promise.all(fns).then(_rs,abort);
 		},
-		_start:function(args)
+		_wrapNext:function(next)
 		{
-			this._.rs(Promise.all(PROM._MAPFNS(this._.fns,args,this.scope,SC.rs(this.original.catch,this.original))));
-		},
-		_error:function(error)
-		{
-			this._.rj(error);
+			return {
+				original:next,
+				scope:this.scope,
+				then:PROM.prototype.then,
+				complete:PROM.prototype.complete,
+				error:PROM.prototype.error,
+				catch:PROM.prototype.error,
+				_wrapNext:PROM.prototype._wrapNext
+			};
 		},
 		complete:function(fn)
 		{
-			var rtn=new PROM(fn,PROM._WAIT,this.scope);
-			this.original.then(rtn._start,rtn._error);
-			return rtn;
+			return this._wrapNext(this.original.then(rescopeApply(fn,this.scope)));
 		},
 		error:function(efn)
 		{
-			var rtn=new PROM(efn,PROM._WAIT,this.scope);
-			this.original.then(rtn._error,rtn._start);
-			return rtn;
+			return this._wrapNext(this.original.catch(rescopeApply(efn)));
 		},
 		then:function(fn,efn)
 		{
-			this.error(efn);
-			return this.complete(fn);
+			return this._wrapNext(this.original.then(rescopeApply(fn,this.scope),rescopeApply(efn)));
 		},
 		always:function(fn)
 		{
-			var rtn=new PROM(fn,PROM._WAIT,this.scope);
-			this.original.then(rtn._start,rtn._start);
-			return rtn;
+			fn=rescopeApply(fn,this.scope);
+			return this._wrapNext(this.original.then(fn,fn));
 		},
 		abort:function()
 		{
-			if(this._)this._error("abort");
+			this._abort("abort");
 		},
 		destroy:function()
 		{
@@ -69,61 +119,18 @@
 			this.mega();
 		}
 	});
-	PROM._WAIT={};
-	PROM._MAPFNS=function(fns,args,scope,onAbort)
+	PROM.isThenable=function(thenable)
 	{
-		args=[].concat(args);
-		return [].concat(fns).map(function(fn)
-		{
-			if(typeof fn==="function")return new Promise(function(rs,rj)
-			{
-				var sArgs=args.slice();
-				//TODO change signal detection
-				var hasSignal=/\(\s*signal\s*[,\)]/.exec(fn);
-				if(hasSignal)
-				{
-					var signal={
-						resolve:rs,
-						reject:rj,
-						scope:scope,
-						onAbort:onAbort
-					};
-					sArgs.unshift(signal);
-				}
-				try
-				{
-					var result=fn.apply(scope,sArgs);
-					if(result&&typeof result.then==="function")
-					{
-						if(result instanceof PROM)result.original.then(r=>rs(r[0]),rj);
-						else result.then(rs,rj);
-					}
-					else if (result!==undefined||!hasSignal)
-					{
-						rs(result);
-					}
-				}
-				catch (e)
-				{
-					SC.debug(e,SC.debug.LEVEL.ERROR);
-					rj(e);
-				}
-			});
-			return fn;
-		});
+		return thenable&&typeof thenable.then==="function";
 	};
 	PROM.pledge=function(fn,scope,args)
 	{
 		if(args===undefined)args=[];
 		else args=[].concat(args);
-		return function vow(sig)
+		return function vow()
 		{
-			if(vow.caller===PROM._MAPFNS)
-			{//called as chained µ.Promise
-				return fn.apply(scope,[sig,...args].concat(Array.slice(arguments,1)));
-			}
 			var vArgs=args.concat(Array.slice(arguments));
-			return new PROM(fn,vArgs	,scope);
+			return new PROM(fn,{args:vArgs,scope:scope});
 		}
 	};
 	PROM.pledgeAll=function(scope,keys)
@@ -134,7 +141,25 @@
 			if(typeof scope[keys[i]]==="function")scope[keys[i]]=PROM.pledge(scope[keys[i]],scope);
 		}
 	};
+	PROM.always=function(fns,opts)
+	{
+		fns=fns.map(fn=>
+		{
+			if(fn instanceof PROM) return fn.always(µ.constantFunctions.pass);
+			else if (fn instanceof Promise)return fn.then(µ.constantFunctions.pass);
+			else return new PROM(fn,opts).always(µ.constantFunctions.pass);
+		});
+		return new PROM(fns,opts);
+	};
+	PROM.open=function(scope)
+	{
+		var rtn=PROM.prototype._wrapNext.call({
+			scope:scope
+		});
+		rtn.original=new Promise((rs,rj)=>{rtn.resolve=rs;rtn.reject=rj});
+		return rtn;
+	}
 	
 	SMOD("Promise",PROM);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

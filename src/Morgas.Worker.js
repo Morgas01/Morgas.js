@@ -1,12 +1,11 @@
-(function(µ,SMOD,GMOD,HMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	var Listeners=GMOD("Listeners");
 	
-	var SC=GMOD("shortcut")({
-		det:"Detached",
+	var SC=SC({
+		prom:"Promise",
 		rs:"rescope",
 		bind:"bind",
-		debug:"debug"
 	});
 	
 	var WORKER=µ.Worker=µ.Class(Listeners,{
@@ -15,7 +14,7 @@
 			this.mega(true);
 			this.disableListener(".created",true);
 			this.createListener("debug error");
-			SC.det.detacheAll(this,["request"]);
+			SC.prom.pledgeAll(this,["request"]);
 			
 			param=param||{};
 			param.basePath=param.basePath||WORKER.BASEPATH;
@@ -32,9 +31,9 @@
 				workerID:WORKER.workerID++,
 				basePath:param.workerBasePath,
 				morgasPath:param.morgasPath||"Morgas.js",
-				debug:{
-					send:!param.debug||param.debug.send!==false,
-					verbose:param.debug?param.debug.verbose:SC.debug.LEVEL.DEBUG
+				logger:{
+					send:!param.logger||param.logger.send!==false,
+					verbose:param.logger?param.logger.verbose:µ.logger.verbose
 				}
 			}).complete(SC.rs(function()
 			{
@@ -50,12 +49,12 @@
 				{
 					var signal=this.requests.get(event.data.request);
 					clearTimeout(event.data.request);
-					signal[event.data.type](event.data.data);
+					(event.data.success ? signal.resolve : signal.reject)(event.data.data);
 					this.requests["delete"](event.data.request);
 				}
 				else
 				{
-					SC.debug("no request "+event.data.request);
+					µ.logger.error(new TypeError("no request "+event.data.request));
 				}
 			}
 			else
@@ -65,8 +64,8 @@
 					case "error":
 						this.onError(event.data);
 						break;
-					case "debug":
-						SC.debug(event.data.msg,event.data.verbose);
+					case "log":
+						µ.logger.log(event.data.verbose,event.data.msg);
 						break;
 				}
 				this.fire(event.data.type,event.data);
@@ -74,7 +73,7 @@
 		},
 		_onError:function(event)
 		{
-			SC.debug(event,SC.debug.LEVEL.ERROR);
+			µ.logger.error(event);
 			this.fire("error",event);
 		},
 		send:function(method,args)
@@ -107,4 +106,4 @@
 	
 	SMOD("Worker",WORKER);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

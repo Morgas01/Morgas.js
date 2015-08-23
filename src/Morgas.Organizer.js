@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	 /**
 	 * Depends on	: Morgas
 	 * Uses			: util.object
@@ -6,7 +6,7 @@
 	 * Organizer to reindex and group arrays
 	 *
 	 */
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		it:"iterate",
 		eq:"equals",
 		path:"goPath"
@@ -398,4 +398,4 @@
 	
 	SMOD("Organizer",ORG);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

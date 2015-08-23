@@ -4,14 +4,14 @@ self.onmessage=function init(initEvent)
 	//load Morgas.js
 	importScripts(config.basePath+config.morgasPath);
 	
-	if(config.debug&&config.debug.send)
+	if(config.logger&&config.logger.send)
 	{
-		µ.debug.out=function(msg,verbose)
+		µ.logger.out=function(msg,verbose)
 		{
-			self.send("debug",{msg:msg,verbose:verbose});
+			self.send("log",{msg:msg,verbose:verbose});
 		}
 	}
-	µ.debug.verbose=config.debug&&config.debug.verbose||µ.debug.verbose;
+	µ.logger.verbose=config.logger&&config.logger.verbose||µ.logger.verbose;
 	
 	self.onmessage=function(event)
 	{
@@ -24,7 +24,7 @@ self.onmessage=function init(initEvent)
 		}
 		else
 		{
-			µ.debug(event.type+" is not defined in worker "+config.workerID,µ.debug.LEVEL.WARNING);
+			µ.logger.warn(event.type+" is not defined in worker "+config.workerID);
 		}
 	};
 	/**
@@ -46,7 +46,7 @@ self.onmessage=function init(initEvent)
 	{
 		self.postMessage({
 			request:requestID,
-			type:success?"complete":"error",
+			success:!!success,
 			data:data
 		});
 	};

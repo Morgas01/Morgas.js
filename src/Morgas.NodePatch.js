@@ -1,9 +1,8 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
     var Patch=GMOD("Patch");
-	var SC=GMOD("shortcut")({
-		p:"proxy",
-        d:"debug"
+	var SC=SC({
+		p:"proxy"
 	});
 
 	var NODE=µ.NodePatch=µ.Class(Patch,{
@@ -46,7 +45,7 @@
             var childIndex=this.children.indexOf(child);
             if(!childPatch)
             {//is not a Node
-            	SC.d([child," is not a Node"]);
+            	µ.logger.error(new TypeError(child+" is not a Node"));
             	return false;
             }
             else if(childIndex===-1)
@@ -67,8 +66,8 @@
                     if(alias)
                     {
                         if(!child[alias]())
-                        {//won't var go of parent
-                            SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
+                        {//won't let go of parent
+                            µ.logger.info(new µ.Warning("rejected remove child from old parent",{child:child,parent:childPatch.parent}));
                             this.children.splice(index,1);
                             return false;
                         }
@@ -84,7 +83,7 @@
                 {
                     if(!child[alias](this.instance))
                     {//won't attach to me
-                        SC.d(["rejected to set parent",this.instance," of child ",child],SC.d.LEVEL.INFO);
+                        µ.logger.info(new µ.Warning("rejected to set parent of child",{child:child,parent:this.instance}));
                         this.children.splice(index,1);
                         return false;
                     }
@@ -109,8 +108,8 @@
 	                if(alias)
 	                {
 	                    if(!child[alias]())
-	                    {//won't var go of me
-	                        SC.d(["rejected remove child ",child," from parent ",this.instance],SC.d.LEVEL.INFO);
+	                    {//won't let go of me
+                            µ.logger.info(new µ.Warning("rejected remove child from parent",{child:child,parent:this.instance}));
 	                        this.children.splice(index,0,child);
 	                        return false;
 	                    }
@@ -128,7 +127,7 @@
 			var parentPatch=getNode(parent),alias;
 			if(!parentPatch)
 			{//is not a Node
-            	SC.d([parent," is not a Node"]);
+            	µ.logger.error(new TypeError("parent is not a Node"));
             	return false;
 			}
 			if(parent&&this.parent!==parent)
@@ -140,8 +139,8 @@
                     if(alias)
                     {
                         if(!child[alias]())
-                        {//won't var go of parent
-                            SC.d(["rejected remove child ",child," from old parent ",childPatch.parent],SC.d.LEVEL.INFO);
+                        {//won't let go of parent
+                            µ.logger.info(new µ.Warning("rejected remove child from old parent",{child:child,parent:childPatch.parent}));
                             this.children.splice(index,1);
                             return false;
                         }
@@ -159,7 +158,7 @@
 					{
 						if(!this.parent[alias](this.instance))
 						{//won't accept me
-							SC.d(["rejected to add child ",this.instance," to parent ",parent],SC.d.LEVEL.INFO);
+							µ.logger.info(new µ.Warning("rejected to add child to parent",{child:this.instance,parent:parent}));
 							this.parent=null;
 							return false;
 						}
@@ -188,7 +187,7 @@
 						if(!oldParent[alias](this.instance))
 						{//I won't var go of parent
 							this.parent=oldParent;
-							SC.d(["rejected to remove child ",this.instance," from parent ",this.parent],SC.d.LEVEL.INFO);
+							µ.logger.info(new µ.Warning("rejected to remove child from parent",{child:this.instance,parent:this.parent}));
 							return false;
 						}
 					}
@@ -304,4 +303,4 @@
     };
 	
 	SMOD("NodePatch",NODE);
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

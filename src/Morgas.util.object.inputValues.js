@@ -1,9 +1,9 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	var util=µ.util=µ.util||{};
 	var obj=util.object||{};
 	
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		goPath:"goPath"
 	});
 	
@@ -69,4 +69,4 @@
 	SMOD("setInputValues",obj.setInputValues);
 	SMOD("getInputValues",obj.getInputValues);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

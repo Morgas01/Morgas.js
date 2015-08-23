@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	module("Worker");
 	
@@ -23,10 +23,10 @@
 			start();
 		},function(error)
 		{
-			µ.debug(error);
+			µ.logger.error(error);
 			ok(false,error)
 			start();
 		});
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

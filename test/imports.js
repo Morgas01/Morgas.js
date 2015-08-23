@@ -18,9 +18,6 @@
 	
 	WR(srcDir+"Morgas.Patch.js");
 	WR(testDir+"test.Morgas.Patch.js");
-
-	WR(srcDir+"Morgas.Detached.js");
-	WR(testDir+"test.Morgas.Detached.js");
 	
 	WR(srcDir+"Morgas.Promise.js");
 	WR(testDir+"test.Morgas.Promise.js");
@@ -76,7 +73,8 @@
 	WR(srcDir+"Morgas.Worker.js");
 	WR(testDir+"test.Morgas.Worker.js");
 	
-	
+	//TODO
+	/*
 	WR(srcDir+"DB/Morgas.DB.js");
 	WR(testDir+"test.Morgas.DB.js");
 
@@ -85,4 +83,5 @@
 
 	WR(srcDir+"DB/Morgas.DB.IndexedDBConnector.js");
 	WR(testDir+"test.Morgas.DB.IndexedDBConnector.js");
+	*/
 })();

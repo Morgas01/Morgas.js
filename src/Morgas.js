@@ -1,5 +1,5 @@
 ﻿(function MorgasInit(oldµ){
-	Morgas={version:"0.3"};
+	Morgas={version:"0.4"};
 	µ=Morgas;
 	/**
 	 * revert "µ" to its old value
@@ -32,7 +32,7 @@
 		{
 			if(modules[key])
 			{
-				µ.debug("module "+key+" is overwritten",2);
+				µ.logger.warn(new µ.Warning("module "+key+" is overwritten"));
 			}
 			return modules[key]=value;
 		};
@@ -43,69 +43,77 @@
 		µ.getModule=function(key)
 		{
 			if(!modules[key])
-				µ.debug("module "+key+" is not defined\n use µ.hasModule to check for existence",0);
+				µ.logger.info(new µ.Warning("module "+key+" is not defined\n use µ.hasModule to check for existence"));
 			return modules[key];
 		};
 	})();
 	var SMOD=µ.setModule,GMOD=µ.getModule,HMOD=µ.hasModule;
 	
 	/**
-	 * Debug message if it's verbose is >= the current verbose.
+	 * log message if it's verbose is >= the current verbose.
 	 * If a message is a function its return value will be logged.
 	 * 
-	 * Set µ.debug.verbose to any number >= 0 to control wich events should be logged.
-	 * Set it to False to turn it off.
-	 * 
-	 * Set µ.debug.out to any function you like to log the events and errors.
+	 * Set µ.logger.out to any function you like to log the events and errors.
+	 * µ.logger.out will be called with (verbose level, [messages...])
 	 */
-	µ.debug=function(msg,verbose)
-	{
-		if(!verbose)
+	µ.logger={
+		log:function(verbose,msg/*,msg...*/)
 		{
-			verbose=0;
-		}
-		if(µ.debug.verbose!==false&&µ.debug.verbose>=verbose)
-		{
-			if(typeof msg == "function")
-				msg=msg();
+			if(!verbose)
+			{
+				verbose=0;
+			}
+			if(µ.logger.verbose>=verbose)
+			{
+				if(typeof msg == "function") msg=[].concat(msg());
+				else msg=Array.slice(arguments,1);
 				
-			µ.debug.out(msg,verbose);
-		}
-	};
-	SMOD("debug",µ.debug);
-	
-	µ.debug.LEVEL={
-		OFF:false,
-		ERROR:0,
-		WARNING:1,
-		INFO:2,
-		DEBUG:3
-	};
-	µ.debug.verbose=µ.debug.LEVEL.WARNING;
-	µ.getDebug=function(){return µ.debug.verbose};
-	µ.setDebug=function(debug){µ.debug.verbose=debug};
-	µ.debug.out=function(msg,verbose)
-	{
-		switch(verbose)
+				µ.logger.out(verbose,msg);
+			}
+		},
+		LEVEL:{
+				//OFF:0,
+				error:10,
+				warn:20,
+				info:30,
+				debug:40,
+				trace:50
+		},
+		verbose:30,
+		getLevel:function(){return µ.logger.verbose},
+		setLevel:function(level){µ.logger.verbose=level},
+		/**
+		 * @param {number}	verbose
+		 * @param {any[]}	msg
+		 */
+		out:function(verbose,msg)
 		{
-			case 0:
-				console.error(msg);
-				break;
-			case 1:
-				console.warn(msg);
-				break;
-			case 2:
-				console.info(msg);
-				break;
-			case 3:
-			default:
-				console.log(msg);
+			var fn=console.log;
+			switch(verbose)
+			{
+				case 10:
+					fn=console.error;
+					break;
+				case 20:
+					fn=console.warn;
+					break;
+				case 30:
+					fn=console.info;
+					break;
+			}
+			fn.apply(console,msg);
 		}
 	};
-	µ.debug.error=function(msg){µ.debug(msg,µ.debug.LEVEL.ERROR)};
-	µ.debug.warning=function(msg){µ.debug(msg,µ.debug.LEVEL.WARNING)};
-	µ.debug.info=function(msg){µ.debug(msg,µ.debug.LEVEL.INFO)};
-	µ.debug.debug=function(msg){µ.debug(msg,µ.debug.LEVEL.DEBUG)};
+	//create methods for each level (e.g. µ.logger.warn)
+	for(var level in µ.logger.LEVEL)(function(level)
+	{
+		µ.logger[level]=function()
+		{
+			var args=Array.slice(arguments);
+			args.unshift(µ.logger.LEVEL[level]);
+			µ.logger.log.apply(null,args);
+		}
+	})(level);
 	
 	/** shortcut
 	 * creates an object that will evaluate its values defined in {map} on its first call.
@@ -142,7 +150,7 @@
 						else if (HMOD(path))
 							value=GMOD(path);
 						else
-							GMOD("debug")("shortcut: could not evaluate "+path)
+							µ.logger.error(new ReferenceError("shortcut: could not evaluate "+path))
 					}
 					return value;
 				}
@@ -150,7 +158,6 @@
 		})(map[m],m)}
 		return target;
 	};
-	SMOD("shortcut",µ.shortcut);
 	
 	/** Class function
 	 * Designed to create JavaScript Classes
@@ -216,7 +223,16 @@
 		}
 		return newClass;
 	};
-	SMOD("Class",CLASS);
+	
+	µ.Warning=µ.Class(Error,{
+		init:function(msg,data)
+		{
+			this.name = 'warning';
+			this.message = msg || 'Default Message';
+			this.stack = (new Error()).stack;
+			this.data=data;
+		}
+	});
 	
 	/** Base Class
 	 *	allows to check of being a class ( foo instanceof µ.BaseClass )
@@ -247,7 +263,7 @@
 				}
 				if(this.__megaKey===undefined)
 				{
-					µ.debug("caller was not a member",µ.debug.LEVEL.ERROR);
+					µ.logger.error(new ReferenceError("caller was not a member"));
 					return;
 				}
 			}
@@ -257,7 +273,7 @@
 			{
 				if(this.__megaProt===null)
 				{
-					µ.debug("no mega found for "+this.__megaKey,µ.debug.LEVEL.ERROR);
+					µ.logger.error(new ReferenceError("no mega found for "+this.__megaKey));
 				}
 				else
 				{
@@ -269,7 +285,7 @@
 			{
 				delete this.__megaKey;
 				delete this.__megaProt;
-				if(error)µ.debug(error,µ.debug.LEVEL.ERROR);
+				if(error)µ.logger.error(error);
 			}
 			if(error) throw error;
 			return rtn;
@@ -283,5 +299,4 @@
 			}
 		}
 	});
-	SMOD("Base",BASE);
 })(this.µ);

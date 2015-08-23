@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	/**
 	 * Depends on	: Morgas DB 
 	 * Uses			: 
@@ -8,7 +8,7 @@
 	 */
 	var DBC=GMOD("DBConn"),
 	LOGGER=GMOD("debug"),
-	SC=GMOD("shortcut")({
+	SC=SC({
 		det:"Detached",
 		it:"iterate",
 		eq:"equals",
@@ -317,4 +317,4 @@
 	};
 	SMOD("IndexedDBConnector",ICON);	
 	SMOD("IDBConn",ICON);
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

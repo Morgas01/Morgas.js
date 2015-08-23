@@ -1,6 +1,6 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	module("NodePatch");
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		node:"NodePatch"
 	});
 	
@@ -114,4 +114,4 @@
 		ok(parent2===child.parent&&parent2.hasChild(child),"parent2 connected");
 	});
 
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

@@ -1,4 +1,4 @@
-(function(){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	module("Patch");
 	
 	var class1=function(value)
@@ -32,4 +32,4 @@
 		assert.propEqual2(new class2(2),{value:4},"Patch Listeners");
 		assert.propEqual2(new class2(2,true),{value:2},"Patch Listeners now");
 	});
-})();
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

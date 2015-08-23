@@ -50,7 +50,8 @@
 					}
 					catch (e)
 					{
-						console.error(e);
+						console.error(e.message);
+						console.error(e.stack);
 					}
 					if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
 				}
@@ -68,6 +69,10 @@
 				new COM.Packages[commandPackages[i]](this);
 			}
 			if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
+		},
+		subCommander:function(name,commander)
+		{
+			//TODO
 		}
 	});
 	COM.Packages={};

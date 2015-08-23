@@ -1,4 +1,4 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	module("Promise");
 	var PROM=GMOD("Promise");
 	var pledge=PROM.pledge;
@@ -21,19 +21,10 @@
 			strictEqual(this,scope,"scope");
 			start();
 			signal.resolve();
-		},["callarg","callarg2"],scope);
+		},{args:["callarg","callarg2"],scope:scope});
 	});
 
 	asyncTest("on complete",function()
-	{
-		new PROM(function(signal){signal.resolve("some arg");}).complete(function(signal,arg)
-		{
-			strictEqual(arg,"some arg");
-			start();
-			signal.resolve();
-		});
-	});
-	asyncTest("on complete no signal",function()
 	{
 		new PROM(function(signal){signal.resolve("some arg");}).complete(function(arg)
 		{
@@ -41,22 +32,12 @@
 			start();
 		});
 	});
-	asyncTest("on complete return",function()
-	{
-		new PROM(function(){return "some other arg"}).complete(function(signal,arg)
-		{
-			strictEqual(arg,"some other arg");
-			start();
-			signal.resolve();
-		});
-	});
 	asyncTest("on complete no args",function()
 	{
-		new PROM().complete(function(signal)
+		new PROM().complete(function()
 		{
 			ok(true);
 			start();
-			signal.resolve();
 		});
 	});
 	
@@ -66,23 +47,22 @@
 		{
 			signal.resolve("this");
 		})
-		.complete(function(signal,arg)
+		.complete(function(arg)
 		{
 			var rtn=new PROM(function(signal)
 			{
 				signal.resolve(arg+" is")
 			});
-			rtn=rtn.complete(function(signal,arg)
+			rtn=rtn.complete(function(arg)
 			{
-				signal.resolve(arg+" chaining");
+				return arg+" chaining";
 			});
 			return rtn;
 		})
-		.complete(function(signal,arg)
+		.complete(function(arg)
 		{
 			strictEqual(arg,"this is chaining");
 			start();
-			signal.resolve();
 		});
 	});
 	
@@ -91,11 +71,10 @@
 		new PROM(function(signal)
 		{
 			signal.reject("reason");
-		}).error(function(signal,err)
+		}).error(function(err)
 		{
 			strictEqual(err,"reason","error called");
 			start();
-			signal.resolve();
 		});
 	});
 	asyncTest("on error thrown",function()
@@ -103,11 +82,10 @@
 		new PROM(function()
 		{
 			throw("reason");
-		}).error(function(signal,err)
+		}).error(function(err)
 		{
 			strictEqual(err,"reason","error thrown");
 			start();
-			signal.resolve();
 		});
 	});
 	asyncTest("on error propagate",function()
@@ -116,15 +94,14 @@
 		{
 			throw("reason");
 		});
-		var d2=d1.complete(function(signal)
+		var d2=d1.complete(function()
 		{
-			signal.resolve("complete");
+			return "complete";
 		});
-		d2.error(function(signal,err)
+		d2.error(function(err)
 		{
 			strictEqual(err,"reason","error propagated");
 			start();
-			signal.resolve();
 		});
 	});
 	asyncTest("on abort",function()
@@ -133,10 +110,9 @@
 		{
 			signal.onAbort(start);
 		});
-		d1.error(function(signal,err)
+		d1.error(function(err)
 		{
 			strictEqual(err,"abort","abort");
-			signal.resolve();
 		});
 		d1.abort();
 	});
@@ -149,33 +125,10 @@
 			strictEqual(this,scope);
 			signal.resolve(arg);
 		},scope);
-		func(3).complete(function(signal,arg)
+		func(3).complete(function(arg)
 		{
 			strictEqual(arg,3);
 			start();
-			signal.resolve()
-		})
-	});
-	
-	asyncTest("when all",function()
-	{
-		new PROM([function(signal)
-		{
-			signal.resolve("Hello")
-		},function(signal)
-		{
-			signal.resolve("Promise")
-		},function(signal)
-		{
-			signal.resolve("World")
-		},function(signal)
-		{
-			signal.resolve("!")
-		}])
-		.complete(function(signal){
-			strictEqual(Array.slice(arguments,1).join(" "),"Hello Promise World !");
-			start();
-			signal.resolve();
 		})
 	});
 	
@@ -187,35 +140,32 @@
 			{
 				resolve("args");
 			}));
-		}).then(function(signal,fromNative)
+		}).then(function(fromNative)
 		{
 			strictEqual(fromNative,"args");
 			start();
-			signal.resolve();
 		});
 	});
 	
-	asyncTest("chain native",function()
+	asyncTest("when all",function()
 	{
-		new PROM(function(signal)
-		{
-			signal.resolve("args");
-		}).original.then(function(fromNative)
-		{
-			propEqual(fromNative,["args"]);
-			start();
-		});
-	});
-	
-	asyncTest("chain native2",function()
-	{
-		Promise.all([new PROM(function(signal)
-		{
-			signal.resolve("args2");
-		})]).then(function(asNative)
-		{
-			propEqual(asNative,["args2"]);
+		new PROM([function(signal)
+			{
+				signal.resolve("Hello")
+			},function(signal)
+			{
+				signal.resolve("Promise")
+			},
+			new Promise(function(resolve,reject)
+			{//native
+				resolve("World");
+			}),
+			"!"
+		])
+		.complete(function(){
+			strictEqual(Array.slice(arguments).join(" "),"Hello Promise World !");
 			start();
 		})
 	});
-})(Morgas,Morgas.getModule);
+	//TODO scope
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

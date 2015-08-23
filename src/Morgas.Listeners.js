@@ -1,6 +1,4 @@
-(function(µ,SMOD,GMOD){
-	
-	var BASECLASS=GMOD("Base");
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	/**Listener Class
 	 * Holds Arrays of functions to fire or fire once when "fire" is called
@@ -15,7 +13,7 @@
 	 *  
 	 * Can be disabled
 	*/
-	var LISTENER=µ.Listener=µ.Class(BASECLASS,
+	var LISTENER=µ.Listener=µ.Class(
 	{
 		init:function ListenerInit()
 		{
@@ -258,7 +256,7 @@
 	 * 	when adding a listening function the type
 	 * 	can be passed followed after the name separated by ":" 
 	 */
-	var LISTENERS=µ.Listeners=µ.Class(BASECLASS,
+	var LISTENERS=µ.Listeners=µ.Class(
 	{
 		rNames:/[\s|,]+/,
 		rNameopt:":",
@@ -425,4 +423,4 @@
 	};
 	SMOD("attachListeners",LISTENERS.attachListeners);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

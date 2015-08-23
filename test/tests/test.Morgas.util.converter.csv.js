@@ -1,17 +1,17 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	module("util.converter.csv");
 	
 	var CSV=GMOD("CSV");
 	
-	var SC=GMOD("shortcut")({
-		det:"Detached",
+	var SC=SC({
+		prom:"Promise",
 		rq:"request"
 	});
 	
 	asyncTest("csv",function()
 	{
-		new SC.det([SC.rq("resources/csv.csv"),SC.rq("resources/tsv.tsv")]).then(function(csvData,tsvData)
+		new SC.prom([SC.rq("resources/csv.csv"),SC.rq("resources/tsv.tsv")]).then(function(csvData,tsvData)
 		{
 			var expected={
 				columns:["field1","field2","field3"],
@@ -72,4 +72,4 @@
 		});
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

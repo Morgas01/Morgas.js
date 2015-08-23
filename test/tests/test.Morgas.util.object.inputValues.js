@@ -1,8 +1,8 @@
-(function(µ,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	module("util.object.inputValues");
 	
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		s:"setInputValues",
 		g:"getInputValues"
 	});
@@ -54,4 +54,4 @@
 		deepEqual(GMOD("getInputValues")(domElement.children),get,"no target");
 	});
 	
-})(Morgas,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

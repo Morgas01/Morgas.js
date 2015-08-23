@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	/**
 	 * Depends on	: Morgas DB 
 	 * Uses			: 
@@ -9,7 +9,7 @@
 	var DBC		=GMOD("DBConn");
 	var ORG		=GMOD("Organizer");
 	
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		eq:"equals",
 		find:"find"
 	});
@@ -148,4 +148,4 @@
 	});
 	
 	SMOD("ObjectConnector",OCON);
-})(Morgas,Morgas.setModule,Morgas.getModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
