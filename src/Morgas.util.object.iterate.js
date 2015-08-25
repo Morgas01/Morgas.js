@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD,HMOD,SC){
+(function(µ,SMOD,GMOD){
 
 	var util=µ.util=µ.util||{};
 	var obj=util.object||{};
@@ -95,4 +95,4 @@
 	SMOD("Iterator",obj.createIterator);
 	SMOD("iterate",obj.iterate);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+})(Morgas,Morgas.setModule,Morgas.getModule);
