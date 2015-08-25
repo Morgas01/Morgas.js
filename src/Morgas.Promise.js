@@ -158,7 +158,23 @@
 		});
 		rtn.original=new Promise((rs,rj)=>{rtn.resolve=rs;rtn.reject=rj});
 		return rtn;
-	}
+	};
+	PROM.resolve=function(value,scope)
+	{
+		var rtn=PROM.prototype._wrapNext.call({
+			scope:scope
+		});
+		rtn.original=Promise.resolve(value);
+		return rtn;
+	};
+	PROM.rejected=function(value,scope)
+	{
+		var rtn=PROM.prototype._wrapNext.call({
+			scope:scope
+		});
+		rtn.original=Promise.reject(value);
+		return rtn;
+	};
 	
 	SMOD("Promise",PROM);
 	
