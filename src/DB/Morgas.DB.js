@@ -1,15 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	/**
-	 * Depends on	: Morgas
-	 * Uses			: util.object, Detached
-	 *
-	 * Database Classes
-	 *
-	 */
 
 	var SC=SC({
-		debug:"debug",
-		det:"Detached"
+		prom:"Promise"
 	});
 	
 	var DB=µ.DB=µ.DB||{};
@@ -21,7 +13,7 @@
 		/* override these */
 		init:function()
 		{
-			SC.det.detacheAll(this,["save","load","delete","destroy"]);
+			SC.prom.pledgeAll(this,["save","load","delete","destroy"]);
 		},
 		
 		save:function(signal,objs)
@@ -59,15 +51,15 @@
 				friends=obj.friends[relationName];
 			if(!friends)
 			{
-				SC.debug("no friends in relation "+relationName+" found",2);
-				return new SC.det.complete(false);
+				µ.logger.warn("no friends in relation "+relationName+" found");
+				return new SC.prom.resolve(false,this);
 			}
 			var fRel=friends[0].relations[rel.targetRelationName],
 				id=obj.getID();
 			if(id==null)
 			{
-				SC.debug("friend id is null",2);
-				return new SC.det.complete(false);
+				µ.logger.warn("friend id is null");
+				return new SC.prom.resolve(false,this);
 			}
 			var fids=[];
 			for(var i=0;i<friends.length;i++)
@@ -78,8 +70,8 @@
 			}
 			if(fids.length===0)
 			{
-				SC.debug("no friend with friend id found");
-				return new SC.det.complete(false);
+				µ.logger.warn("no friend with friend id found");
+				return new SC.prom.resolve(false,this);
 			}
 			var tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
 				idName=obj.objectType+"_ID",
@@ -105,7 +97,7 @@
 			{
 				var parent=result[0];
 				parent.addChild(relationName,obj);
-				this.complete(parent);
+				return parent;
 			});
 		},
 		loadChildren:function(obj,relationName,pattern)
@@ -117,7 +109,7 @@
 			return this.load(childClass,pattern).then(function(children)
 			{
 				obj.addChildren(children);
-				this.complete(children);
+				return children;
 			});
 		},
 		loadFriends:function(obj,relationName,pattern)
@@ -144,10 +136,9 @@
 			{
 				p=p.then(function(results)
 				{
-					var signal=this;
 					fPattern[fid]=fPattern[id];
 					delete fPattern[id];
-					_self.load(friendship,fPattern).then(function(results2)
+					return _self.load(friendship,fPattern).then(function(results2)
 					{
 						for(var i=0;i<results2.length;i++)
 						{
@@ -155,18 +146,20 @@
 							results2[i].fields[id].value=results2[i].fields[fid].value;
 							results2[i].fields[fid].value=t;
 						}
-						signal.complete(results.concat(results2));
-					},SC.debug);
-				},SC.debug)
+						return results.concat(results2);
+					});
+				})
 			}
-			return p.then(function(results)
+			p=p.then(function(results)
 			{
 				pattern.ID=results.map(function(val)
 				{
 					return val.fields[fid].value;
 				});
 				return _self.load(friendClass,pattern);
-			},SC.debug);
+			});
+			p.error(µ.logger.debug);
+			return p;
 		},
 		deleteFriendships:function(obj,relationName)
 		{
@@ -175,14 +168,14 @@
 			if(!friends)
 			{
 				SC.debug("no friends in relation "+relationName+" found",2);
-				return new SC.det.complete(false);
+				return new SC.prom.resolve(false,this);
 			}
 			var fRel=friends[0].relations[rel.targetRelationName],
 				id=obj.getID();
 			if(id==null)
 			{
-				SC.debug("friend id is null",2);
-				return new SC.det.complete(false);
+				µ.logger.warn("friend id is null",2);
+				return new SC.prom.resolve(false,this);
 			}
 			var fids=[];
 			for(var i=0;i<friends.length;i++)
@@ -193,8 +186,8 @@
 			}
 			if(fids.length===0)
 			{
-				SC.debug("no friend with friend id found");
-				return new SC.det.complete(false);
+				µ.logger.warn("no friend with friend id found");
+				return new SC.prom.resolve(false,this);
 			}
 			var tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
 				idName=obj.objectType+"_ID",
@@ -219,7 +212,7 @@
 			{
 				wait.push(this["delete"](fClass,toDelete[i]));
 			}
-			return new SC.det(wait)
+			return new SC.prom.always(wait,{scope:this});
 		}
 	});
 

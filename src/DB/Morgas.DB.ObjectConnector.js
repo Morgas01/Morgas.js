@@ -74,7 +74,7 @@
 				}
 				this.db.add(newFriends);
 			}
-			signal.complete();
+			signal.resolve();
 		},
 		load:function(signal,objClass,pattern,sort,DESC)
 		{
@@ -102,7 +102,7 @@
 					}
 				}
 			}
-			signal.complete(rtn);
+			signal.resolve(rtn);
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
@@ -114,7 +114,7 @@
 				this.db.remove(values[i]);
 			}
 			this.db.removeFilter(filterKey);
-			signal.complete();
+			signal.resolve();
 		},
 		destroy:function()
 		{
