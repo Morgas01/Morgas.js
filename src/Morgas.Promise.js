@@ -47,17 +47,17 @@
 			{
 				if(typeof fn==="function")return new Promise((rs,rj)=>
 				{
+					var sArgs=opts.args.slice();
 					if(!opts.simple)
 					{
-						var sArgs=opts.args.slice();
 						var signal={
 							resolve:rs,
 							reject:rj,
 							scope:opts.scope,
 							onAbort:onAbort
 						};
+						sArgs.unshift(signal);
 					}
-					sArgs.unshift(signal);
 					try
 					{
 						var result=fn.apply(opts.scope,sArgs);

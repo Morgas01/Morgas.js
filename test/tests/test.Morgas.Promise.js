@@ -167,5 +167,56 @@
 			start();
 		})
 	});
-	//TODO scope
+	
+	asyncTest("simple",function()
+	{
+		new PROM(function(a,b)
+		{
+			return a*b
+		},{args:[6,7],simple:true}).then(function(result)
+		{
+			strictEqual(result,42,"simple function");
+			start();
+		},µ.logger.error);
+	});
+	
+	asyncTest("scope",function()
+	{
+		var scope={};
+		new PROM(function(signal)
+		{
+			strictEqual(this,scope,"scope first");
+			signal.resolve();
+		},{scope:scope}).then(function()
+		{
+			strictEqual(this,scope,"scope second");
+		}).then(function()
+		{
+			strictEqual(this,scope,"scope third");
+			start();
+		},µ.logger.error);
+	});
+	
+	asyncTest("open",function()
+	{
+		var scope={};
+		var p=PROM.open(scope);
+		p.then(function(arg)
+		{
+			strictEqual(this,scope,"scope first");
+			strictEqual(arg,1,"arg first");
+			return ++arg;
+		}).then(function(arg)
+		{
+			strictEqual(this,scope,"scope second");
+			strictEqual(arg,2,"arg second");
+			return ++arg;
+		}).then(function(arg)
+		{
+			strictEqual(this,scope,"scope third");
+			strictEqual(arg,3,"arg third");
+			start();
+		},µ.logger.error);
+		p.resolve(1);
+	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
