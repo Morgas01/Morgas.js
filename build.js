@@ -95,7 +95,7 @@ function collectDependencies()
 			}
 			if(dep.uses)rDep.uses=mapToMap(dep.uses,moduleFiles,dep.file);
 		}
-		fs.writeFile("src/Morgas.Dependencies.json",JSON.stringify(dependencies,null,"\t"),function(err)
+		fs.writeFile("src/Morgas.Dependencies.json",JSON.stringify(rtn,null,"\t"),function(err)
 		{
 			if(err) console.error("could not save Dependencies",err);
 		});
