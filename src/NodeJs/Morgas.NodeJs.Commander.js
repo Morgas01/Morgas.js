@@ -1,4 +1,4 @@
-(function(µ,SMOD,GMOD,HMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	µ.NodeJs=µ.NodeJs||{};
 	
@@ -118,4 +118,4 @@
 			this.instance.rl.close();
 		}
 	});
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

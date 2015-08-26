@@ -66,7 +66,7 @@
 			if(µ.logger.verbose>=verbose)
 			{
 				if(typeof msg == "function") msg=[].concat(msg());
-				else msg=Array.slice(arguments,1);
+				else msg=Array.prototype.slice.call(arguments,1);
 				
 				µ.logger.out(verbose,msg);
 			}
@@ -109,7 +109,7 @@
 	{
 		µ.logger[level]=function()
 		{
-			var args=Array.slice(arguments);
+			var args=Array.prototype.slice.call(arguments);
 			args.unshift(µ.logger.LEVEL[level]);
 			µ.logger.log.apply(null,args);
 		}

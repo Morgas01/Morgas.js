@@ -1,6 +1,6 @@
-(function(µ,SMOD,GMOD,HMOD){
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
-	var SC=GMOD("shortcut")({
+	var SC=SC({
 		FH:"FileHelper"
 	});
 
@@ -109,4 +109,4 @@
 		mergeParts:function(){this.out(this.fh.mergeParts().join("\n"))}
 	});
 	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
