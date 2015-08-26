@@ -82,26 +82,32 @@ function collectDependencies()
 		for(var i=0;i<dependencies.length;i++)
 		{
 			var dep=dependencies[i];
-			rDep=rtn[dep.file]={};
-			if(!dep.deps)
+			if(dep.file=="Morgas.js")
 			{
-				if(dep.file=="Morgas.js")rDep.deps=true;
-				else rDep.deps=["Morgas.js"];
+				rtn[dep.file]=true;
 			}
 			else
 			{
-				rDep.deps=mapToMap(dep.deps,moduleFiles,dep.file);
-				rDep.deps.unshift("Morgas.js");
-			}
-			if(dep.uses)
-			{
-				rDep.uses=mapToMap(dep.uses,moduleFiles);
-				if(Array.isArray(rDep.deps))
+				rDep=rtn[dep.file]={};
+				if(!dep.deps)
 				{
-					for(var d=0;d<rDep.deps.length;d++)
+					rDep.deps=["Morgas.js"];
+				}
+				else
+				{
+					rDep.deps=mapToMap(dep.deps,moduleFiles,dep.file);
+					rDep.deps.unshift("Morgas.js");
+				}
+				if(dep.uses)
+				{
+					rDep.uses=mapToMap(dep.uses,moduleFiles);
+					if(Array.isArray(rDep.deps))
 					{
-						var index=rDep.uses.indexOf(rDep.deps[d]);
-						if(index!==-1)rDep.uses.splice(index,1);
+						for(var d=0;d<rDep.deps.length;d++)
+						{
+							var index=rDep.uses.indexOf(rDep.deps[d]);
+							if(index!==-1)rDep.uses.splice(index,1);
+						}
 					}
 				}
 			}
@@ -136,57 +142,33 @@ collectDependencies().then(function(dependencies)
 	require("./src/Morgas.DependencyResolver.js");
 	var resolver=new µ.DependencyResolver(dependencies);
 
-	/*
-
-	 - make async
-	 - hold read files
 
 	var uglify=require("uglify-js");
 
-	var minify=function(name)
+	var minify=function(packageName,files)
 	{
-		var inFile=__dirname+"/src/"+name;
-		var outFile=__dirname+"/build/"+name;
-		console.info(inFile+" => "+outFile);
+		files=files.map(function(a){return "src/"+a});
 		try
 		{
-			fs.writeFileSync(outFile,uglify.minify(inFile).code);
+			var minPackage=uglify.minify(files,{outSourceMap: packageName+".map"});
+			fs.writeFileSync("build/"+packageName,minPackage.code);
+			fs.writeFileSync("build/"+packageName+".map",minPackage.map);
 		}
 		catch (e)
 		{
-			try{fs.unlinkSync(outFile);}catch(e){}
-			fs.linkSync(inFile,outFile);
+			console.log("could not minify",packageName,e);
 		}
 	};
-	var FILE_ENCODING = 'utf-8',EOL = '\n';
-	var createPackage=function(name,sources)
-	{
-		console.log("package: "+name);
-		var packageFiles=resolver.resolve(sources).map(function(f)
-		{
-			return "//"+f+EOL+fs.readFileSync(__dirname+"/src/"+f, FILE_ENCODING);}
-		).join(EOL);
-		fs.writeFileSync(__dirname+"/build/"+name+".js",packageFiles);
-		try
-		{
-			var minPackage=uglify.minify(__dirname+"/build/"+name+".js",{outSourceMap: name+"-min.js.map"});
-			fs.writeFileSync(__dirname+"/build/"+name+"-min.js",minPackage.code);
-			fs.writeFileSync(__dirname+"/build/"+name+"-min.js.map",minPackage.map);
-		} catch(e){console.log("could not minify "+name+".js");}
-	};
-
-	var files=Object.keys(resolver.config);
+	files=Object.keys(resolver.config);
 	for(var i=0;i<files.length;i++)
 	{
-		try{
-			minify(files[i]);
-		}catch(e){
-			console.error(e);
-		}
+			minify(files[i],[files[i]]);
 	}
 
-	createPackage("Morgas_CORE",["Morgas.js"]);
-	createPackage("Morgas_DB",["DB/Morgas.DB.js","DB/Morgas.DB.ObjectConnector.js","DB/Morgas.DB.IndexedDBConnector.js","DB/Morgas.Organizer.LazyCache.js"]);
-	createPackage("Morgas_FULL",Object.keys(resolver.config));
-	*/
+	minify("Morgas_CORE",["Morgas.js"]);
+	minify("Morgas_DB",["DB/Morgas.DB.js","DB/Morgas.DB.ObjectConnector.js","DB/Morgas.DB.IndexedDBConnector.js","DB/Morgas.Organizer.LazyCache.js"]);
+	minify("Morgas_FULL",Object.keys(resolver.config));
+}).catch(function(error)
+{
+	console.error("build failed!",error,error.stack);
 });

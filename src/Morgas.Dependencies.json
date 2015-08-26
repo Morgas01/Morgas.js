@@ -4,9 +4,7 @@
 			"Morgas.js"
 		]
 	},
-	"Morgas.js": {
-		"deps": true
-	},
+	"Morgas.js": true,
 	"Morgas.Listeners.js": {
 		"deps": [
 			"Morgas.js"
