@@ -93,7 +93,6 @@
 				{
 					deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load single via int");
 					equal(result.length,1,"result count");
-					this.complete();
 
 					start();
 				},µ.logger.error)
@@ -108,7 +107,6 @@
 					deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load multiple via string (1)");
 					deepEqual(result[1]&&result[1].toJSON(),obj2.toJSON(),"load multiple via string (2)");
 					equal(result.length,2,"result count");
-					this.complete();
 					start();
 				},µ.logger.error)
 			},µ.logger.error);
@@ -129,7 +127,6 @@
 				{
 					o1=result;
 					deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
-					this.complete();
 					start();
 				},µ.logger.error)
 			},µ.logger.error);
@@ -146,7 +143,6 @@
 				.then(function(result)
 				{
 					strictEqual(result.length,0,"firendship deleted");
-					this.complete();
 					start();
 				},µ.logger.error)
 			},µ.logger.error);
@@ -172,7 +168,6 @@
 				.then(function(result)
 				{
 					strictEqual(result.length,0,"deleted pattern");
-					this.complete();
 					start();
 				},µ.logger.error)
 			},µ.logger.error);

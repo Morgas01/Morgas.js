@@ -5,7 +5,7 @@
 		rs:"rescope"
 	});
 	
-	var rescopeApply=function(fn,scope)
+	var rescopeApply=function rescopeApply(fn,scope)
 	{
 		if(fn)return function(arr)
 		{
@@ -80,12 +80,14 @@
 			});
 			Promise.all(fns).then(_rs,abort);
 		},
+		rescopeFn:rescopeApply,//first: apply result of Promise.all | then: only rescope
 		_wrapNext:function(next)
 		{
 			return {
 				original:next,
 				scope:this.scope,
 				then:PROM.prototype.then,
+				rescopeFn:SC.rs,
 				complete:PROM.prototype.complete,
 				error:PROM.prototype.error,
 				catch:PROM.prototype.error,
@@ -94,19 +96,19 @@
 		},
 		complete:function(fn)
 		{
-			return this._wrapNext(this.original.then(rescopeApply(fn,this.scope)));
+			return this._wrapNext(this.original.then(this.rescopeFn(fn,this.scope)));
 		},
 		error:function(efn)
 		{
-			return this._wrapNext(this.original.catch(rescopeApply(efn)));
+			return this._wrapNext(this.original.catch(this.rescopeFn(efn)));
 		},
 		then:function(fn,efn)
 		{
-			return this._wrapNext(this.original.then(rescopeApply(fn,this.scope),rescopeApply(efn)));
+			return this._wrapNext(this.original.then(this.rescopeFn(fn,this.scope),this.rescopeFn(efn)));
 		},
 		always:function(fn)
 		{
-			fn=rescopeApply(fn,this.scope);
+			fn=this.rescopeFn(fn,this.scope);
 			return this._wrapNext(this.original.then(fn,fn));
 		},
 		abort:function()

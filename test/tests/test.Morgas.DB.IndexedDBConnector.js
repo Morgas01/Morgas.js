@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	module("DB.IndexedDBConnector");
 	var ICON=GMOD("IndexedDBConnector");
-	
+
 	indexedDB.deleteDatabase("testDB");
 	window.DBTest(new ICON("testDB"));
 	

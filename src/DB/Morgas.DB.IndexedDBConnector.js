@@ -6,13 +6,11 @@
 	 * DB.Connector for simple Javascript object
 	 *
 	 */
-	var DBC=GMOD("DBConn"),
-	LOGGER=GMOD("debug"),
+	var DBC=GMOD("DBConn");
 	SC=SC({
-		det:"Detached",
+		prom:"Promise",
 		it:"iterate",
 		eq:"equals",
-		find:"find",
 		
 		DBObj:"DBObj",
 		DBFriend:"DBFriend"
@@ -25,7 +23,7 @@
 			this.mega();
 			this.name=dbName;
 
-			SC.det.detacheAll(this,["_open"]);
+			SC.prom.pledgeAll(this,["_open"]);
 		},
 		
 		save:function(signal,objs)
@@ -35,43 +33,42 @@
 			var classNames=Object.keys(sortedObjs);
 			this._open(classNames).then(function(db)
 			{
-				var transactions=SC.it(sortedObjs,SC.det.detache(function(tSignal,objects,objectType)
+				var transactions=SC.it(sortedObjs,SC.prom.pledge(function(tSignal,objects,objectType)
 				{
 					var trans=db.transaction(objectType,"readwrite");
 					trans.onerror=function(event)
 					{
-						LOGGER.error(event);
-						tSignal.complete(event);
+						µ.logger.error(event);
+						db.close();
+						tSignal.resolve(event);
 					};
 					trans.oncomplete=function(event)
 					{
-						LOGGER.info(event);
-						tSignal.complete();
+						µ.logger.info(event);
+						db.close();
+						tSignal.resolve();
 					};
 					
 					var store = trans.objectStore(objectType);
 					SC.it(objects,function(object,i)
 					{
-						var obj=object.toJSON(),
-						method="put";
+						var obj=object.toJSON(), method="put";
 						if(obj.ID===undefined)
 						{
 							delete obj.ID;
 							method="add";
 						}
 						var req=store[method](obj);
-						req.onerror=LOGGER.error;
+						req.onerror=µ.logger.error;
 						req.onsuccess=function(event)
 						{
-							LOGGER.debug(event);
+							µ.logger.debug(event);
 							object.setID&&object.setID(req.result);//if (!(object instanceof DBFRIEND)) {object.setID(req.result)} 
 						}
 					});
 				}),false,true);
-				db.close();
-				signal.complete(new SC.det(transactions));
-				this.complete();
-			},signal.error);
+				signal.resolve(new SC.prom(transactions));
+			},signal.reject);
 		},
 		load:function(signal,objClass,pattern)
 		{
@@ -80,7 +77,7 @@
 				if(!db.objectStoreNames.contains(objClass.prototype.objectType))
 				{
 					db.close();
-					signal.complete([]);
+					signal.resolve([]);
 				}
 				else
 				{
@@ -88,14 +85,14 @@
 					rtn=[];
 					trans.onerror=function(event)
 					{
-						LOGGER.error(event);
+						µ.logger.error(event);
 						db.close();
-						signal.error(event);
+						signal.reject(event);
 					};
 					trans.oncomplete=function()
 					{
 						db.close();
-						signal.complete(rtn);
+						signal.resolve(rtn);
 					};
 
 					var store = trans.objectStore(objClass.prototype.objectType);
@@ -106,11 +103,11 @@
 							var req=store.get(ID);
 							req.onerror=function(event)
 							{
-								LOGGER.error(event);
+								µ.logger.error(event);
 							};
 							req.onsuccess=function(event)
 							{
-								LOGGER.debug(event);
+								µ.logger.debug(event);
 								if(SC.eq(req.result,pattern))
 								{
 									var inst=new objClass();
@@ -125,9 +122,9 @@
 						var req=store.openCursor();
 						req.onerror=function(event)
 						{
-							LOGGER.error(event);
+							µ.logger.error(event);
 							db.close();
-							signal.error(event);
+							signal.reject(event);
 						};
 						req.onsuccess=function(event)
 						{
@@ -144,8 +141,7 @@
 						}
 					}
 				}
-				this.complete();
-			},signal.error);
+			},signal.reject);
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
@@ -155,36 +151,34 @@
 			if(typeof toDelete==="number"||toDelete instanceof SC.DBObj||toDelete instanceof SC.DBFriend||Array.isArray(toDelete))
 			{
 				var ids=DBC.getDeletePattern(objClass,toDelete).ID;
-				collectingIDs=SC.det.complete(ids);
+				collectingIDs=SC.prom.resolve(ids);
 			}
 			else
 			{
-				collectingIDs=this._open().then(function(db)
+				collectingIDs=this._open().then(function(db){return new Promise(function(rs,rj)
 				{
 					var _collectingSelf=this,
 					ids=[],
 					trans=db.transaction(objectType,"readonly");
 					trans.onerror=function(event)
 					{
-						LOGGER.error(event);
+						µ.logger.error(event);
 						db.close();
-						signal.error(event);
-						_collectingSelf.error(event);
+						rj(event);
 					};
 					trans.oncomplete=function()
 					{
 						db.close();
-						_collectingSelf.complete(ids);
+						rs(ids);
 					};
 
 					var store = trans.objectStore(objectType);
 					var req=store.openCursor();
 					req.onerror=function(event)
 					{
-						LOGGER.error(event);
+						µ.logger.error(event);
 						db.close();
-						signal.error(event);
-						_collectingSelf.error(event);
+						rj(event);
 					};
 					req.onsuccess=function(event)
 					{
@@ -198,7 +192,7 @@
 						}
 					}
 					
-				},signal.error)
+				})});
 			}
 			collectingIDs.then(function(ids)
 			{
@@ -209,43 +203,40 @@
 						var trans=db.transaction(objClass.prototype.objectType,"readwrite");
 						trans.onerror=function(event)
 						{
-							LOGGER.error(event);
+							µ.logger.error(event);
 							db.close();
-							signal.error(event);
+							signal.reject(event);
 						};
 						var store = trans.objectStore(objectType);
 						
-						var reqs=SC.it(ids,SC.det.detache(function(rSignal,ID)
+						var reqs=SC.it(ids,SC.prom.pledge(function(rSignal,ID)
 						{
 							var req=store["delete"](ID);
 							req.onerror=function(event)
 							{
-								LOGGER.error(event);
-								rSignal.complete(ID);
+								µ.logger.error(event);
+								rSignal.resolve(ID);
 							};
 							req.onsuccess=function(event)
 							{
-								LOGGER.debug(event);
-								rSignal.complete();
+								µ.logger.debug(event);
+								rSignal.resolve();
 							}
 						}));
-						return new SC.det(reqs).then(function()
+						return new SC.prom(reqs).then(function()
 						{
 							db.close();
-							signal.complete(Array.slice(arguments));
-							this.complete();
-						},LOGGER.error);
+							signal.resolve(Array.slice(arguments));
+						},µ.logger.error);
 					});
 				}
 				else
 				{
-					signal.complete(false);
-					this.complete();
+					signal.resolve(false);
 				}
 			},function(event){
 				db.close();
-				signal.error(event,0);
-				this.complete();
+				signal.reject(event);
 			});
 		},
 		destroy:function()
@@ -257,7 +248,7 @@
 			var _self=this;
 			var req=indexedDB.open(this.name);
 			req.onerror=function(event){
-				signal.error(event,0);
+				signal.reject(event);
 			};
 			req.onsuccess=function()
 			{
@@ -273,13 +264,13 @@
 				}
 				if(toCreate.length===0)
 				{
-					signal.complete(db);
+					signal.resolve(db);
 				}
 				else
 				{
 					var req2=indexedDB.open(_self.name,version+1);
 					req2.onerror=function(event){
-						signal.error(event,0);
+						signal.reject(event);
 					};
 					req2.onupgradeneeded=function()
 					{
@@ -291,14 +282,17 @@
 					req2.onsuccess=function()
 					{
 						_self.version=req2.result.version;
-						signal.complete(req2.result);
+						signal.resolve(req2.result);
 					};
 					db.close();
 				}
 			}
 		}
 	});
-	
+	ICON.isAvailable=function()
+	{
+
+	};
 	ICON.sortObjs=function(objs)
 	{
 		var rtn={};

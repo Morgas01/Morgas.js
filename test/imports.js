@@ -74,7 +74,7 @@
 	WR(testDir+"test.Morgas.Worker.js");
 	
 	//TODO
-	/*
+
 	WR(srcDir+"DB/Morgas.DB.js");
 	WR(testDir+"test.Morgas.DB.js");
 
@@ -83,5 +83,5 @@
 
 	WR(srcDir+"DB/Morgas.DB.IndexedDBConnector.js");
 	WR(testDir+"test.Morgas.DB.IndexedDBConnector.js");
-	*/
+
 })();
