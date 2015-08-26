@@ -161,8 +161,7 @@
 		"uses": [
 			"Morgas.Promise.js",
 			"Morgas.util.object.iterate.js",
-			"Morgas.util.object.equals.js",
-			"DB/Morgas.DB.js"
+			"Morgas.util.object.equals.js"
 		]
 	},
 	"DB/Morgas.DB.js": {

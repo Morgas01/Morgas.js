@@ -93,7 +93,18 @@ function collectDependencies()
 				rDep.deps=mapToMap(dep.deps,moduleFiles,dep.file);
 				rDep.deps.unshift("Morgas.js");
 			}
-			if(dep.uses)rDep.uses=mapToMap(dep.uses,moduleFiles,dep.file);
+			if(dep.uses)
+			{
+				rDep.uses=mapToMap(dep.uses,moduleFiles);
+				if(Array.isArray(rDep.deps))
+				{
+					for(var d=0;d<rDep.deps.length;d++)
+					{
+						var index=rDep.uses.indexOf(rDep.deps[d]);
+						if(index!==-1)rDep.uses.splice(index,1);
+					}
+				}
+			}
 		}
 		fs.writeFile("src/Morgas.Dependencies.json",JSON.stringify(rtn,null,"\t"),function(err)
 		{
@@ -102,12 +113,12 @@ function collectDependencies()
 		return rtn;
 	});
 }
-function mapToMap(arr,map,file)
+function mapToMap(arr,map)
 {
 	var set=new Set();
 	for(var a of arr)
 	{
-		if(!(a in map)) console.warn("module",a,"not found",file);
+		if(!(a in map)) console.warn("module",a,"not found");
 		else set.add(map[a]);
 	}
 	var rtn=[];
