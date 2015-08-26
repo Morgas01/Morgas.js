@@ -3,7 +3,7 @@
 	var util=µ.util=µ.util||{};
 	var uFn=util["function"]||{};
 	
-	var SC=SC({
+	SC=SC({
 		it:"iterate"
 	});
 	

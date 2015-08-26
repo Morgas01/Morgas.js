@@ -4,7 +4,7 @@
 	
 	var CSV=GMOD("CSV");
 	
-	var SC=SC({
+	SC=SC({
 		prom:"Promise",
 		rq:"request"
 	});

@@ -8,7 +8,7 @@
 	 */
 	var ORG=GMOD("Organizer");
 
-	var SC=SC({
+	SC=SC({
 		it:"iterate",
 		debug:"debug",
 		det:"Detache"

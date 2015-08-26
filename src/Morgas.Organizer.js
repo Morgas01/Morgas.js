@@ -6,7 +6,7 @@
 	 * Organizer to reindex and group arrays
 	 *
 	 */
-	var SC=SC({
+	SC=SC({
 		it:"iterate",
 		eq:"equals",
 		path:"goPath"

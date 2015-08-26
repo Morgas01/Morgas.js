@@ -3,7 +3,7 @@
 	var util=µ.util=µ.util||{};
 	var obj=util.object||{};
 	
-	var SC=SC({
+	SC=SC({
 		eq:"equals",
 		it:"iterate"
 	});

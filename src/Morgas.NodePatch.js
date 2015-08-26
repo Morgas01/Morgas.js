@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
     var Patch=GMOD("Patch");
-	var SC=SC({
+	SC=SC({
 		p:"proxy"
 	});
 

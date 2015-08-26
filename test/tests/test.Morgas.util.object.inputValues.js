@@ -2,7 +2,7 @@
 	
 	module("util.object.inputValues");
 	
-	var SC=SC({
+	SC=SC({
 		s:"setInputValues",
 		g:"getInputValues"
 	});

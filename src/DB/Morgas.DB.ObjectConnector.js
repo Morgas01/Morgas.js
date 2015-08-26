@@ -9,7 +9,7 @@
 	var DBC		=GMOD("DBConn");
 	var ORG		=GMOD("Organizer");
 	
-	var SC=SC({
+	SC=SC({
 		eq:"equals",
 		find:"find"
 	});

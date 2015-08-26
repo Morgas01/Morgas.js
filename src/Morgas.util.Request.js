@@ -2,7 +2,7 @@
 	
 	µ.util=µ.util||{};
 
-	var SC=SC({
+	SC=SC({
 		prom:"Promise"
 	});
 	

@@ -3,7 +3,7 @@
 	var util=µ.util=µ.util||{};
 	var obj=util.object||{};
 	
-	var SC=SC({
+	SC=SC({
 		PROM:"Promise",
 		It:"Iterator"
 	});

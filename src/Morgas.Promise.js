@@ -1,6 +1,6 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var SC=SC({
+	SC=SC({
 		adopt:"adopt",
 		rs:"rescope"
 	});

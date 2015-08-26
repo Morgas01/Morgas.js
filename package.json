@@ -6,6 +6,7 @@
     "url": "https://github.com/Morgas01/Morgas.js.git"
   },
   "devDependencies": {
-    "qunitjs": "^1.18.0"
+    "qunitjs": "^1.18.0",
+    "uglify-js": "^2.4.24"
   }
 }

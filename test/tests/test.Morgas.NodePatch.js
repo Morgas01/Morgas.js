@@ -1,6 +1,6 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	module("NodePatch");
-	var SC=SC({
+	SC=SC({
 		node:"NodePatch"
 	});
 	

@@ -2,7 +2,7 @@
 	
 	var Listeners=GMOD("Listeners");
 	
-	var SC=SC({
+	SC=SC({
 		prom:"Promise",
 		rs:"rescope",
 		bind:"bind",
