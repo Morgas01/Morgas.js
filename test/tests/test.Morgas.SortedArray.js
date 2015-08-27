@@ -15,6 +15,9 @@
 
 		deepEqual(sArr.get("ASC"),[0,1,2,3,4,5,6,7,8,9],"asc");
 		deepEqual(sArr.get("DESC"),[9,8,7,6,5,4,3,2,1,0],"desc");
+		sArr.remove([0,2,4,6,8]);
+		deepEqual(sArr.get("ASC"),[1,3,5,7,9],"asc deleted");
+		deepEqual(sArr.get("DESC"),[9,7,5,3,1],"desc deleted");
 	});
 	
 	test("strings",function()
@@ -82,8 +85,8 @@
 		deepEqual(sArr.get("DESC"),[data[1],data[0],data[3],data[2],data[4]],"desc");
 		data[2].data.value=28;
 		data[0].data.value=15;
-		sArr.update("ASC")
+		sArr.update([data[0],data[2]]);
 		deepEqual(sArr.get("ASC"),[data[4],data[0],data[3],data[2],data[1]],"asc updated");
-		deepEqual(sArr.get("DESC"),[data[1],data[0],data[3],data[2],data[4]],"desc not updated");
+		deepEqual(sArr.get("DESC"),[data[1],data[2],data[3],data[0],data[4]],"desc updated");
 	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

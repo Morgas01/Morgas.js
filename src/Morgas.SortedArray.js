@@ -3,7 +3,9 @@
 	SC=SC({
 		it:"iterate"
 	});
-	
+	/**
+	 * holds values an sorted arrays of their indexes
+	 */
 	var SA=µ.SortedArray=µ.Class(Array,{
 		init:function(values)
 		{
@@ -46,8 +48,11 @@
 					{
 						SC.it(this.sorts,sort=>
 						{
-							var orderIndex=sort.indexOf(index);
-							if(orderIndex!==-1)sort.splice(orderIndex,1);
+							for(var i=sort.length-1;i>=0;i--)
+							{
+								if(sort[i]>index)sort[i]--;
+								else if (sort[i]===index) sort.splice(i,1);
+							}
 						});
 						this.values.splice(index,1);
 					}
@@ -55,22 +60,35 @@
 			}
 			return this;
 		},
-		update:function(sortName)
+		update:function(values)
 		{
-			if(!sortName||sortName==="all")
+			SC.it(values||this.values,(item,index)=>
 			{
-				SC.it(this.sorts,(sort,sortName)=>this.update(sortName));
-			}
-			else if (this.sorts.has(sortName))
-			{
-				var sort=this.sorts.get(sortName);
-				SA.getSortedOrder(this.values,sort.sortFn,sort);
-			}
+				if(values)index=this.values.indexOf(item);//only search index if not iterating over this.values
+				if(index!==-1)
+				{
+					SC.it(this.sorts,sort=>
+					{
+						var orderIndex=sort.indexOf(index);
+						if(orderIndex!==-1)
+						{
+							sort.splice(orderIndex,1);
+							orderIndex=SA.getOrderIndex(item,this.values,sort.sortFn,sort);
+							sort.splice(orderIndex,0,index);
+						}
+					});
+				}
+			});
 			return this;
 		},
+		getIndexes:function(sortName)
+		{
+			if (!this.sorts.has(sortName))return null;
+			else return this.sorts.get(sortName).slice();
+		}
 		get:function(sortName)
 		{
-			if (!this.sorts.has(sortName))return [];
+			if (!this.sorts.has(sortName))return null;
 			else return this.sorts.get(sortName).map(i=>this.values[i]);
 		}
 	});
