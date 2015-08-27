@@ -73,7 +73,7 @@
 		})(),
 		selected:function(){this.out(this.fh.selected.join("\n"));},
 		rename:function(line){
-			var match=line.match(/(?:(\/.*\/)|"(.*)")\s+"(.*)"/);
+			var match=line.match(/(?:(\/.*\/[gimy]*)|"(.*)")\s+"(.*)"/);
 			if(!match)this.out('rename pattern replacement\n\tpattern:\t\/regex\/ or "string"\n\treplacement:\t"string"');
 			else this.out(this.fh.rename(match[1]||match[2],match[3]).map(function(a){return a.join("\t=>\t");}).join("\n"));
 		},
