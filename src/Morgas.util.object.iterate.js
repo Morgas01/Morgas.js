@@ -58,14 +58,14 @@
 			scope=window;
 		}
 		if(any.length>=0&&!isObject)
-		{
+		{//Array like
 			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))
 			{
 				rtn.push(func.call(scope,any[i],i,i,false));
 			}
 		}
 		else if (typeof any.next==="function"||typeof any.entries==="function")
-		{
+		{//iterator or iterable
 			if(typeof any.entries==="function")
 			{
 				any=any.entries();
@@ -79,7 +79,7 @@
 			}
 		}
 		else
-		{
+		{//object
 			var k=Object.keys(any);
 			if(backward)
 			{

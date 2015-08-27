@@ -8,6 +8,7 @@
 	"Organizer": "Morgas.Organizer.js",
 	"Patch": "Morgas.Patch.js",
 	"Promise": "Morgas.Promise.js",
+	"SorrtedArray": "Morgas.SortedArray.js",
 	"CSV": "Morgas.util.converter.csv.js",
 	"util.crc32": "Morgas.util.crc32.js",
 	"download": "Morgas.util.download.js",

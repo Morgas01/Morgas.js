@@ -43,6 +43,15 @@
 		}
 		return obj;
 	};
+	/**
+	 * 
+	 * @param {string|string[]} path
+	 * @returns function 
+	 */
+	uObj.goPath.guide=function(path)
+	{
+		return function(obj){return uObj.goPath(obj,path)};
+	}
 	SMOD("goPath",uObj.goPath);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
