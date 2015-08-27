@@ -157,6 +157,15 @@ collectDependencies().then(function(dependencies)
 		catch (e)
 		{
 			console.log("could not minify",packageName,e);
+			try
+			{
+				var code=files.map(function(f){return fs.readFileSync(f,{encode:"UTF-8"})}).join("\n");
+				fs.writeFileSync("build/"+packageName,code);
+			}
+			catch(e)
+			{
+				console.error("could not copy",packageName,e);
+			}
 		}
 	};
 	files=Object.keys(resolver.config);
@@ -165,9 +174,9 @@ collectDependencies().then(function(dependencies)
 			minify(files[i],[files[i]]);
 	}
 
-	minify("Morgas_CORE",["Morgas.js"]);
-	minify("Morgas_DB",["DB/Morgas.DB.js","DB/Morgas.DB.ObjectConnector.js","DB/Morgas.DB.IndexedDBConnector.js","DB/Morgas.Organizer.LazyCache.js"]);
-	minify("Morgas_FULL",Object.keys(resolver.config));
+	minify("Morgas_CORE.js",["Morgas.js"]);
+	minify("Morgas_DB.js",["DB/Morgas.DB.js","DB/Morgas.DB.ObjectConnector.js","DB/Morgas.DB.IndexedDBConnector.js","DB/Morgas.Organizer.LazyCache.js"]);
+	minify("Morgas_FULL.js",Object.keys(resolver.config));
 }).catch(function(error)
 {
 	console.error("build failed!",error,error.stack);
