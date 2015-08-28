@@ -31,18 +31,21 @@
 		{
 			if(values!=null)
 			{
+				var indexes=[];
 				SC.it(values,item=>
 				{
 					var index=this.values.freeIndexes.shift();
 					if(index===undefined)index=this.values.length;
 					this.values[index]=item;
+					indexes.push(index);
 					SC.it(this.sorts,sort=>
 					{
 						this._addToSort(sort,item,index);
 					});
 				});
+				return indexes;
 			}
-			return this;
+			return null;
 		},
 		_addToSort:function(sort,item,index)
 		{
@@ -61,22 +64,31 @@
 		{
 			if(values!=null)
 			{
+				var indexes=[];
 				SC.it(values,item=>
 				{
-					var index=this.values.indexOf(item);
-					if(index!==-1)
+					var valueIndex=this.values.indexOf(item);
+					if (valueIndex!==-1)
 					{
-						SC.it(this.sorts,sort=>
+						var index=null;
+						if(this.library)index=item;
+						else index=valueIndex;
+						if(index!=null)
 						{
-							var orderIndex=sort.indexOf(index);
-							if (orderIndex!==-1) sort.splice(orderIndex,1);
-						});
-						delete this.values[index];
-						this.values.freeIndexes.push(index);
+							SC.it(this.sorts,sort=>
+							{
+								var orderIndex=sort.indexOf(index);
+								if (orderIndex!==-1) sort.splice(orderIndex,1);
+							});
+							delete this.values[index];
+							this.values.freeIndexes.push(index);
+							indexes.push(index);
+						}
 					}
 				});
+				return indexes;
 			}
-			return this;
+			return null;
 		},
 		update:function(values)
 		{
@@ -122,6 +134,22 @@
 			if (!this.sorts.has(sortName))return null;
 			else if (this.library) return this.sorts.get(sortName).map(i=>this.library[i]);
 			else return this.sorts.get(sortName).map(i=>this.values[i]);
+		},
+		getValues:function()
+		{
+			if(this.library)return this.values.map(i=>this.library[i]);
+			return null;
+		},
+		/**
+		 * returns value for the library index.
+		 * returns undefined if no library is defined.
+		 * @param {number} libaryIndex
+		 * @returns {any}
+		 */
+		getValue:function(libaryIndex)
+		{
+			if(this.library)return this.library[libaryIndex];
+			return undefined;
 		},
 		clear:function()
 		{
