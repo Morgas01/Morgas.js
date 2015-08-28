@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
 	var util=µ.util=µ.util||{};
-	var uFn=util["function"]||{};
+	var uFn=util["function"]=util["function"]||{};
 	
 	SC=SC({
 		it:"iterate"

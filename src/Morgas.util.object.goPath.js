@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	var util=µ.util=µ.util||{};
-	var uObj=util.object||{};
+	var uObj=util.object=util.object||{};
 	
 	var arrayNotation=/(.+)\[(\d*)\]/;
 
@@ -51,7 +51,7 @@
 	uObj.goPath.guide=function(path)
 	{
 		return function(obj){return uObj.goPath(obj,path)};
-	}
+	};
 	SMOD("goPath",uObj.goPath);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

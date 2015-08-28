@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD){
 
 	var util=µ.util=µ.util||{};
-	var obj=util.object||{};
+	var obj=util.object=util.object||{};
 	
 	/** createIterator
 	 * Creates an iterator for {any} in {backward} order.

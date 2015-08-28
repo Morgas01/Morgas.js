@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	var util=µ.util=µ.util||{};
-	var obj=util.object||{};
+	var obj=util.object=util.object||{};
 	
 	SC=SC({
 		PROM:"Promise",

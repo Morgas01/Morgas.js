@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	var util=µ.util=µ.util||{};
-	var uObj=util.object||{};
+	var uObj=util.object=util.object||{};
 
 	/** equals
 	 * Matches {obj} against {pattern}.
@@ -55,6 +55,18 @@
 			return true;
 		}
 		return false;
+	};
+	/**
+	 * creates a test for equals to pattern
+	 * @param pattern
+	 * @returns {Function}
+	 */
+	uObj.equals.test=function(pattern)
+	{
+		return function(obj)
+		{
+			return uObj.equals(obj,pattern);
+		}
 	};
 	SMOD("equals",uObj.equals);
 	
