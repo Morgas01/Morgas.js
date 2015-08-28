@@ -46,6 +46,14 @@
 	/** iterate
 	 * Iterates over {any} calling {func} with {scope} in {backward} order.
 	 * {isObject} declares {any} as an Object with a length property.
+	 *
+	 * tip: to iterate only over defined array values use isObject
+	 *
+	 * @param {any} any
+	 * @param {function} callback  (value,key,index,isObject)  key and index are identical in arrays
+	 * @param {boolean} backward
+	 * @param {boolean} isObject
+	 * @param {any} scope
 	 * 
 	 * returns Array of {func} results
 	 */
