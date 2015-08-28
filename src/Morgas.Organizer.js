@@ -5,14 +5,13 @@
 	SC=SC({
 		it:"iterate",
 		eq:"equals",
-		path:"goPath",
+		goPath:"goPath",
 		proxy:"proxy"
 	});
 	 
 	var ORG=µ.Organizer=µ.Class(SA,{
 		init:function(values)
 		{
-			this.mega(values);
 
 			this.filters=new Map();
 			SC.proxy(this.filters,{
@@ -30,8 +29,12 @@
 			SC.proxy(this.groups,{
 				"has":"hasGroup"
 			},this);
-		},
 
+			this.mega(values);
+			
+		},
+		getSort:SA.prototype.get,
+		getIndexSort:SA.prototype.getIndexes,
 		filter:function(filterName,filterFn)
 		{
 			switch(typeof filterFn)
@@ -44,7 +47,7 @@
 					break;
 			}
 			var child=new ORG();
-			child.library=this.values;
+			child.library=this.library||this.values;
 			child._filterFn=filterFn;
 			if(this.hasFilter(filterName))this.removeFilter(filterName);
 			this.filters.set(filterName,child);
@@ -61,7 +64,7 @@
 				index=item;
 				item=this.library[index];
 			}
-			if(child._filterFn(item)) child.add(index);
+			if(child._filterFn(item)) child.add([index]);
 		},
 		removeFilter:function(filterName)
 		{
@@ -92,7 +95,7 @@
 				index=item;
 				item=this.library[index];
 			}
-			var key=""+map._mapFn(item);
+			var key=""+map.mapFn(item);
 			map.values[key]=index;
 		},
 		getIndexMap:function(mapName)
@@ -135,13 +138,13 @@
 				index=item;
 				item=this.library[index];
 			}
-			var gKeys=[].concat(group.fn(item));
+			var gKeys=[].concat(group.groupFn(item));
 			for(gKey of gKeys)
 			{
 				if(!(gKey in group.values))
 				{
 					var child=new ORG();
-					child.library=this.values;
+					child.library=this.library||this.values;
 					group.values[gKey]=child;
 				}
 				group.values[gKey].add([index]);
@@ -151,7 +154,7 @@
 		{
 			if(this.hasGroup(groupName))
 			{
-				return this.getGroup(groupName).values;
+				return this.groups.get(groupName).values;
 			}
 			else return undefined;
 		},
@@ -159,7 +162,18 @@
 		{
 			if(this.hasGroup(groupName))
 			{
-				return this.getGroup(groupName)[key];
+				return this.getGroup(groupName)[partName];
+			}
+			else return undefined;
+		},
+		getGroupValues:function(groupName)
+		{
+			if(this.hasGroup(groupName))
+			{
+				var group=this.getGroup(groupName);
+				var rtn={};
+				for(var g in group)rtn[g]=group[g].getValues();
+				return rtn;
 			}
 			else return undefined;
 		},
@@ -247,6 +261,8 @@
 			this.mega();
 		}
 	});
+	ORG.sortSimple=SA.simple;
+	ORG.sortGetter=SA.simpleGetter;
 	/*
 	ORG.pathSort=function(path,DESC)
 	{
