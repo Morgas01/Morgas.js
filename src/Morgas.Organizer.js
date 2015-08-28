@@ -15,21 +15,21 @@
 			this.mega(values);
 
 			this.filters=new Map();
-			SC.proxy(this,{
-				hasFilter:"has",
-				getFilter:"get"
-			},this.filters);
+			SC.proxy(this.filters,{
+				"has":"hasFilter",
+				"get":"getFilter"
+			},this);
 
 			this.maps=new Map();
-			SC.proxy(this,{
-				hasMap:"has",
-				removeMap:"delete"
-			},this.maps);
+			SC.proxy(this.maps,{
+				"has":"hasMap",
+				"delete":"removeMap"
+			},this);
 
 			this.groups=new Map();
-			SC.proxy(this,{
-				hasGroup:"has"
-			},this.groups);
+			SC.proxy(this.groups,{
+				"has":"hasGroup"
+			},this);
 		},
 
 		filter:function(filterName,filterFn)
@@ -61,7 +61,7 @@
 				index=item;
 				item=this.library[index];
 			}
-			if(filter._filterFn(item)) filter.add(index);
+			if(child._filterFn(item)) child.add(index);
 		},
 		removeFilter:function(filterName)
 		{

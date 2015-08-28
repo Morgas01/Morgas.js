@@ -66,9 +66,10 @@
 
 	WR(srcDir+"Morgas.SortedArray.js");
 	WR(testDir+"test.Morgas.SortedArray.js");
-/*	
+
 	WR(srcDir+"Morgas.Organizer.js");
 	WR(testDir+"test.Morgas.Organizer.js");
+/*
 	WR(srcDir+"Morgas.NodePatch.js");
 	WR(testDir+"test.Morgas.NodePatch.js");
 	
