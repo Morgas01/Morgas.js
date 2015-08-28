@@ -10,7 +10,7 @@
 	 * @param {any} (values=null)
 	 * @param {object} (library=null}
 	 */
-	var SA=µ.SortedArray=µ.Class(Array,{
+	var SA=µ.SortedArray=µ.Class({
 		init:function(values,library)
 		{
 			this.sorts=new Map();
@@ -218,5 +218,5 @@
 		};
 	};
 	
-	SMOD("SorrtedArray",SA);
+	SMOD("SortedArray",SA);
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

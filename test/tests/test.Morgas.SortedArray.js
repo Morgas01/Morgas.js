@@ -1,7 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	module("SortedArray");
 	
-	var SA=GMOD("SorrtedArray");
+	var SA=GMOD("SortedArray");
 	var goPath=GMOD("goPath");
 	
 	test("numbers",function()
