@@ -4,13 +4,19 @@
 		it:"iterate"
 	});
 	/**
-	 * holds values an sorted arrays of their indexes
+	 * holds values an sorted arrays of their indexes.
+	 * If values are already indexes use libary
+	 *
+	 * @param {any} (values=null)
+	 * @param {object} (library=null}
 	 */
 	var SA=µ.SortedArray=µ.Class(Array,{
-		init:function(values)
+		init:function(values,library)
 		{
-			this.sorts=new Map()
+			this.sorts=new Map();
 			this.values=[];
+			this.values.freeIndexes=[];
+			this.library=library;
 			this.add(values);
 		},
 		sort:function(sortName,sortFn)
@@ -18,7 +24,8 @@
 			var sort=[];
 			this.sorts.set(sortName,sort);
 			sort.sortFn=sortFn;
-			return this.update(sortName)
+			SC.it(this.values,(item,index)=>this._addToSort(sort,item,index));
+			return this;
 		},
 		add:function(values)
 		{
@@ -26,16 +33,29 @@
 			{
 				SC.it(values,item=>
 				{
-					var index=this.values.length;
-					this.values.push(item);
+					var index=this.values.freeIndexes.shift();
+					if(index===undefined)index=this.values.length;
+					this.values[index]=item;
 					SC.it(this.sorts,sort=>
 					{
-						var orderIndex=SA.getOrderIndex(item,this.values,sort.sortFn,sort);
-						sort.splice(orderIndex,0,index);
+						this._addToSort(sort,item,index);
 					});
 				});
 			}
 			return this;
+		},
+		_addToSort:function(sort,item,index)
+		{
+			if(!this.library)
+			{
+				var orderIndex=SA.getOrderIndex(item,this.values,sort.sortFn,sort);
+				sort.splice(orderIndex,0,index);
+			}
+			else
+			{
+				var orderIndex=SA.getOrderIndex(this.library[item],this.library,sort.sortFn,sort);
+				sort.splice(orderIndex,0,item);
+			}
 		},
 		remove:function(values)
 		{
@@ -48,13 +68,11 @@
 					{
 						SC.it(this.sorts,sort=>
 						{
-							for(var i=sort.length-1;i>=0;i--)
-							{
-								if(sort[i]>index)sort[i]--;
-								else if (sort[i]===index) sort.splice(i,1);
-							}
+							var orderIndex=sort.indexOf(index);
+							if (orderIndex!==-1) sort.splice(orderIndex,1);
 						});
-						this.values.splice(index,1);
+						delete this.values[index];
+						this.values.freeIndexes.push(index);
 					}
 				});
 			}
@@ -62,34 +80,54 @@
 		},
 		update:function(values)
 		{
-			SC.it(values||this.values,(item,index)=>
+			if(!values)
+			{//all
+				values=this.values.slice();
+				this.clear();
+				return this.add(values);
+			}
+			else
 			{
-				if(values)index=this.values.indexOf(item);//only search index if not iterating over this.values
-				if(index!==-1)
+				var indexes=[];
+				SC.it(values,(item)=>
 				{
-					SC.it(this.sorts,sort=>
+					var index=this.values.indexOf(item);//only search index if not iterating over this.values
+					if(index!==-1)indexes.push(index);
+				});
+				SC.it(this.sorts,sort=>
+				{
+					for(var index of indexes)
 					{
 						var orderIndex=sort.indexOf(index);
 						if(orderIndex!==-1)
 						{
 							sort.splice(orderIndex,1);
-							orderIndex=SA.getOrderIndex(item,this.values,sort.sortFn,sort);
-							sort.splice(orderIndex,0,index);
 						}
-					});
-				}
-			});
+					}
+					for(var index of indexes)
+					{
+						this._addToSort(sort,this.values[index],index);
+					}
+				});
+			}
 			return this;
 		},
 		getIndexes:function(sortName)
 		{
 			if (!this.sorts.has(sortName))return null;
 			else return this.sorts.get(sortName).slice();
-		}
+		},
 		get:function(sortName)
 		{
 			if (!this.sorts.has(sortName))return null;
+			else if (this.library) return this.sorts.get(sortName).map(i=>this.library[i]);
 			else return this.sorts.get(sortName).map(i=>this.values[i]);
+		},
+		clear:function()
+		{
+			this.values.length=this.values.freeIndexes.length=0;
+			SC.it(this.sorts,sort=>sort.length=0);
+			return this;
 		}
 	});
 
@@ -121,26 +159,6 @@
 		}
 		i=Math.min(Math.max(i-1,0),length);
 		return i
-	};
-	/**
-	 * create an Array of ordered indexes of {source} using {sort}
-	 *
-	 * @param {any[]} source
-	 * @param {function} sort	(item, source item ) returns 1,0,-1 whether item is higher,equal,lower than source item
-	 * @param {number[]} (order=[]) array to fill
-	 *
-	 * @return {number[]}
-	 */
-	SA.getSortedOrder=function(source,sort,order)
-	{
-		order=order||[];
-		order.length=0;
-		SC.it(source,function(item,index)
-		{
-			var orderIndex=SA.getOrderIndex(item,source,sort,order);
-			order.splice(orderIndex,0,index);
-		});
-		return order;
 	};
 	
 	/**
