@@ -128,6 +128,12 @@
 			this.values.length=this.values.freeIndexes.length=0;
 			SC.it(this.sorts,sort=>sort.length=0);
 			return this;
+		},
+		destroy:function()
+		{
+			this.values.length=this.values.freeIndexes.length=0;
+			this.sorts.clear();
+			this.mega();
 		}
 	});
 
