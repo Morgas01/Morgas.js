@@ -1,12 +1,42 @@
 var fs=require("fs");
 var path=require("path");
 
+var enshureFolder=function(folderpath)
+{
+	var parts=folderpath.split(/[/\\]/);
+	for(var i=1;i<=parts.length;i++)
+	{
+		var folder=parts.slice(0,i).join(path.sep);
+		if(!fs.existsSync(folder))
+		{
+			fs.mkdirSync(folder);
+		}
+	}
+};
+var rmdir = function(dir) {
+	var list = fs.readdirSync(dir);
+	for(var i = 0; i < list.length; i++) {
+		var filename = path.join(dir, list[i]);
+		var stat = fs.statSync(filename);
+		
+		if(filename == "." || filename == "..") {
+			// pass these files
+		} else if(stat.isDirectory()) {
+			// rmdir recursively
+			rmdir(filename);
+		} else {
+			// rm fiilename
+			fs.unlinkSync(filename);
+		}
+	}
+	fs.rmdirSync(dir);
+};
+
 var dirs=["src","src/DB"];
 
 function concatall(results)
 {
 	return Array.prototype.concat.apply([],results);
-	//return [].concat(Array.slice(results,0));
 }
 function getFileList()
 {
@@ -135,6 +165,10 @@ function mapToMap(arr,map)
 }
 
 //execute
+try
+{
+	rmdir("build");
+} catch (e) {if(e.code!="ENOENT")throw e}
 collectDependencies().then(function(dependencies)
 {
 	require("./src/Morgas.js");
@@ -147,6 +181,7 @@ collectDependencies().then(function(dependencies)
 
 	var minify=function(packageName,files)
 	{
+		enshureFolder(path.dirname("build/"+packageName));
 		files=files.map(function(a){return "src/"+a});
 		try
 		{
@@ -156,7 +191,7 @@ collectDependencies().then(function(dependencies)
 		}
 		catch (e)
 		{
-			console.log("could not minify",packageName,e);
+			console.log("could not minify",packageName,e.message,e.filename,e.line);
 			try
 			{
 				var code=files.map(function(f){return fs.readFileSync(f,{encode:"UTF-8"})}).join("\n");

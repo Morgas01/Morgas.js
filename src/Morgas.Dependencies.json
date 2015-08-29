@@ -21,12 +21,14 @@
 	},
 	"Morgas.Organizer.js": {
 		"deps": [
-			"Morgas.js"
+			"Morgas.js",
+			"Morgas.SortedArray.js"
 		],
 		"uses": [
 			"Morgas.util.object.iterate.js",
 			"Morgas.util.object.equals.js",
-			"Morgas.util.object.goPath.js"
+			"Morgas.util.object.goPath.js",
+			"Morgas.util.function.proxy.js"
 		]
 	},
 	"Morgas.Patch.js": {

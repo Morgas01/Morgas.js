@@ -276,21 +276,25 @@
 	});
 	ORG.sortSimple=SA.simple;
 	ORG.sortGetter=SA.simpleGetter;
-	/*
-	ORG.pathSort=function(path,DESC)
+	
+	/**
+	 * sort by multiple attributes
+	 * @param {string[]} paths array of paths to attributes for sorting
+	 * @param {boolean} (DESC=false)
+	 * @return function
+	 */
+	ORG.attributeSort=function(paths,DESC)
 	{
-		path=path.split(",");
 		return function(obj,obj2)
 		{
 			var rtn=0;
-			for(var i=0;i<path.length&&rtn===0;i++)
+			for(var i=0;i<paths.length&&rtn===0;i++)
 			{
-				rtn=ORG.sort(SC.path(obj,path[i]),SC.path(obj2,path[i]),DESC)
+				rtn=ORG.sort(SC.path(obj,paths[i]),SC.path(obj2,paths[i]),DESC)
 			}
 			return rtn;
 		}
 	};
-	*/
 	
 	SMOD("Organizer",ORG);
 	
