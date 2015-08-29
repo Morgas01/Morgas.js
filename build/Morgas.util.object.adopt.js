@@ -1,1 +1,0 @@
-(function(e,t){var n=e.util=e.util||{},i=n.object||{};i.adopt=function(e,t,n){if(t)for(var i=Object.keys(n?t:e),s=0,r=i[s];i.length>s;r=i[++s])(n||r in t)&&(e[r]=t[r]);return e},t("adopt",i.adopt)})(Morgas,Morgas.setModule,Morgas.getModule);

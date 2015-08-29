@@ -6,4 +6,5 @@
 out/
 target/
 node_modules/
+build/
 *.log

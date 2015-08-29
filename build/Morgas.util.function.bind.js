@@ -1,1 +1,0 @@
-(function(t,e){var n=t.util=t.util||{},o=n.function||{};o.bind=Function.bind.call.bind(Function.bind),e("bind",o.bind)})(Morgas,Morgas.setModule,Morgas.getModule);
