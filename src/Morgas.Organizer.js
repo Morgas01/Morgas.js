@@ -170,9 +170,9 @@
 		{
 			if(this.hasGroup(groupName))
 			{
-				var group=this.getGroup(groupName);
+				var _g=this.getGroup(groupName);
 				var rtn={};
-				for(var g in group)rtn[g]=group[g].getValues();
+				for(var i in _g)rtn[i]=_g[i].getValues();
 				return rtn;
 			}
 			else return undefined;
@@ -195,50 +195,63 @@
 			var indexes=this.mega(values);
 			if(indexes)
 			{
-				SC.it(indexes,index=>
-				{
-					SC.it(this.filters,child=>this._filter(child,index));
-					SC.it(this.maps,map=>this._map(map,index));
-					SC.it(this.groups,group=>this._group(group,index));
-				});
+				this._add(indexes);
 				return indexes;
 			}
 			return null;
 		},
-		remove:function(value)
+		_add:function(indexes)
+		{
+			SC.it(indexes,index=>
+			{
+				SC.it(this.filters,child=>this._filter(child,index));
+				SC.it(this.maps,map=>this._map(map,index));
+				SC.it(this.groups,group=>this._group(group,index));
+			});
+		},
+		remove:function(values)
 		{
 			var indexes=this.mega(values);
 			if(indexes)
 			{
-				SC.it(indexes,index=>
-				{
-					if(this.library)index=
-					SC.it(this.filters,child=>child.remove(index));
-					SC.it(this.maps,map=>{
-						for(var m in map)
-						{
-							if(map[m]===index) delete map[m];
-						}
-					});
-					SC.it(this.groups,group=>{
-						for(var g in group)
-						{
-							group[g].remove(index);
-						}
-					});
-				});
+				this._remove(indexes);
 				return indexes;
 			}
 			return this;
+		},
+		_remove:function(indexes)
+		{
+			SC.it(this.filters,child=>child.remove(indexes));
+			SC.it(this.maps,map=>{
+				for(var m in map.values)
+				{
+					if(indexes.indexOf(map.values[m])!==-1) delete map.values[m];
+				}
+			});
+			SC.it(this.groups,group=>{
+				for(var g in group.values)
+				{
+					group.values[g].remove(indexes);
+				}
+			});
+		},
+		update:function(values)
+		{
+			var indexes=this.mega(values);
+			if(indexes)
+			{
+				this._remove(indexes);
+				this._add(indexes);
+			}
 		},
 		clear:function()
 		{
 			SC.it(this.filters,child=>child.clear());
 			this.maps.clear();
 			SC.it(this.groups,group=>{
-				for(var g in group)
+				for(var g in group.values)
 				{
-					group[g].clear();
+					group.values[g].clear();
 				}
 			});
 			this.values.length=0;
@@ -251,9 +264,9 @@
 			this.filters.clear();
 			this.maps.clear();
 			SC.it(this.groups,group=>{
-				for(var g in group)
+				for(var g in group.values)
 				{
-					group[g].destroy();
+					group.values[g].destroy();
 				}
 			});
 			this.groups.clear();

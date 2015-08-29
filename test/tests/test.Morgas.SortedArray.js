@@ -109,5 +109,13 @@
 
 		deepEqual(sArr.get("ASC"),[1,2,3,5,6,undefined],"asc");
 		deepEqual(sArr.get("DESC"),[6,5,3,2,1,undefined],"desc");
+		library.nothing=0;
+		library.first=7;
+		sArr.update(["first","nothing"]);
+		deepEqual(sArr.get("ASC"),[0,2,3,5,6,7],"asc");
+		deepEqual(sArr.get("DESC"),[7,6,5,3,2,0],"desc");
+		sArr.remove(["nothing"]);
+		deepEqual(sArr.get("ASC"),[2,3,5,6,7],"asc");
+		deepEqual(sArr.get("DESC"),[7,6,5,3,2],"desc");
 	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

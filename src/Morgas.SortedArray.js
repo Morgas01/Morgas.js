@@ -80,8 +80,12 @@
 								var orderIndex=sort.indexOf(index);
 								if (orderIndex!==-1) sort.splice(orderIndex,1);
 							});
-							delete this.values[index];
-							this.values.freeIndexes.push(index);
+							if(valueIndex===this.values.length-1)this.values.length--;
+							else
+							{
+								delete this.values[valueIndex];
+								this.values.freeIndexes.push(valueIndex);
+							}
 							indexes.push(index);
 						}
 					}
@@ -103,13 +107,14 @@
 				var indexes=[];
 				SC.it(values,(item)=>
 				{
-					var index=this.values.indexOf(item);//only search index if not iterating over this.values
+					var index=this.values.indexOf(item);
 					if(index!==-1)indexes.push(index);
 				});
 				SC.it(this.sorts,sort=>
 				{
 					for(var index of indexes)
 					{
+						if(this.library)index=this.values[index];
 						var orderIndex=sort.indexOf(index);
 						if(orderIndex!==-1)
 						{
@@ -121,8 +126,9 @@
 						this._addToSort(sort,this.values[index],index);
 					}
 				});
+				return indexes;
 			}
-			return this;
+
 		},
 		getIndexes:function(sortName)
 		{
@@ -137,7 +143,15 @@
 		},
 		getValues:function()
 		{
-			if(this.library)return this.values.map(i=>this.library[i]);
+			if(this.library)
+			{
+				console.log(this.values,Object.keys(this.values));
+				var rtn=[];
+				for(var i in this.values)
+					if(i!=="freeIndexes")
+						rtn.push(this.library[this.values[i]]);
+				return rtn;
+			}
 			return null;
 		},
 		/**
