@@ -118,11 +118,11 @@
 			else return null;
 		},
 		
-		group:function(groupName,groupFn)
+		group:function(groupName,groupFn,createFn)
 		{
 			if(typeof groupFn==="string")
 				groupFn=SC.goPath.guide(groupFn);
-			var group={values:{},groupFn:groupFn};
+			var group={values:{},groupFn:groupFn,createFn:createFn};
 			if(this.hasGroup(groupName))this.removeGroup(groupName);
 			this.groups.set(groupName,group);
 			for(var i=0;i<this.values.length;i++)
@@ -144,6 +144,7 @@
 				if(!(gKey in group.values))
 				{
 					var child=new ORG();
+					if(group.createFn)group.createFn(child,gKey);
 					child.library=this.library||this.values;
 					group.values[gKey]=child;
 				}
@@ -217,7 +218,7 @@
 				this._remove(indexes);
 				return indexes;
 			}
-			return this;
+			return indexes;
 		},
 		_remove:function(indexes)
 		{
