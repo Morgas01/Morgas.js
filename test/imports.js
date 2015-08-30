@@ -69,7 +69,7 @@
 
 	WR(srcDir+"Morgas.Organizer.js");
 	WR(testDir+"test.Morgas.Organizer.js");
-/*
+
 	WR(srcDir+"Morgas.NodePatch.js");
 	WR(testDir+"test.Morgas.NodePatch.js");
 	
@@ -86,6 +86,6 @@
 
 	WR(srcDir+"DB/Morgas.DB.IndexedDBConnector.js");
 	WR(testDir+"test.Morgas.DB.IndexedDBConnector.js");
-	*/
+	
 
 })();
