@@ -114,8 +114,7 @@
 		},
 		loadFriends:function(obj,relationName,pattern)
 		{
-			var _self=this,
-				rel=obj.relations[relationName],
+			var rel=obj.relations[relationName],
 				friendClass=rel.relatedClass,
 				fRel=new friendClass().relations[rel.targetRelationName],
 				id=obj.objectType+"_ID",
@@ -138,7 +137,7 @@
 				{
 					fPattern[fid]=fPattern[id];
 					delete fPattern[id];
-					return _self.load(friendship,fPattern).then(function(results2)
+					return this.load(friendship,fPattern).then(function(results2)
 					{
 						for(var i=0;i<results2.length;i++)
 						{
@@ -148,17 +147,20 @@
 						}
 						return results.concat(results2);
 					});
-				})
+				});
 			}
 			p=p.then(function(results)
 			{
-				pattern.ID=results.map(function(val)
+				if(results.length>0)
 				{
-					return val.fields[fid].value;
-				});
-				return _self.load(friendClass,pattern);
+					pattern.ID=results.map(function(val)
+					{
+						return val.fields[fid].value;
+					});
+					return this.load(friendClass,pattern);
+				}
+				else return [];
 			});
-			p.error(µ.logger.debug);
 			return p;
 		},
 		deleteFriendships:function(obj,relationName)

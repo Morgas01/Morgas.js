@@ -96,7 +96,7 @@
 					};
 
 					var store = trans.objectStore(objClass.prototype.objectType);
-					if(typeof pattern.ID==="number"|| Array.isArray(pattern.ID))
+					if(typeof pattern.ID==="number"|| (Array.isArray(pattern.ID) && pattern.ID.length>0))
 					{
 						var reqs=SC.it([].concat(pattern.ID),function(ID)
 						{

@@ -27,6 +27,8 @@
 	});
 	window.DBTest=function(dbConn,extra)
 	{
+		sessionStorage.clear(); //clear to ensure execution order
+
 		var obj1=new testObject({
 			testInt:10,
 			testDouble:1.1,
@@ -48,133 +50,112 @@
 		
 		obj1.addChild("childRel",obj2);
 		obj2.addFriend("friendRel",obj3);
-		var p;
-		asyncTest("save single",function()
+
+		//tests
+
+		test("save single",function()
 		{
-			p=dbConn.save(obj1);
-			p.then(function()
+			console.log("save single");
+			return dbConn.save(obj1).then(function()
 			{
 				notEqual(obj1.getID(),undefined,"ID generated");
-				start();
-			},µ.logger.error);
+			});
 		});
-		asyncTest("save multiple",function()
+		test("save multiple",function()
 		{
-			p=p.then(function()
-			{
-				obj1.setValueOf("testDouble",1.2);
-				return dbConn.save([obj1,obj2,obj3]);
-			},µ.logger.error);
-			p.then(function()
+			console.log("save multiple");
+			obj1.setValueOf("testDouble",1.2);
+			return dbConn.save([obj1,obj2,obj3])
+			.then(function()
 			{
 				notEqual(obj1.getID(),undefined,"ID generated");
 				notEqual(obj2.getID(),undefined,"ID generated");
 				notEqual(obj3.getID(),undefined,"ID generated");
-				start();
-			},µ.logger.error);
+			});
 		});
-		asyncTest("save friendships",function()
+		test("save friendships",function()
 		{
-			p=p.then(function()
-			{
-				return dbConn.saveFriendships(obj2,"friendRel");
-			},µ.logger.error);
-			p.then(function()
+			console.log("save friendships");
+			return dbConn.saveFriendships(obj2,"friendRel")
+			.then(function()
 			{
 				ok(true);
-				start();
+			});
+		});
+		test("load single via int",function()
+		{
+			console.log("load single via int");
+			return dbConn.load(testObject,{testInt:10}).then(function(result)
+			{
+				deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load single via int");
+				equal(result.length,1,"result count");
+			});
+		});
+		test("load multiple via string",function()
+		{
+			console.log("load multiple via string");
+			return dbConn.load(testObject,{testString:"testString"}).then(function(result)
+			{
+				deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load multiple via string (1)");
+				deepEqual(result[1]&&result[1].toJSON(),obj2.toJSON(),"load multiple via string (2)");
+				equal(result.length,2,"result count");
+			});
+		});
+		test("load relations",function()
+		{
+			console.log("load relations");
+			var o1,o2;
+			return dbConn.loadFriends(obj3,"friendRel",{testInt:20})
+			.then(function(result)
+			{
+				o2=result[0];
+				deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
+				return dbConn.loadParent(o2,"parentRel");
+			},µ.logger.error)
+			.then(function(result)
+			{
+				o1=result;
+				deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
+			},µ.logger.error)
+		});
+		test("deleteFriendships",function()
+		{
+			console.log("deleteFriendships");
+			return dbConn.deleteFriendships(obj2,"friendRel")
+			.then(function()
+			{
+				return dbConn.loadFriends(obj3,"friendRel",{testInt:20});
+			},µ.logger.error)
+			.then(function(result)
+			{
+				strictEqual(result.length,0,"firendship deleted");
 			},µ.logger.error);
 		});
-		asyncTest("load single via int",function()
+		test("delete",function()
 		{
-			p=p.then(function()
+			console.log("delete");
+			return dbConn["delete"](testObject,obj1)
+			.then(function()
 			{
-				return dbConn.load(testObject,{testInt:10}).then(function(result)
-				{
-					deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load single via int");
-					equal(result.length,1,"result count");
-
-					start();
-				},µ.logger.error)
-			},µ.logger.error);
-		});
-		asyncTest("load multiple via string",function()
-		{
-			p=p.then(function()
+				return dbConn.load(testObject,{testInt:10});
+			},µ.logger.error)
+			.then(function(result)
 			{
-				return dbConn.load(testObject,{testString:"testString"}).then(function(result)
-				{
-					deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load multiple via string (1)");
-					deepEqual(result[1]&&result[1].toJSON(),obj2.toJSON(),"load multiple via string (2)");
-					equal(result.length,2,"result count");
-					start();
-				},µ.logger.error)
-			},µ.logger.error);
-		});
-		asyncTest("load relations",function()
-		{
-			p=p.then(function()
+				strictEqual(result.length,0,"deleted Object");
+				return dbConn["delete"](testObject,{testBool:true});
+			},µ.logger.error)
+			.then(function()
 			{
-				var o1,o2;
-				return dbConn.loadFriends(obj3,"friendRel",{testInt:20})
-				.then(function(result)
-				{
-					o2=result[0];
-					deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
-					return dbConn.loadParent(o2,"parentRel");
-				},µ.logger.error)
-				.then(function(result)
-				{
-					o1=result;
-					deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
-					start();
-				},µ.logger.error)
-			},µ.logger.error);
-		});
-		asyncTest("deleteFriendships",function()
-		{
-			p=p.then(function()
+				return dbConn.load(testObject,{testBool:true});
+			},µ.logger.error)
+			.then(function(result)
 			{
-				return dbConn.deleteFriendships(obj2,"friendRel")
-				.then(function()
-				{
-					return dbConn.loadFriends(obj3,"friendRel",{testInt:20});
-				},µ.logger.error)
-				.then(function(result)
-				{
-					strictEqual(result.length,0,"firendship deleted");
-					start();
-				},µ.logger.error)
-			},µ.logger.error);
-		});
-		asyncTest("delete",function()
-		{
-			p=p.then(function()
-			{
-				return dbConn["delete"](testObject,obj1)
-				.then(function()
-				{
-					return dbConn.load(testObject,{testInt:10});
-				},µ.logger.error)
-				.then(function(result)
-				{
-					strictEqual(result.length,0,"deleted Object");
-					return dbConn["delete"](testObject,{testBool:true});
-				},µ.logger.error)
-				.then(function()
-				{
-					return dbConn.load(testObject,{testBool:true});
-				},µ.logger.error)
-				.then(function(result)
-				{
-					strictEqual(result.length,0,"deleted pattern");
-					start();
-				},µ.logger.error)
-			},µ.logger.error);
+				strictEqual(result.length,0,"deleted pattern");
+			});
 		});
 		if(extra)
 		{
-			p=p.then(extra,µ.logger.error)
+			extra(dbConn);
 		}
 	};
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

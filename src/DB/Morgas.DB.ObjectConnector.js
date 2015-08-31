@@ -18,9 +18,9 @@
 	{
 		return new ORG().group("objectType","objectType",function(tDb)
 		{
-			tDb.map("id","fields.id.value");
+			tDb.map("ID","fields.ID");
 		});
-	}
+	};
 	
 	var OCON=DBC.ObjectConnector=µ.Class(DBC,
 	{
@@ -54,13 +54,13 @@
 			for(var objectType in sortedObjs.preserved)
 			{
 				var objs=sortedObjs.preserved[objectType],
-				ids=this.db.getGroupPart("objectType",objectType).getMap("id");
+				ids=this.db.getGroupPart("objectType",objectType).getMap("ID");
 				for(var i=0;i<objs.length;i++)
 				{
 					var found=ids[objs[i].getID()];
 					if(found)
 					{
-						found.value.fields=objs[i].toJSON();
+						found.fields=objs[i].toJSON();
 						updates.push(found)
 					}
 				}
@@ -70,13 +70,14 @@
 			for(var objectType in sortedObjs.friend)
 			{
 				var objs=sortedObjs.friend[objectType],
-				group=this.db.getGroupValue("objectType",objectType),
-				newFriends=[];
+					tDb=this.db.getGroupPart("objectType",objectType),
+					tDbValues=tDb ? tDb.getValues():null,
+					newFriends=[];
+
 				for(var i=0;i<objs.length;i++)
 				{
 					var json={fields:objs[i].toJSON()};
-					var found=SC.find(group,json);
-					if(found.length===0)
+					if(!tDbValues||SC.find(tDbValues,json))
 					{
 						json.objectType=objs[i].objectType;
 						newFriends.push(json);
@@ -89,30 +90,34 @@
 		load:function(signal,objClass,pattern,sort)
 		{
 			var tDb=this.db.getGroupPart("objectType",objClass.prototype.objectType);
-			
+			if(!tDb) return signal.resolve([]);
 			var patternKey=null;
 			switch(typeof pattern)
 			{
-				case "string":
-					patternKey=pattern;
-					break;
 				case "object":
-					patternkey=JSON.stringify(pattern);
+					patternKey=JSON.stringify(pattern);
+					pattern={fields:pattern};
 					break;
 				case "function":
-					patternKey=pattern
+					patternKey=pattern;
+					break;
+				default:
+					patternKey=pattern;
+					break;
 			}
-			if(!tDb.hasFilter(patternKey)) tDb.filter(pattnerKey,pattern);
+			if(!tDb.hasFilter(patternKey)) tDb.filter(patternKey,pattern);
 			var pDb=tDb.getFilter(patternKey);
-			
+			var rtn;
 			if(sort)
 			{
 				sort=[].concat(sort).map(s=>"fields."+s+".value");
 				var sortKey=JSON.stringify(sort);
 				if(!pDb.hasSort(sortKey)) pDb.sort(sortKey,ORG.attributeSort(sort));
-				signal.resolve(pDb.getSort(sortKey));
+				rtn=pDb.getSort(sortKey);
 			}
-			else signal.resolve(pDb.getValues());
+			else rtn=pDb.getValues();
+			rtn=rtn.map(r=>new objClass().fromJSON(r.fields));
+			signal.resolve(rtn);
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
@@ -134,13 +139,13 @@
 			var rtn=[],
 			tDb=this.db.getGroupPart("objectType",objectType);
 			if(!tDb)return [0];
-			var ids=Object.keys(tDb.getIndexMap("id"));
+			var ids=Object.keys(tDb.getIndexMap("ID"));
 			var i=0;
 			for(;ids.length>0;i++)
 			{
-				var index=ids.indexOf(i);
+				var index=ids.indexOf(""+i);
 				if(index===-1) rtn.push(i);
-				else group.splice(index,1);
+				else ids.splice(index,1);
 			}
 			rtn.push(i);
 			return rtn;
