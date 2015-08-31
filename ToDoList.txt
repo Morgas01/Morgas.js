@@ -2,8 +2,6 @@
 	-	DBWorker
 	-	batch ?
 
-use µ.Promise instead of µ.Detached
-
 µ.DB.Connector, µ.DB.Connector.*:
 	-	getObjectTypes()
 
@@ -12,6 +10,9 @@ use µ.Promise instead of µ.Detached
 	
 Morgas.util.object.inputValues.js:
 	-	array support
+
+Morgas.DependencyResolver:
+	-   fulfill dependency
 NEW:
 	generic DB Object
 	RemoteDBConnector (worker/REST)
