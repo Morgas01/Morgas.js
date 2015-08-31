@@ -1,11 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	 /**
-	 * Depends on	: Morgas, Organizer
-	 * Uses			: util.object, DB
+	 * Deprecated
 	 *
-	 * LazyCache loads DB.Objects as needed and organizes them
-	 *
-	 */
 	var ORG=GMOD("Organizer");
 
 	SC=SC({
@@ -142,4 +138,5 @@
 		}
 		return ORG.filterPattern(newPattern);
 	};
+	*/
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
