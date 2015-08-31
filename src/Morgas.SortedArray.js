@@ -145,7 +145,6 @@
 		{
 			if(this.library)
 			{
-				console.log(this.values,Object.keys(this.values));
 				var rtn=[];
 				for(var i in this.values)
 					if(i!=="freeIndexes")
