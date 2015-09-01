@@ -21,7 +21,7 @@ module.exports=function minify(packageName,files,folder)
 		try
 		{
 			var code=files.map(function(f){return fs.readFileSync(f,{encode:"UTF-8"})}).join("\n");
-			fs.writeFileSync(folder+packageName,code);
+			fs.writeFileSync(folder,code);
 		}
 		catch(e)
 		{

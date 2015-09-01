@@ -1,7 +1,6 @@
 var fs=require("fs");
 var path=require("path");
 
-var enshureFolder=require("./src/NodeJs/enshureFolder");
 var removeFolder=require("./src/NodeJs/removeFolder");
 var minify=require("./minify");
 
@@ -21,7 +20,7 @@ require("./parseDependencies")(["src","src/DB"]).then(function(result)
 	require("./src/Morgas.js");
 
 	require("./src/Morgas.DependencyResolver.js");
-	var resolver=new µ.DependencyResolver(dependencies);
+	var resolver=new µ.DependencyResolver(result.dependencies);
 
 	files=Object.keys(resolver.config);
 	for(var i=0;i<files.length;i++)
