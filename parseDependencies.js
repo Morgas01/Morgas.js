@@ -85,21 +85,20 @@ module.exports=function collectDependencies(dirs)
 					}
 				}
 			}
-			fs.writeFile("src/Morgas.ModuleRegister.json",JSON.stringify(moduleFiles,null,"\t"),function(err)
-			{
-				if(err) console.error("could not save ModuleRegister",err);
-			});
-			var rtn={};
+			var rtn={
+				modules:moduleFiles,
+				dependencies:{}
+			};
 			for(var i=0;i<dependencies.length;i++)
 			{
 				var dep=dependencies[i];
 				if(dep.file=="Morgas.js")
 				{
-					rtn[dep.file]=true;
+					rtn.dependencies[dep.file]=true;
 				}
 				else
 				{
-					rDep=rtn[dep.file]={};
+					rDep=rtn.dependencies[dep.file]={};
 					if(!dep.deps)
 					{
 						rDep.deps=["Morgas.js"];
@@ -123,10 +122,6 @@ module.exports=function collectDependencies(dirs)
 					}
 				}
 			}
-			fs.writeFile("src/Morgas.Dependencies.json",JSON.stringify(rtn,null,"\t"),function(err)
-			{
-				if(err) console.error("could not save Dependencies",err);
-			});
 			return rtn;
 		});
 };
