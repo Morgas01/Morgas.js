@@ -55,6 +55,10 @@
 		{
 			urls=param.slice();
 		}
+		else
+		{
+			urls=[].concat(param.urls);
+		}
 		
 		param={
 			method:param.method||(param.data?"POST":"GET"),
