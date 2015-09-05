@@ -72,6 +72,12 @@
 		};
 		return param;
 	};
+	/**
+	 * 
+	 * @param {string|string[]|requestParam} param
+	 * @param {any} scope
+	 * @returns {Morgas.Promise}
+	 */
 	REQ=µ.util.Request=function Request_init(param,scope)
 	{
 		param=parseParam(param);
@@ -81,10 +87,8 @@
 
 	REQ.json=function Request_Json(param,scope)
 	{
-		if(typeof param ==="string")
-		{
-			param={url:param};
-		}
+
+		param=parseParam(param);
 		param.responseType="json";
 		return REQ(param,scope);
 	};

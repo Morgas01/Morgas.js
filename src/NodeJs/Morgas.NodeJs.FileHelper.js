@@ -51,7 +51,7 @@
 				return (files||this.ls()).filter(function(a)
 				{
 					var s=FS.statSync(PATH.resolve(dir,a))
-					return s&&s.size==0
+					return s&&s.size==0&&s.isFile()
 				});
 			}
 			else if (pattern==="noCRC")
@@ -63,7 +63,11 @@
 			{
 				return this.selected
 			}
-			else return (files||this.ls()).filter(function(a){return a.indexOf(pattern)==0});
+			else
+			{
+				pattern=pattern.toLowerCase()
+				return (files||this.ls()).filter(function(a){return a.toLowerCase().indexOf(pattern)!==-1});
+			}
 		},
 		isEmpty:function(fileName)
 		{

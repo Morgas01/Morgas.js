@@ -12,10 +12,14 @@
 		var addition=PATH.join(line+"dirt","..");
 		if(addition!==".")
 		{
-			line=line.substr(addition.length+1);
-			return this.fh.ls(addition).filter(function(a){return a.indexOf(line)==0}).map(function(a){return PATH.join(addition,a)});
+			line=line.substr(addition.length+1).toLowerCase();
+			return this.fh.ls(addition).filter(function(a){return a.toLowerCase().indexOf(line)==0}).map(function(a){return PATH.join(addition,a)});
 		}
-		else return ["all","empty","noCRC","selected"].concat(this.fh.ls()).filter(function(a){return a.indexOf(line)==0});
+		else
+		{
+			line=line.toLowerCase();
+			return ["all","empty","noCRC","selected"].concat(this.fh.ls()).filter(function(a){return a.toLowerCase().indexOf(line)==0});
+		}
 	};
 	var selectedFileNameCompleter=function(line)
 	{
