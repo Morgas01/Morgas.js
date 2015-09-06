@@ -57,7 +57,7 @@
 		}
 		else
 		{
-			urls=[].concat(param.urls);
+			urls=param.urls||[].concat(param.url);
 		}
 		
 		param={
