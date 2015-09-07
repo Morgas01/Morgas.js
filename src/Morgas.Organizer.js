@@ -279,7 +279,7 @@
 					});
 				};
 			var rtn={
-				getIndexes:outer=>(outer?outside:inside).filter(i=>i!=undefined).,
+				getIndexes:outer=>(outer?outside:inside).filter(i=>i!=undefined),
 				get:outer=>rtn.getIndexes(outer.map(i=>(this.library?this.library:this.values)[i]),
 				filter:name=>
 				{
