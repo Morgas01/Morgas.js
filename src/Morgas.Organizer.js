@@ -279,7 +279,8 @@
 					});
 				};
 			var rtn={
-				get:outer=>(outer?outside:inside).filter(i=>i!=undefined).map(i=>(this.library?this.library:this.values)[i]),
+				getIndexes:outer=>(outer?outside:inside).filter(i=>i!=undefined).,
+				get:outer=>rtn.getIndexes(outer.map(i=>(this.library?this.library:this.values)[i]),
 				filter:name=>
 				{
 					if(this.hasFilter(name))_doCombine(this.getFilter(name).values);
