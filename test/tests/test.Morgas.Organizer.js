@@ -145,4 +145,30 @@
 		
 		deepEqual(child.getSort("sorted"),[],"child removed");
 	});
+
+	test("combine",function()
+	{
+		var org=new ORG([2,8,4,6,9,3,7,0,1,5])
+			.sort("ASC",ORG.sortSimple(false))
+			.group("%2",function(a){return a%2==0?"even":"odd"})
+			.filter(">=5",function(a){return a>=5});
+		var c;
+		c=org.combine().filter(">=5");
+		deepEqual([c.get(),c.get(true)],[[8,6,9,7,5],[2,4,3,0,1]],"single filter");
+
+		c=org.combine(false,"ASC").filter(">=5");
+		deepEqual([c.get(),c.get(true)],[[5,6,7,8,9],[0,1,2,3,4]],"sort filter");
+
+		c=org.combine().group("%2","even");
+		deepEqual([c.get(false),c.get(true)],[[2,8,4,6,0],[9,3,7,1,5]],"single group");
+
+		c=org.combine().filter(">=5").group("%2","even");
+		deepEqual([c.get(false),c.get(true)],[[8,6],[2,4,9,3,7,0,1,5]],"filter+group");
+
+		c=org.combine(true).filter(">=5").group("%2","even");
+		deepEqual([c.get(false),c.get(true)],[[2,8,4,6,9,7,0,5],[3,1]],"some filter+group");
+
+		c=org.combine(true,"ASC").filter(">=5").group("%2","even");
+		deepEqual([c.get(false),c.get(true)],[[0,2,4,5,6,7,8,9],[1,3]],"sort some filter+group");
+	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

@@ -258,9 +258,10 @@
 			this.values.length=0;
 			return this;
 		},
-		combine:function(some)
+		combine:function(some,sort)
 		{
-			var indexes=this.library?this.values.slice():this.values.map((a,i)=>i),
+			some=!!some;
+			var indexes=this.hasSort(sort)?this.getIndexSort(sort):(this.library ? this.values.slice() : this.values.map((a,i)=>i)),
 				inside=some?[]:indexes,
 				outside=some?indexes:[],
 				_doCombine=list=>
@@ -268,17 +269,17 @@
 					var i=inside,o=outside;
 					if(some)i=outside,o=inside;
 					
-					for(var x=i.length;x>=0;x--)
+					i.forEach((value,index)=>
 					{
-						if((list.indexOf(i[x])!==-1)!=some)// in list XOR collecting those in some lists
+						if((list.indexOf(value)!==-1)==some)// in list XOR collecting those in some lists
 						{
-							o.push(i[x]);
-							i.splice(x,1);
+							o[index]=value;
+							delete i[index];
 						}
-					}
-				}
+					});
+				};
 			var rtn={
-				get:inner=>(inner?inside:outside).map(i=>(this.library?this.library:this.values)[i]),
+				get:outer=>(outer?outside:inside).filter(µ.constantFunctions.pass).map(i=>(this.library?this.library:this.values)[i]),
 				filter:name=>
 				{
 					if(this.hasFilter(name))_doCombine(this.getFilter(name).values);
@@ -292,7 +293,7 @@
 				}
 			};
 			return rtn;
-		}
+		},
 		
 		destroy:function()
 		{

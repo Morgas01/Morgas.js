@@ -19,6 +19,7 @@
 			this.library=library;
 			this.add(values);
 		},
+		hasSort:function(sortName){return this.sorts.has(sortName)},
 		sort:function(sortName,sortFn)
 		{
 			var sort=[];
