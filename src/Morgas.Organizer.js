@@ -280,7 +280,7 @@
 				};
 			var rtn={
 				getIndexes:outer=>(outer?outside:inside).filter(i=>i!=undefined),
-				get:outer=>rtn.getIndexes(outer.map(i=>(this.library?this.library:this.values)[i])),
+				get:outer=>rtn.getIndexes(outer).map(i=>(this.library?this.library:this.values)[i]),
 				filter:name=>
 				{
 					if(this.hasFilter(name))_doCombine(this.getFilter(name).values);
@@ -291,7 +291,14 @@
 					var part=this.getGroupPart(name,part);
 					if(part)_doCombine(part.values);
 					return rtn;
-				}
+				},
+				combine:c=>
+				{
+					if(c._getOrigin()===this||c._getOrigin().library===this.library)
+						_doCombine(c.getIndexes());
+					return rtn;
+				},
+				_getOrigin:()=>this
 			};
 			return rtn;
 		},

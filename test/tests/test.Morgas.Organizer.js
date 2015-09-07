@@ -170,5 +170,11 @@
 
 		c=org.combine(true,"ASC").filter(">=5").group("%2","even");
 		deepEqual([c.get(false),c.get(true)],[[0,2,4,5,6,7,8,9],[1,3]],"sort some filter+group");
+
+		c=org.combine().filter(">=5").combine(org.combine().group("%2","even"));
+		deepEqual([c.get(false),c.get(true)],[[8,6],[2,4,9,3,7,0,1,5]],"combine filter group");
+
+		c=org.combine(true,"ASC").filter(">=5").combine(org.combine().group("%2","even"));
+		deepEqual([c.get(false),c.get(true)],[[0,2,4,5,6,7,8,9],[1,3]],"sort some combine filter group");
 	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
