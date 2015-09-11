@@ -10,8 +10,8 @@
 		.sort("ASC",SA.simple(false))
 		.sort("DESC",SA.simple(true));
 
-		sArr.add([6,2,9,8,1]);
-		sArr.add({a:7,b:5,c:4,d:0,e:3});
+		sArr.add([6,2,9,3,1]);
+		sArr.add({a:7,b:5,c:4,d:0,e:8});
 
 		deepEqual(sArr.get("ASC"),[0,1,2,3,4,5,6,7,8,9],"asc");
 		deepEqual(sArr.get("DESC"),[9,8,7,6,5,4,3,2,1,0],"desc");

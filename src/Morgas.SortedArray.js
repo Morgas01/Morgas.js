@@ -192,6 +192,7 @@
 	 */
 	SA.getOrderIndex=function(item,source,sort,order)
 	{
+		debugger;
 		//start in the middle
 		var length=(order?order:source).length;
 		var jump=Math.ceil(length/2);
@@ -204,6 +205,7 @@
 			//jump half the size in direction of this sort			(if equals jump 1 to conserv the order)
 			jump=Math.ceil(Math.abs(jump)/2)*Math.sign(sort(item,compare)) ||1;
 			i+=jump;
+			if((i<1||i>length)&&Math.abs(jump)>1)i=Math.max(1,Math.min(length,i));
 		}
 		i=Math.min(Math.max(i-1,0),length);
 		return i
