@@ -15,7 +15,6 @@ var oldGetModule=µ.getModule;
 		{
 			try
 			{
-				console.log("./"+key);
 				µ.setModule(key,require("./"+key));
 			}
 			catch(e)
