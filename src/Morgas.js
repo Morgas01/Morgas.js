@@ -47,7 +47,6 @@
 			return modules[key];
 		};
 	})();
-	var SMOD=µ.setModule,GMOD=µ.getModule,HMOD=µ.hasModule;
 	
 	/**
 	 * log message if it's verbose is >= the current verbose.
@@ -145,10 +144,10 @@
 					{
 						if(typeof path=="function")
 							value=path(context);
-						else if(context&&HMOD("goPath"))
-							value=GMOD("goPath")(context,path);
-						else if (HMOD(path))
-							value=GMOD(path);
+						else if(context&&µ.hasModule("goPath"))
+							value=µ.getModule("goPath")(context,path);
+						else if (µ.hasModule(path))
+							value=µ.getModule(path);
 						else
 							µ.logger.error(new ReferenceError("shortcut: could not evaluate "+path))
 					}
@@ -200,7 +199,7 @@
 		var newClass = function ClassConstructor()
 		{
 			this.init.apply(this,arguments);
-			if(HMOD("Listeners")&&this instanceof GMOD("Listeners"))
+			if(µ.hasModule("Listeners")&&this instanceof µ.getModule("Listeners"))
 			{
 				this.setState(".created");
 			}

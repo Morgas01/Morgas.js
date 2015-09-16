@@ -136,8 +136,9 @@
 			if(!this.disabled)
 			{
 				var run=true;
-                for(var [scope,entry] of this.listeners)
+                for(var step of this.listeners)
                 {
+                	var scope=step[0],entry=step[1];
                     var it=entry.first.values();
                     var step=undefined;
                     var value=undefined;

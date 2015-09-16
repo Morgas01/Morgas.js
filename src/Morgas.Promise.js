@@ -131,7 +131,8 @@
 		else args=[].concat(args);
 		return function vow()
 		{
-			var vArgs=args.concat(Array.slice(arguments));
+			//TODO replace with Array.slice
+			var vArgs=args.concat(Array.prototype.slice.call(arguments));
 			return new PROM(fn,{args:vArgs,scope:scope});
 		}
 	};

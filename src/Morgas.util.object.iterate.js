@@ -61,10 +61,6 @@
 	obj.iterate=function(any,func,backward,isObject,scope)
 	{
 		var rtn=[];
-		if(!scope)
-		{
-			scope=window;
-		}
 		if(any.length>=0&&!isObject)
 		{//Array like
 			for(var i=(backward?any.length-1:0);i>=0&&i<any.length;i+=(backward?-1:1))

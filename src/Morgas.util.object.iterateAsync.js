@@ -14,10 +14,6 @@
 	 */
 	obj.iterateAsync=function(any,func,backward,isObject,scope,chunk)
 	{
-		if(!scope)
-		{
-			scope=window;
-		}
 		if(!chunk)
 		{
 			chunk=obj.iterateAsync.chunk;

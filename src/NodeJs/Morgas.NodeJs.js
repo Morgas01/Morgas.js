@@ -2,13 +2,19 @@ var path=require("path");
 var fs=require("fs");
 require(path.join("..","Morgas"));
 
-var moduleRegister =	require("../Morgas.ModuleRegister");
+var moduleRegister = require("../Morgas.ModuleRegister");
 
+var oldhasModule=µ.hasModule;
 var oldGetModule=µ.getModule;
 
+µ.hasModule=function(key)
+{
+	if(key in moduleRegister|| fs.existsSync(path.resolve(__dirname,key+".js")))return true;
+	return false;
+}
 µ.getModule=function(key)
 {
-	if(!µ.hasModule(key))
+	if(!oldhasModule(key))
 	{
 		if(key in moduleRegister)require(path.join("..",moduleRegister[key]));
 		else
@@ -25,3 +31,7 @@ var oldGetModule=µ.getModule;
 	}
 	return oldGetModule(key);
 };
+
+/* polyfills */
+
+Array.slice=Array.prototype.slice.call.bind(Array.slice);

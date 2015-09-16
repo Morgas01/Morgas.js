@@ -226,7 +226,8 @@
 						return new SC.prom(reqs).then(function()
 						{
 							db.close();
-							signal.resolve(Array.slice(arguments));
+							//TODO replace with Array.slice
+							signal.resolve(Array.prototype.slice.call(arguments));
 						},µ.logger.error);
 					});
 				}
