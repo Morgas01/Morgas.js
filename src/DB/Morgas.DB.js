@@ -287,6 +287,12 @@
 		addField:function(name,type,value,options)
 		{
 			this.fields[name]=new FIELD(type,value,options);
+			Object.defineProperty(this,name,{
+				configurable:false,
+				enumerable:true,
+				get:()=>this.getValueOf(name),
+				set:v=>this.setValueOf(name,v)
+			});
 		},
 		getValueOf:function(fieldName){return this.fields[fieldName].getValue();},
 		setValueOf:function(fieldName,val){if(fieldName!="ID")this.fields[fieldName].setValue(val);},
