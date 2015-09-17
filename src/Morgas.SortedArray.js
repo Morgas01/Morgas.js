@@ -192,7 +192,6 @@
 	 */
 	SA.getOrderIndex=function(item,source,sort,order)
 	{
-		debugger;
 		//start in the middle
 		var length=(order?order:source).length;
 		var jump=Math.ceil(length/2);
