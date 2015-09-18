@@ -100,6 +100,7 @@
 					break;
 				case "function":
 					patternKey=pattern;
+					pattern={fields:pattern};
 					break;
 				default:
 					patternKey=pattern;
