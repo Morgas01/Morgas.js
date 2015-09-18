@@ -142,17 +142,23 @@
 			else if (this.library) return this.sorts.get(sortName).map(i=>this.library[i]);
 			else return this.sorts.get(sortName).map(i=>this.values[i]);
 		},
+		/**
+		 * returns an Array of values without empty entries.
+		 * uses libary if there is one
+		 * @returns {any[]}
+		 */
 		getValues:function()
 		{
-			if(this.library)
+			var rtn=[];
+			for(var i in this.values)
 			{
-				var rtn=[];
-				for(var i in this.values)
-					if(i!=="freeIndexes")
-						rtn.push(this.library[this.values[i]]);
-				return rtn;
+				if(i!=="freeIndexes")
+				{
+					if(this.library) rtn.push(this.library[this.values[i]]);
+					else rtn.push(this.values[i]);
+				}
 			}
-			return null;
+			return rtn;
 		},
 		/**
 		 * returns value for the library index.
