@@ -56,7 +56,7 @@
 		},
 		flush:function()
 		{
-			var data=JSON.stringify(this.db.values);
+			var data=JSON.stringify(this.db.getValues());
 			var fp=this.filePath;
 			fs.writeFile(fp,data,function(err)
 			{
