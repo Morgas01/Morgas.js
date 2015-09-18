@@ -245,14 +245,16 @@
 		}
 		if(Array.isArray(toDelete))
 		{
+			var ids=[];
 			for(var i=0;i<toDelete.length;i++)
 			{
 				if(toDelete[i] instanceof objClass)
 				{
-					toDelete[i]=toDelete[i].getID();
+					ids.push(toDelete[i].getID());
 				}
+				else ids.push(toDelete[i]);
 			}
-			toDelete={ID:toDelete};
+			toDelete={ID:ids};
 		}
 		return toDelete;
 	};
