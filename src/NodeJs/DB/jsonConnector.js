@@ -11,7 +11,7 @@
 	});
 	
 	module.exports=µ.Class(OCON,{
-		init:function(filePath,flushTimeout)
+		init:function(filePath,flushTimeout,maxFlushTimeout)
 		{
 			this.mega(true);
 
@@ -27,7 +27,9 @@
 				µ.logger.warn(new µ.Warning("failed to load dbFile "+this.filePath,e));
 			}
 			this.flushTimer=null;
-			this.flushTimeout=flushTimeout||2000;
+			this.maxFlushTimer=null;
+			this.flushTimeout=flushTimeout||1000;
+			this.maxFlushTimeout=maxFlushTimeout||10000;
 		},
 		save:function(signal,objs)
 		{
@@ -51,18 +53,26 @@
 		},
 		startFlushStimer:function()
 		{
-			if(this.flushTimer)clearTimeout(this.flushTimer);
+			if(this.flushTimer) clearTimeout(this.flushTimer);
 			this.flushTimer=setTimeout(this.flush,this.flushTimeout);
+			if(!this.maxFlushTimer) this.maxFlushTimer=setTimeout(this.flush,this.maxFlushTimeout);
 		},
 		flush:function()
 		{
-			var data=JSON.stringify(this.db.getValues());
-			var fp=this.filePath;
-			fs.writeFile(fp,data,function(err)
-			{
-				if(err)µ.logger.error(new µ.Warning("failed to save dbFile "+fp,err));
-				else µ.logger.debug("saved dbFile "+fp);
-			})
+			if(this.flushTimer)
+			{//has something to save
+				var data=JSON.stringify(this.db.getValues());
+				var fp=this.filePath;
+				fs.writeFile(fp,data,function(err)
+				{
+					if(err)µ.logger.error(new µ.Warning("failed to save dbFile "+fp,err));
+					else µ.logger.debug("saved dbFile "+fp);
+				});
+				clearTimeout(this.flushTimer);
+				this.flushTimer=null;
+				clearTimeout(this.maxFlushTimer);
+				this.maxFlushTimer=null;
+			}
 		}
 	});
 	
