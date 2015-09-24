@@ -111,7 +111,7 @@
 			var rtn;
 			if(sort)
 			{
-				sort=[].concat(sort).map(s=>"fields."+s+".value");
+				sort=[].concat(sort).map(s=>"fields."+s);
 				var sortKey=JSON.stringify(sort);
 				if(!pDb.hasSort(sortKey)) pDb.sort(sortKey,ORG.attributeSort(sort));
 				rtn=pDb.getSort(sortKey);

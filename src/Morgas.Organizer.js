@@ -332,10 +332,12 @@
 	{
 		return function(obj,obj2)
 		{
-			var rtn=0;
+			var rtn=0,a,b;
 			for(var i=0;i<paths.length&&rtn===0;i++)
 			{
-				rtn=ORG.sort(SC.path(obj,paths[i]),SC.path(obj2,paths[i]),DESC)
+				a=SC.goPath(obj,paths[i]);
+				b=SC.goPath(obj2,paths[i]);
+				rtn=(DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0)
 			}
 			return rtn;
 		}
