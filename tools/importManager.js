@@ -9,8 +9,7 @@
 	{
 		a=a.slice(0,-3);
 		b=b.slice(0,-3);//remove ".js"
-		var subfolder=a.indexOf("/")!==-1;
-		if((b.indexOf("/")!==-1)!=subfolder)return false;
+		if((a.indexOf("/")!==-1) != (b.indexOf("/")!==-1)) return false; //sort subfolders last
 		else return a>b;
 	});
     for(var k=0;k<keys.length;k++)
