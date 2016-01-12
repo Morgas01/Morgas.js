@@ -102,15 +102,14 @@
 				return cmd;
 			})(),
 			checkCRC:function(){
-				//this.out(this.fh.checkCRC().map(function(a){return (a[1]==null?"NONE":a[1]==false?"DIFFERENT":"OK")+"\t"+a[0];}).join("\n"));
-				var o=this.out;
 				this.pause()
-				this.fh.checkCRC(function(a){o((a[2]==null?"NONE\t\t":a[2]==false?"DIFFERENT\t"+a[1]:"OK\t\t")+"\t"+a[0])})
+				this.fh.checkCRC(a=>this.out((a[2]==null?"NONE\t\t":a[2]==false?"DIFFERENT\t"+a[1]:"OK\t\t")+"\t"+a[0]))
 				.always(()=>this.resume());
 			},
 			appendCRC:function()
 			{
-				this.out(this.fh.appendCRC().join("\n"));
+				this.pause()
+				this.fh.appendCRC(a=>this.out(a.join("\t=>\t"))).always(()=>this.resume());
 			},
 			"delete":(function()
 			{
