@@ -91,6 +91,7 @@
 				complete:PROM.prototype.complete,
 				error:PROM.prototype.error,
 				catch:PROM.prototype.error,
+				always:PROM.prototype.always,
 				_wrapNext:PROM.prototype._wrapNext
 			};
 		},
