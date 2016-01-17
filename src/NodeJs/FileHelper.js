@@ -17,7 +17,7 @@
 	}
 	
 	var FH=µ.NodeJs.FileHelper=µ.Class({
-		extractChecksum:/[\[\(]([0-9A-Z]{8})[\)\]]\..{3,4}$/,
+		extractChecksum:/[\[\(]([0-9a-zA-Z]{8})[\)\]]\..{3,4}$/,
 		init:function(dir)
 		{
 			this.dir=PATH.resolve(dir||"./");
@@ -56,8 +56,7 @@
 			}
 			else if (pattern==="noCRC")
 			{
-				var hasCRC=this.extractChecksum;
-				return (files||this.ls()).filter(function(a){return !a.match(hasCRC)});
+				return (files||this.ls()).filter((a)=>!a.match(this.extractChecksum));
 			}
 			else if (pattern==="selected")
 			{
@@ -137,7 +136,7 @@
 			{
 				var next=(csm)=>
 				{
-					rtn.push([todo[0],csm,csm===todo[0].match(this.extractChecksum)[1]]);
+					rtn.push([todo[0],csm,csm===todo[0].match(this.extractChecksum)[1].toUpperCase()]);
 					if(cb)cb(rtn[rtn.length-1]);
 					todo.shift();
 					while(todo.length>0&&!todo[0].match(this.extractChecksum))
