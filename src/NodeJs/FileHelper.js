@@ -104,15 +104,29 @@
 			}
 			return rtn;
 		},
-		calcCRC:function(filename)
+		calcCRC:function(filename,progress)
 		{
 			return new (GMOD("Promise"))((signal)=>
 			{
+				var filePath=PATH.resolve(this.dir,filename);
+				var stats=null;
+				try
+				{
+					stats=FS.statSync(filePath);
+				}
+				catch(e)
+				{
+					signal.reject(e);
+					return;
+				}
+				var dataRead=0;
 				var builder=new (GMOD("util.crc32")).Builder();
-				var stream=FS.createReadStream(PATH.resolve(this.dir,filename));
+				var stream=FS.createReadStream(filePath);
 				stream.on("data",function(data)
 				{
 					builder.add(data);
+					dataRead+=data.length;
+					if(progress)progress(dataRead,stats.size);
 				});
 				stream.on("end",function()
 				{
@@ -121,7 +135,7 @@
 				stream.on("error",signal.reject);
 			});
 		},
-		checkCRC:function(cb)
+		checkCRC:function(cb,progress)
 		{
 			var rtn=[];
 			var todo=this.selected.slice();
@@ -146,12 +160,12 @@
 					}
 					if(todo.length>0)
 					{
-						this.calcCRC(todo[0]).always(next);
+						this.calcCRC(todo[0],progress).always(next);
 					}
 					else
 						signal.resolve(rtn);
 				}
-				this.calcCRC(todo[0]).always(next);
+				this.calcCRC(todo[0],progress).always(next);
 			});
 		},
 		appendCRC:function(cb)

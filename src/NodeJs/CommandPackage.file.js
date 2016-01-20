@@ -3,7 +3,8 @@
 	var COM=GMOD("Commander");
 	
 	SC=SC({
-		FH:"FileHelper"
+		FH:"FileHelper",
+		rs:"rescope"
 	});
 
 	var FS=require("fs");
@@ -45,6 +46,7 @@
 		patch:function()
 		{
 			this.mega();
+			SC.rs.all(this,["progressOutput"]);
 			this.fh=new SC.FH();
 			this.instance.prompt=this.fh.dir+">>";
 		},
@@ -92,7 +94,7 @@
 				var cmd=function(filenName)
 				{
 					this.pause();
-					this.fh.calcCRC(filenName).always((result)=>
+					this.fh.calcCRC(filenName,this.progressOutput).always((result)=>
 					{
 						this.out(result);
 						this.resume()
@@ -103,13 +105,13 @@
 			})(),
 			checkCRC:function(){
 				this.pause()
-				this.fh.checkCRC(a=>this.out((a[2]==null?"NONE\t\t":a[2]==false?"DIFFERENT\t"+a[1]:"OK\t\t")+"\t"+a[0]))
+				this.fh.checkCRC(a=>this.out((a[2]==null?"NONE\t\t":a[2]==false?"DIFFERENT\t"+a[1]:"OK\t\t")+"\t"+a[0]),this.progressOutput)
 				.always(()=>this.resume());
 			},
 			appendCRC:function()
 			{
 				this.pause()
-				this.fh.appendCRC(a=>this.out(a.join("\t=>\t"))).always(()=>this.resume());
+				this.fh.appendCRC(a=>this.out(a.join("\t=>\t")),this.progressOutput).always(()=>this.resume());
 			},
 			"delete":(function()
 			{
@@ -126,6 +128,13 @@
 			
 			cleanNames:function(){this.out(this.fh.cleanNames().join("\n"))},
 			mergeParts:function(){this.out(this.fh.mergeParts().join("\n"))}
+		},
+		progressOutput:function(value,max)
+		{
+			this.instance.rl.output.cursorTo(0);
+			this.instance.rl.write((value*100/max).toFixed(0)+"%");
+			this.instance.rl.clearLine(1);
+			this.instance.rl.output.moveCursor(0,-1);
 		}
 	});
 	SMOD("CommandPackage.file",FILE);
