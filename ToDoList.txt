@@ -11,8 +11,11 @@
 Morgas.util.object.inputValues.js:
 	-	array support
 
-Morgas.DependencyResolver:
-	-   fulfill dependency
+Morgas.util.Request.js:
+	-	scope as param (in param object)
+NodeJs/FileHelper:
+	-	refactor to FileUtils
+	-	File rotation
 NEW:
 	generic DB Object
 	RemoteDBConnector (worker/REST)

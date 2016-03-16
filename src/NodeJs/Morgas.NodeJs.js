@@ -26,7 +26,12 @@ var oldGetModule=µ.getModule;
 			}
 			catch(e)
 			{
-				µ.logger.error(new µ.Warning("could not load nodejs module "+key,e));
+				µ.logger.error(new µ.Warning("could not load nodejs module "+key,{
+					name:e.name,
+					message:e.message,
+					stack:e.stack,
+					original:e
+				}));
 			}
 		}
 	}

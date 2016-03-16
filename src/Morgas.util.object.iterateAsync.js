@@ -7,14 +7,23 @@
 		PROM:"Promise",
 		It:"Iterator"
 	});
+	
+	var wait;
+
+	if(typeof requestAnimationFrame == "undefined")
+	{// assume NodeJs
+		wait=process.nextTick
+	}
+	else wait=requestAnimationFrame;
 	/** iterateAsync
-	 * As iterate but puts a timeout between the iteration steps
+	 * Async iterate but puts a timeout between the iteration steps if duration exceeds stepTime
+	 * and waits for promises to finish
 	 * 
-	 * returns: µ.Detached
+	 * returns: µ.Promise
 	 */
 	obj.iterateAsync=function(any,func,isObject,scope,stepTime)
 	{
-		var time;
+		var time,rtn=[];
 		if(!stepTime)
 		{
 			stepTime=obj.iterateAsync.stepTime;
@@ -32,14 +41,22 @@
 						time=Date.now();
 						while(time+stepTime>Date.now()&&!(step=it.next()).done)
 						{
-							func.call(scope,step.value[0],step.value[1]);
+							var result=func.call(scope,step.value[0],step.value[1]);
+							if(SC.PROM.isThenable(result))
+							{
+								return result.then(function(result)
+								{
+									rtn.push(result);
+									goStep();
+								},signal.reject);
+							}
+							else rtn.push(result);
 						}
 						if(step.done)
 						{
-							signal.resolve();
-							return;
+							return signal.resolve(rtn);
 						}
-						requestAnimationFrame(goStep);
+						else wait(goStep);
 					}
 					catch (e)
 					{
@@ -48,7 +65,7 @@
 				}
 			};
 			signal.onAbort(function(){it=null});
-			requestAnimationFrame(goStep);
+			wait(goStep);
 		},{scope:scope});
 	};
 	obj.iterateAsync.stepTime=50;

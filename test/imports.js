@@ -78,8 +78,6 @@
 	
 	WR(srcDir+"Morgas.Worker.js");
 	WR(testDir+"test.Morgas.Worker.js");
-	
-	//TODO
 
 	WR(srcDir+"DB/Morgas.DB.js");
 	WR(testDir+"test.Morgas.DB.js");

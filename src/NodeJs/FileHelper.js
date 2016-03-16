@@ -5,7 +5,18 @@
 	var FS=require("fs");
 	var PATH=require("path");
 	
+	SC=SC({
+		prom:"Promise",
+		itAs:"iterateAsync",
+		File:"File",
+		util:"File.util",
+		crc:"util.crc32",
+		uni:"uniquify"
+	});
+	
 	var regexLike=/^\/((?:[^\/]||\\\/)+)\/([gimy]*)$/;
+	var extractChecksum=/[\[\(]([0-9a-zA-Z]{8})[\)\]]\.[^\.]+$/;
+	var splitFiles=/^(.+).(\d{5}).(.+).(part)$/;
 	var convertRegex=function(pattern)
 	{
 		if(pattern instanceof RegExp || !regexLike.test(pattern)) return pattern;
@@ -14,295 +25,316 @@
 			var match=pattern.match(regexLike);
 			return new RegExp(match[1],match[2]);
 		}
+	};
+	
+	var asyncCallback=function(signal)
+	{
+		return function(err,result)
+		{
+			if(err) signal.reject(err);
+			else signal.resolve(result);
+		};
+	};
+
+	var calcCRC=function(file,progress)
+	{
+		return file.stat().then(stat=> 
+			file.readStream().then(stream=>
+				new SC.prom(signal=>
+				{
+					var dataRead=0;
+					var builder=new SC.crc.Builder();
+					stream.on("data",function(data)
+					{
+						builder.add(data);
+						dataRead+=data.length;
+						if(progress)progress(dataRead,stat.size);
+					});
+					stream.on("end",function()
+					{
+						signal.resolve(("00000000"+builder.get().toString(16).toUpperCase()).slice(-8));
+					});
+					stream.on("error",signal.reject);
+				})
+			)
+		);
 	}
 	
 	var FH=µ.NodeJs.FileHelper=µ.Class({
-		extractChecksum:/[\[\(]([0-9a-zA-Z]{8})[\)\]]\..{3,4}$/,
 		init:function(dir)
 		{
-			this.dir=PATH.resolve(dir||"./");
+			this.file=new SC.File(dir||"./");
+			this.file.getAbsolutePath(); //implicit set absolute path
 			this.selected=[];
+			SC.prom.pledgeAll(this,["_getFiles"]);
 		},
 		ls:function(addition)
 		{
-			if(addition)return FS.readdirSync(PATH.resolve(this.dir,addition));
-			return FS.readdirSync(this.dir);
+			var listFile=this.file;
+			if(addition) listFile=this.file.clone().changePath(addition);
+			
+			return listFile.listFiles();
 		},
-		changeDir:function(dir)
+		changeDirectory:function(dir)
 		{
-			this.selected.length=0;
-			this.dir=PATH.resolve(this.dir,dir);
+			var oldDir=this.file.getAbsolutePath();
+			return this.file.changePath(dir).stat().then(stat=>
+			{
+				if(stat.isDirectory()) this.selected.length=0;
+				else this.file.changePath(oldDir);
+				return this;
+			});
 		},
-		_getFiles:function(pattern,files)
+		_getFiles:function(signal,pattern,files)
 		{
 			pattern=convertRegex(pattern);
-			if(pattern instanceof RegExp)
-			{
-				return (files||this.ls()).filter(function(a){return pattern.test(a)});
-			}
-			else if (!pattern) return [];
-			else if(pattern==="all")
-			{
-				return files||this.ls();
-			}
-			else if(pattern==="empty")
-			{
-				var dir=this.dir;
-				return (files||this.ls()).filter(function(a)
-				{
-					var s=FS.statSync(PATH.resolve(dir,a))
-					return s&&s.size==0&&s.isFile()
-				});
-			}
-			else if (pattern==="noCRC")
-			{
-				return (files||this.ls()).filter((a)=>!a.match(this.extractChecksum));
-			}
+			
+			if (!pattern) return [];
 			else if (pattern==="selected")
 			{
-				return this.selected
+				return this.selected;
 			}
 			else
 			{
-				pattern=pattern.toLowerCase()
-				return (files||this.ls()).filter(function(a){return a.toLowerCase().indexOf(pattern)!==-1});
+				var doFilter=function(files)
+				{
+					if(pattern==="all")					return files;
+					else if(pattern==="noCRC")			return files.filter((a)=>!a.match(extractChecksum));
+					else if(pattern instanceof RegExp)	return files.filter(function(a){return pattern.test(a)});
+					else if(pattern==="empty")
+					{
+						var dir=this.dir;
+						return SC.prom.always(files.map(f=>this.isEmpty(f)).then(function()
+						{
+							var rtn=[];
+							for(var i=0;i<arguments.length;i++)
+							{
+								if(arguments[i]) rtn.push(files[i]);
+							}
+							return rtn;
+						}));
+					}
+					else
+					{
+						pattern=pattern.toLowerCase();
+						return files.filter(function(a){return a.toLowerCase().indexOf(pattern)!==-1});
+					}
+				};
+				
+				if(files) signal.resolve(doFilter(files));
+				else this.file.listFiles().then(doFilter).then(signal.resolve,signal.reject);
 			}
 		},
 		isEmpty:function(fileName)
 		{
-			var size=FS.statSync(PATH.resolve(this.dir,fileName)).size;
-			console.log("size:"+size);
-			return size==0;
+			return this.File.clone().changePath(fileName).stat()
+			.then(stat=> stat.size==0,µ.constantFunctions.t);
 		},
 		select:function(pattern)
 		{
-			return this.selected=this._getFiles(pattern);
+			return this._getFiles(pattern)
+			.then(s=>this.selected=s);
 		},
 		selectAdd:function(pattern)
 		{
-			return this.selected=this.selected.concat(this._getFiles(pattern));
+			return this._getFiles(pattern)
+			.then(s=>this.selected=this.selected.concat(s));
 		},
 		deselect:function(pattern)
 		{
-			var l=this._getFiles(pattern,this.selected);
-			return this.selected=this.selected.filter(function(a){return l.indexOf(a)==-1});
+			return this._getFiles(pattern,this.selected)
+			.then(d=>this.selected=this.selected.filter(function(a){return d.indexOf(a)==-1}));
 		},
-		rename:function(pattern,replacement)
+		rename:function(pattern,replacement,overwrite)
 		{
 			pattern=convertRegex(pattern)
 			var rtn=[];
-			for(var i=0;i<this.selected.length;i++)
+			return new SC.itAs(this.selected,(i,f)=>
 			{
-				var file=this.selected[i].replace(pattern,replacement)
-				if(file!==this.selected[i])
-				{
-					rtn.push([this.selected[i],file]);
-					FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(this.dir,file));
-					
-					this.selected[i]=file;
-				}
-			}
-			return rtn;
-		},
-		calcCRC:function(filename,progress)
-		{
-			return new (GMOD("Promise"))((signal)=>
+				var r=f.replace(pattern,replacement);
+				return this.file.clone().changePath(f).rename(r)
+				.then(()=> [f,r],e=>[f,f,e]);
+			},null,this)
+			.then(function(args)
 			{
-				var filePath=PATH.resolve(this.dir,filename);
-				var stats=null;
-				try
-				{
-					stats=FS.statSync(filePath);
-				}
-				catch(e)
-				{
-					signal.reject(e);
-					return;
-				}
-				var dataRead=0;
-				var builder=new (GMOD("util.crc32")).Builder();
-				var stream=FS.createReadStream(filePath);
-				stream.on("data",function(data)
-				{
-					builder.add(data);
-					dataRead+=data.length;
-					if(progress)progress(dataRead,stats.size);
-				});
-				stream.on("end",function()
-				{
-					signal.resolve(("00000000"+builder.get().toString(16).toUpperCase()).slice(-8));
-				});
-				stream.on("error",signal.reject);
+				this.selected=args.map(f=>f[1]);
+				return args;
 			});
+		},
+		calcCRC:function(progress)
+		{
+			return SC.itAs(this.selected,function(index,filename)
+			{
+				var calcFile=this.file.clone().changePath(filename);
+				return calcCRC(calcFile,progress).then(crc=>[filename,crc],e=>[filename,e]);
+			},null,this);
 		},
 		checkCRC:function(cb,progress)
 		{
-			var rtn=[];
-			var todo=this.selected.slice();
-			while(todo.length>0&&!todo[0].match(this.extractChecksum))
+			return SC.itAs(this.selected,function(index,filename)
 			{
-				rtn.push([todo.shift(),null,null]);
-				if(cb)cb(rtn[rtn.length-1]);
-			}
-			if(todo.length==0) return rtn;
-			
-			return new (GMOD("Promise"))((signal)=>
-			{
-				var next=(csm)=>
+				var match=filename.match(extractChecksum);
+				if(!match)
 				{
-					rtn.push([todo[0],csm,csm===todo[0].match(this.extractChecksum)[1].toUpperCase()]);
-					if(cb)cb(rtn[rtn.length-1]);
-					todo.shift();
-					while(todo.length>0&&!todo[0].match(this.extractChecksum))
-					{
-						rtn.push([todo.shift(),null,null]);
-						if(cb)cb(rtn[rtn.length-1]);
-					}
-					if(todo.length>0)
-					{
-						this.calcCRC(todo[0],progress).always(next);
-					}
-					else
-						signal.resolve(rtn);
+					var result=[filename,null,null];
+					if(cb) cb(result);
+					return result;
 				}
-				this.calcCRC(todo[0],progress).always(next);
+				return calcCRC(this.file.clone().changePath(filename),progress)
+				.then(crc=>
+				{
+					var result=[filename,crc===match[1].toUpperCase(),crc];
+					if(cb)cb(result);
+					return result;
+				},µ.constantFunctions.pass);
+			},null,this);
+		},
+		appendCRC:function(cb,progress)
+		{
+			return SC.itAs(this.selected,function(index,filename)
+			{
+				var result;
+				var match=filename.match(extractChecksum);
+				if(match)
+				{
+					result=[filename, filename,"no change"];
+					if(cb)cb(result);
+					return result;
+				}
+				var appendFile=this.file.clone().changePath(filename);
+				return calcCRC(appendFile,progress)
+				.then(crc=>
+				{
+					var rn=PATH.parse(filename);
+					rn=rn.name+"["+crc+"]"+rn.ext;
+					return appendFile.rename(rn).then(function()
+					{
+						result=[filename,rn,"added"];
+						if(cb)cb(result);
+						return result;
+					});
+				}).catch(function(error)
+				{
+					var result=[filename,filename,error]
+					if(cb)cb(result);
+					return result;
+				});
+			},null,this)
+			.then(function(args)
+			{
+				this.selected=args.map(f=>f[1]);
+				return args;
 			});
 		},
-		appendCRC:function(cb)
+		//TODO
+		"delete":function()
 		{
-			var rtn=[];
-			while(this.selected.length>rtn.length&&this.selected[rtn.length].match(this.extractChecksum))
-			{
-				rtn.push([this.selected[rtn.length],this.selected[rtn.length]]);
-				if(cb)cb(rtn[rtn.length-1]);
-			}
-			
-			return new (GMOD("Promise"))((signal)=>
-			{
-				if(this.selected.length===rtn.length) signal.resolve(rtn);
-				else
+			var promise=SC.itAs(this.selected.slice(),(index,filename)=>this.file.clone().changePath(filename).remove()
+				.then(()=>[filename],e=>
 				{
-					var next=(csm)=>
-					{
-						var fileName=this.selected[rtn.length];
-						var fext=PATH.extname(fileName);
-						var newFileName=fileName.slice(0,-fext.length)+"["+csm+"]"+fext;
-						FS.renameSync(PATH.resolve(this.dir,fileName),PATH.resolve(this.dir,newFileName));
-						this.selected[rtn.length]=newFileName;
-						rtn.push([fileName,newFileName]);
-						if(cb)cb(rtn[rtn.length-1]);
-
-						while(this.selected.length>rtn.length&&this.selected[rtn.length].match(this.extractChecksum))
-						{
-							rtn.push([this.selected[rtn.length],this.selected[rtn.length]]);
-							if(cb)cb(rtn[rtn.length-1]);
-						}
-						if(this.selected.length>rtn.length)
-						{
-							this.calcCRC(this.selected[rtn.length]).always(next);
-						}
-						else
-							signal.resolve(rtn);
-					}
-					this.calcCRC(this.selected[rtn.length]).always(next);
-				}
-			});
-		},
-		"delete":function(pattern)
-		{
-			if(pattern)this.select(pattern);
-			for(var i=0;i<this.selected.length;i++)
-			{
-				FS.unlinkSync(PATH.resolve(this.dir,this.selected[i]));
-			}
-			var deleted=this.selected;
-			this.selected=[];
-			return deleted;
+					this.selected.push(filename);
+					return [filename,e];
+				})
+			);
+			this.selected.length=0;
+			return promise;
 		},
 		moveToDir:function(dir)
 		{
-			var target=PATH.resolve(this.dir,dir);
-			try
+			var target=this.file.clone().changePath(dir)
+			return SC.util.enshureDir(target)
+			.then(()=>
 			{
-				FS.mkdirSync(target);
-			}
-			catch(e)
-			{
-				if(e.code!=="EEXIST")throw e;
-			}
-			for(var i=0;i<this.selected.length;i++)
-			{
-				FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(target,this.selected[i]));
-			}
-			this.selected.length=0;
+				var p= SC.itAs(this.selected.slice(),(index,filename)=>
+					this.file.clone().changePath(filename).move(target).then(function(){return this.filePath})
+				);
+				this.selected.length=0;
+				return p;
+			});
 		},
-		
+		//TODO
 		cleanNames:function()
 		{
-			var rtn=[];
-			for(var i=0;i<this.selected.length;i++)
+			return SC.itAs(this.selected,(index,filename)=>
 			{
-				var file=this.selected[i];
-				var entry=[file];
-				
-				file=file.replace(/_/g," ");
-				file=file.replace(/\.(?![^\.]+$)/g," ");
-				if(file.indexOf("%20")!==-1||file.indexOf("%5B")!==-1) file=decodeURIComponent(file);
-				if(file.match(/\[\d\]\./))
-				{
-					var originalName=file.replace(/\[\d\]\./,".");
-					if(this._getFiles(originalName).length>0)
-					{
-
-						if(this._getFiles("empty",[originalName]).length>0)
-						{
-							FS.unlinkSync(PATH.resolve(this.dir,originalName));
-							file=originalName;
-							entry.push(" - is dublicate but original was empty");
-						}
-						else if(this._getFiles("empty",[this.selected[i]]).length>0)
-						{
-							FS.unlinkSync(PATH.resolve(this.dir,this.selected[i]));
-							entry.push(" - is dublicate and empty");
-							entry.push(" - delete");
-							rtn=rtn.concat(entry);
-							continue;
-						}
-						else entry.push(" - is dublicate but original was found");
-					}
-					else file=originalName;
-				}
-				
-				if(file!==this.selected[i])
-				{
-					entry.push(" - rename to : "+file);
-					rtn=rtn.concat(entry);
-					FS.renameSync(PATH.resolve(this.dir,this.selected[i]),PATH.resolve(this.dir,file));
-					this.selected[i]=file;
-				}
-			}
-			return rtn
+				var name=filename;
+		    	if((name.indexOf("%20")!==-1&&name.indexOf(" ")===-1)||(name.indexOf("%5B")!==-1&&name.indexOf("[")===-1))
+		    		name=decodeURIComponent(name);
+		    	name=name.replace(/_/g," ");
+		    	name=name.replace(/([\d\.]+)(?=[\.\d])|\.(?![^\.]+$)/g,($0,$1)=>$1||" "); //keep dots between numbers and last one
+		    	if(name===filename)
+		    	{
+		    		return [filename,name];
+		    	}
+		    	else
+		    	{
+		    		return this.file.clone().changePath(filename).rename(name).then(()=>[filename,name],e=>[filename,filename,e]);
+		    	}
+			})
+			.then(args=>
+			{
+				this.selected=args.map(f=>f[1]);
+				return args;
+			});
 		},
-		mergeParts:function()
+		mergeParts:function(cb)
 		{
-			var rtn=[];
-			var selectedParts=this.selected.filter(function(a){return a.match(/\.part$/)});
-			while(selectedParts.length>0)
+			var selectedParts=SC.uni(this.selected.map(a=>a.match(splitFiles)).filter(µ.constantFunctions.pass),p=>p[1]);
+			if(selectedParts.length>0)
 			{
-				var selectedPart=selectedParts.shift();
-				var match=selectedPart.match(/^(.+).(\d{5}).(.+).(part)$/);
-				var parts=this._getFiles(match[1]);
-				var fileName=match[1]+"."+match[3];
-				for(var p=0;p<parts.length;p++)
+				return this._getFiles(splitFiles).then(allParts=>
 				{
-					FS.appendFileSync(PATH.resolve(this.dir,fileName),FS.readFileSync(PATH.resolve(this.dir,parts[p])));
-					var index=selectedParts.indexOf(parts[p]);
-					if(index!==-1) selectedParts.splice(index,1);
-				}
-				
-				rtn.push(fileName);
+					return SC.itAs(selectedParts,(i,part)=>
+					{
+						var affectedParts=allParts.sort().filter(p=>p.indexOf(part[1])==0);
+						return SC.itAs(affectedParts,(i,aPart)=>
+							this.file.clone().changePath(aPart).readStream({encoding:"binary"})
+							.then(stream=>{return{name:aPart,stream:stream}})
+						,null,this)
+						.then(function(args)
+						{
+							var target=part[1]+"."+part[3];
+							return this.file.clone().changePath(target).writeStream({encoding:"binary"})
+							.then(write=>
+							{
+								if(cb)cb(target+" :");
+								return {
+									name:target,
+									read:args,
+									write:write
+								};
+							});
+						})
+						.then(data=>
+							SC.itAs(data.read,(i,read)=>
+								new SC.prom(signal=>{
+
+									if(cb)cb("\tstart\t"+read.name+"\t"+(i+1)+"/"+data.read.length);
+									data.write.on("error",signal.reject);
+									read.stream.on("error",signal.reject);
+									read.stream.on("end",()=>
+									{
+										if(cb)cb("\tend\t"+read.name+"\t"+(i+1)+"/"+data.read.length);
+										signal.resolve(read.name);
+									});
+									read.stream.pipe(data.write,{end:false});
+								})
+							)
+							.then(()=>
+								new SC.prom(signal =>
+								{
+									data.write.on("finish",()=>
+									{
+										signal.resolve([data.name,data.read.map(a=>a.name)]);
+									});
+									data.write.end();
+								})
+							)
+						)
+					},this);
+				});
 			}
-			return rtn;
+			return SC.prom.resolved([]);
 		}
 	});
 	SMOD("FileHelper",FH);

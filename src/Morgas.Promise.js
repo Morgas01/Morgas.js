@@ -77,6 +77,7 @@
 					catch (e)
 					{
 						µ.logger.error(e);
+						µ.logger.error(e.stack);
 						rj(e);
 					}
 				});
@@ -103,6 +104,7 @@
 				error:PROM.prototype.error,
 				catch:PROM.prototype.error,
 				always:PROM.prototype.always,
+				reverse:PROM.prototype.reverse,
 				_wrapNext:PROM.prototype._wrapNext
 			};
 		},
@@ -124,6 +126,15 @@
 		{
 			fn=this.rescopeFn(fn,this.scope);
 			return this._wrapNext(this.original.then(fn,fn));
+		},
+		reverse:function(rejectValue,fn)
+		{
+			if(fn)fn=this.rescopeFn(fn,this.scope);
+			else fn=µ.constantFunctions.pass;
+			return this._wrapNext(this.original.then(function()
+			{
+				return Promise.reject(rejectValue);
+			},fn));
 		},
 		abort:function()
 		{
@@ -164,7 +175,7 @@
 		fns=fns.map(fn=>
 		{
 			if(fn instanceof PROM) return fn.always(µ.constantFunctions.pass);
-			else if (typeof fn.then==="function")return fn.then(µ.constantFunctions.pass);
+			else if (PROM.isThenable(fn))return fn.then(µ.constantFunctions.pass,µ.constantFunctions.pass);
 			else return new PROM(fn,opts).always(µ.constantFunctions.pass);
 		});
 		return new PROM(fns,opts);

@@ -87,18 +87,20 @@
 		 */
 		out:function(verbose,msg)
 		{
-			var fn=console.log;
+			var fn;
 			switch(verbose)
 			{
-				case 10:
+				case µ.logger.LEVEL.error:
 					fn=console.error;
 					break;
-				case 20:
+				case µ.logger.LEVEL.warn:
 					fn=console.warn;
 					break;
-				case 30:
+				case µ.logger.LEVEL.info:
 					fn=console.info;
 					break;
+				default:
+					fn=console.log;
 			}
 			fn.apply(console,msg);
 		}

@@ -10,6 +10,18 @@
 	var FS=require("fs");
 	var PATH=require("path");
 	
+	var callAsync=function(cmd)
+	{
+		return function()
+		{
+			this.pause();
+			cmd.apply(this,arguments).always((result)=>
+			{
+				this.out(result);
+				this.resume();
+			});
+		};
+	};
 	var fileNameCompleter=function(line)
 	{
 		var addition=PATH.join(line+"dirt","..");
@@ -33,7 +45,7 @@
 		var addition=PATH.join(line+"dirt","..");
 		if(addition!==".")line=line.substr(addition.length+1);
 		else addition="";
-		var root=this.fh.dir;
+		var root=this.fh.file.filePath;
 		return this.fh.ls(addition).filter(function(a)
 		{
 			return a.indexOf(line)==0&&FS.statSync(PATH.resolve(root,addition,a)).isDirectory();
@@ -48,38 +60,35 @@
 			this.mega();
 			SC.rs.all(this,["progressOutput"]);
 			this.fh=new SC.FH();
-			this.instance.prompt=this.fh.dir+">>";
+			this.instance.prompt=this.fh.file.filePath+">>";
 		},
 		commands: {
-			dir:function(){this.out(this.fh.dir)},
-			ls:function(){
-				this.out(this.fh.ls().join("\n"));
-			},
+			ls:callAsync(function(addition){return this.fh.ls(addition).then(o=>o.join("\n"))}),
 			cd:(function()
 			{
-				var cmd=function(pattern)
+				var cmd=callAsync(function(dir)
 				{
-					this.fh.changeDir(pattern);
-					this.instance.prompt=this.fh.dir+">>";
-				};
+					return this.fh.changeDirectory(dir)
+					.then(()=>{this.instance.prompt=this.fh.file.filePath+">>";})
+				});
 				cmd.completer=pathCompleter;
 				return cmd;
 			})(),
 			select:(function()
 			{
-				var cmd=function(pattern){this.out(this.fh.select(pattern).join("\n"))};
+				var cmd=callAsync(function(pattern){return this.fh.select(pattern).then(o=>o.join("\n"))});
 				cmd.completer=fileNameCompleter;
 				return cmd;
 			})(),
 			selectAdd:(function()
 			{
-				var cmd=function(pattern){this.out(this.fh.selectAdd(pattern).join("\n"))};
+				var cmd=callAsync(function(pattern){return this.fh.selectAdd(pattern).then(o=>o.join("\n"))});
 				cmd.completer=fileNameCompleter;
 				return cmd;
 			})(),
 			deselect:(function()
 			{
-				var cmd=function(pattern){this.out(this.fh.deselect(pattern).join("\n"))};
+				var cmd=callAsync(function(pattern){return this.fh.deselect(pattern).then(o=>o.join("\n"))});
 				cmd.completer=fileNameCompleter;
 				return cmd;
 			})(),
@@ -87,47 +96,41 @@
 			rename:function(line){
 				var match=line.match(/(?:(\/.*\/[gimy]*)|"(.*)")\s+"(.*)"/);
 				if(!match)this.out('rename pattern replacement\n\tpattern:\t\/regex\/ or "string"\n\treplacement:\t"string"');
-				else this.out(this.fh.rename(match[1]||match[2],match[3]).map(function(a){return a.join("\t=>\t");}).join("\n"));
-			},
-			calcCRC:(function()
-			{
-				var cmd=function(filenName)
+				else callAsync(function()
 				{
-					this.pause();
-					this.fh.calcCRC(filenName,this.progressOutput).always((result)=>
-					{
-						this.out(result);
-						this.resume()
-					});
-				};
-				cmd.completer=fileNameCompleter
-				return cmd;
-			})(),
-			checkCRC:function(){
-				this.pause()
-				this.fh.checkCRC(a=>this.out((a[2]==null?"NONE\t\t":a[2]==false?"DIFFERENT\t"+a[1]:"OK\t\t")+"\t"+a[0]),this.progressOutput)
-				.always(()=>this.resume());
+					return this.fh.rename(match[1]||match[2],match[3]).then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));
+				}).call(this);
 			},
-			appendCRC:function()
+			calcCRC:callAsync(function()
 			{
-				this.pause()
-				this.fh.appendCRC(a=>this.out(a.join("\t=>\t")),this.progressOutput).always(()=>this.resume());
-			},
+				return this.fh.calcCRC(this.progressOutput).then(o=>o.map(r=>r.join("\t")).join("\n"))
+			}),
+			checkCRC:callAsync(function()
+			{
+				return this.fh.checkCRC(a=>this.out((a[2]==null?"NONE\t\t":a[1]==false?"DIFFERENT\t"+a[2]:"OK\t\t")+"\t"+a[0]),this.progressOutput).then(o=>"");
+			}),
+			appendCRC:callAsync(function()
+			{
+				return this.fh.appendCRC(a=>this.out(a.join("\t=>\t")),this.progressOutput).then(o=>"");
+			}),
 			"delete":(function()
 			{
-				var cmd=function(pattern){this.out(this.fh["delete"](pattern).join("\n"))};
+				var cmd=callAsync(function(pattern){return this.fh["delete"]().then(o=>o.map(r=>r.join("\t")).join("\n"))});
 				cmd.completer=fileNameCompleter;
 				return cmd;
 			})(),
 			moveToDir:(function()
 			{
-				var cmd=function(dir){this.fh.moveToDir(dir)};
+				var cmd=callAsync(function(dir){return this.fh.moveToDir(dir).then(o=>o.join("\n"))});
 				cmd.completer=pathCompleter;
 				return cmd;
 			})(),
 			
-			cleanNames:function(){this.out(this.fh.cleanNames().join("\n"))},
-			mergeParts:function(){this.out(this.fh.mergeParts().join("\n"))}
+			cleanNames:callAsync(function()
+			{
+				return this.fh.cleanNames().then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));
+			}),
+			mergeParts:callAsync(function(pattern){return this.fh.mergeParts(this.out).then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));})
 		},
 		progressOutput:function(value,max)
 		{
