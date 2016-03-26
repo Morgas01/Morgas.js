@@ -83,6 +83,10 @@
 				if(stat.isDirectory()) this.selected.length=0;
 				else this.file.changePath(oldDir);
 				return this;
+			},
+			e=>{
+				this.file.changePath(oldDir);
+				throw e;
 			});
 		},
 		_getFiles:function(signal,pattern,files)
