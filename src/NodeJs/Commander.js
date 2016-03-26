@@ -5,6 +5,10 @@
 	var PATCH=GMOD("Patch");
 	var readline = require('readline');
 	
+	SC=SC({
+		prom:"Promise"
+	});
+	
 	var COM=µ.NodeJs.Commander=µ.Class({
 		init:function(commandPackages)
 		{
@@ -17,7 +21,7 @@
 			this.rl = readline.createInterface({
 				input: process.stdin,
 				output: process.stdout,
-				completer:function(line)
+				completer:function(line,cb)
 				{
 					if(line.length===0)return [Object.keys(self.commands).sort(),line];
 					var rtn=[];
@@ -33,7 +37,15 @@
 						rtn=cmd.completer.call(cmd.scope,match[3])//.map(function(a){return match[1]+a});
 						line=match[3];
 					}
-					return [rtn,line];
+					if(SC.prom.isThenable(rtn))
+					{
+						rtn.then(result=>[result,line],function(e)
+						{
+							µ.logger.error(e);
+							return [[],line];
+						}).then(r=>cb(null,r));
+					}
+					else cb(null,[rtn,line]);
 				}
 			});
 			var closed=false;

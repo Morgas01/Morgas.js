@@ -28,12 +28,12 @@
 		if(addition!==".")
 		{
 			line=line.substr(addition.length+1).toLowerCase();
-			return this.fh.ls(addition).filter(function(a){return a.toLowerCase().indexOf(line)==0}).map(function(a){return PATH.join(addition,a)});
+			return this.fh.ls(addition).then(r=>r.filter(function(a){return a.toLowerCase().indexOf(line)==0}).map(function(a){return PATH.join(addition,a)}));
 		}
 		else
 		{
 			line=line.toLowerCase();
-			return ["all","empty","noCRC","selected"].concat(this.fh.ls()).filter(function(a){return a.toLowerCase().indexOf(line)==0});
+			return this.fh.ls().then(r=>["all","empty","noCRC","selected"].concat(r).filter(function(a){return a.toLowerCase().indexOf(line)==0}));
 		}
 	};
 	var selectedFileNameCompleter=function(line)
@@ -46,10 +46,10 @@
 		if(addition!==".")line=line.substr(addition.length+1);
 		else addition="";
 		var root=this.fh.file.filePath;
-		return this.fh.ls(addition).filter(function(a)
-		{
-			return a.indexOf(line)==0&&FS.statSync(PATH.resolve(root,addition,a)).isDirectory();
-		}).map(function(a){return PATH.join(addition,a)+PATH.sep});
+		return this.fh.ls(addition).then(r=>r
+			.filter(a=>a.indexOf(line)==0&&FS.statSync(PATH.resolve(root,addition,a)).isDirectory())
+			.map(a=>PATH.join(addition,a)+PATH.sep)
+		);
 	};
 	
 	var FILE=µ.Class(COM.CommandPackage,
@@ -89,7 +89,7 @@
 			deselect:(function()
 			{
 				var cmd=callAsync(function(pattern){return this.fh.deselect(pattern).then(o=>o.join("\n"))});
-				cmd.completer=fileNameCompleter;
+				cmd.completer=selectedFileNameCompleter;
 				return cmd;
 			})(),
 			selected:function(){this.out(this.fh.selected.join("\n"));},
