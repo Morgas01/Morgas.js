@@ -15,46 +15,48 @@
 			commandPackages=commandPackages||[];
 			commandPackages.unshift("exit");
 			
-			var self=this;
 			this.commands={};
 			this.prompt=">";
 			this.rl = readline.createInterface({
 				input: process.stdin,
 				output: process.stdout,
-				completer:function(line,cb)
+				completer:(line,cb)=>
 				{
-					if(line.length===0)return [Object.keys(self.commands).sort(),line];
-					var rtn=[];
-					var match=line.match(/((\S+)\s+)(.*)/);
-					if(!match)
+					if(line.length===0)cb(null,[Object.keys(this.commands).sort(),line]);
+					else
 					{
-						rtn=Object.keys(self.commands).filter(function(a){return a.indexOf(line)==0})
-						.map(function(a){return a+" ";}).sort();
-					}
-					else if ([match[2]] in self.commands&&"completer" in self.commands[match[2]])
-					{
-						var cmd=self.commands[match[2]];
-						rtn=cmd.completer.call(cmd.scope,match[3])//.map(function(a){return match[1]+a});
-						line=match[3];
-					}
-					if(SC.prom.isThenable(rtn))
-					{
-						rtn.then(result=>[result,line],function(e)
+						var rtn=[];
+						var match=line.match(/((\S+)\s+)(.*)/);
+						if(!match)
 						{
-							µ.logger.error(e);
-							return [[],line];
-						}).then(r=>cb(null,r));
+							rtn=Object.keys(this.commands).filter(function(a){return a.indexOf(line)==0})
+							.map(function(a){return a+" ";}).sort();
+						}
+						else if ([match[2]] in this.commands&&"completer" in this.commands[match[2]])
+						{
+							var cmd=this.commands[match[2]];
+							rtn=cmd.completer.call(cmd.scope,match[3])//.map(function(a){return match[1]+a});
+							line=match[3];
+						}
+						if(SC.prom.isThenable(rtn))
+						{
+							rtn.then(result=>[result,line],function(e)
+							{
+								µ.logger.error(e);
+								return [[],line];
+							}).then(r=>cb(null,r));
+						}
+						else cb(null,[rtn,line]);
 					}
-					else cb(null,[rtn,line]);
 				}
 			});
 			var closed=false;
-			this.rl.on("line",function(line)
+			this.rl.on("line",line=>
 			{
 				var match=line.match(/(\S+)\s*(.*)/);
-				if(match&&match[1] in self.commands)
+				if(match&&match[1] in this.commands)
 				{
-					var cmd=self.commands[match[1]];
+					var cmd=this.commands[match[1]];
 					try
 					{
 						cmd.call(cmd.scope,match[2]);
@@ -64,14 +66,14 @@
 						console.error(e.message);
 						console.error(e.stack);
 					}
-					if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
+					if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
 				}
 				else
 				{
 					//TODO
 					var cmd=match&&match[1]||line;
 					console.log("unknown command "+cmd);
-					if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
+					if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
 				}
 			})
 			.on("close",function(){closed=true})
@@ -86,7 +88,7 @@
 					new pack(this);
 				}
 			}
-			if(!closed){self.rl.setPrompt(self.prompt);self.rl.prompt()};
+			if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
 		},
 		subCommander:function(name,commander)
 		{
