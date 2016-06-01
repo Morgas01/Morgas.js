@@ -4,10 +4,10 @@
 	var util=µ.NodeJs.util=µ.NodeJs.util||{};
 	
 	
-	mdoule.exports=function(options)
+	mdoule.exports=function(options,args)
 	{
 		var rtn={};
-		var args=process.argv.slice();
+		if(!args) args=process.argv.slice();
 		next:for(var o in options)
 		{
 			var names=options[o].names||[o];
