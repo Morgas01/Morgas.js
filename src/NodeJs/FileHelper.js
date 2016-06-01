@@ -15,7 +15,7 @@
 	});
 	
 	var regexLike=/^\/((?:[^\/]||\\\/)+)\/([gimy]*)$/;
-	var extractChecksum=/[\[\(]([0-9a-zA-Z]{8})[\)\]]\.[^\.]+$/;
+	var extractChecksum=/.*[\[\(]([0-9a-fA-F]{8})[\)\]]/;
 	var splitFiles=/^(.+).(\d{5}).(.+).(part)$/;
 	var convertRegex=function(pattern)
 	{
@@ -338,7 +338,7 @@
 					},this);
 				});
 			}
-			return SC.prom.resolved([]);
+			return SC.prom.resolve([]);
 		}
 	});
 	SMOD("FileHelper",FH);
