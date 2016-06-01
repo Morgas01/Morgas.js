@@ -40,6 +40,18 @@
 			this.filePath=filePath||".";
 			SC.prom.pledgeAll(this,["realPath","stat","lstat","access","listFiles","mkdir","read","readStream","write","writeStream","rename","copy"]);
 		},
+		getName:function()
+		{
+			return PATH.parse(this.filePath).base;
+		},
+		getDir:function()
+		{
+			return PATH.parse(this.filePath).dir;
+		},
+		getExt:function()
+		{
+			return PATH.parse(this.filePath).ext;
+		},
 		changePath:function(path)
 		{
 			this.filePath=PATH.resolve(this.filePath,path);
@@ -73,9 +85,9 @@
 		{
 			FS.readdir(this.filePath,asyncCallback(signal));
 		},
-		mkdir:function(signal,dir)
+		mkdir:function(signal,dir,mode)
 		{
-			FS.mkdir(PATH.join(this.filePath,dir),asyncCallback(signal));
+			FS.mkdir(PATH.join(this.filePath,dir),mode,asyncCallback(signal));
 		},
 		read:function(signal,options)
 		{
@@ -132,7 +144,7 @@
 		},
 		move:function(dir,overwrite)
 		{
-			if(dir instanceof FILE)dir=dir.filePath;
+			dir=FILE.stringToFile(dir);
 			var target=dir=PATH.join(dir,PATH.basename(this.filePath))
 			console.log("move",this.filePath,target);
 			return this.rename(target,overwrite);
@@ -167,11 +179,25 @@
 				return copyFile(signal.scope,this);
 			}).then(signal.resolve,signal.reject);
 		},
+		copyTo:function(dir,overwrite)
+		{
+			return this.copy(PATH.join(dir,PATH.basename(this.filePath)),overwrite);
+		},
 		clone:function()
 		{
 			return new FILE(this.filePath);
 		}
 	});
+	FILE.stringToFile=function(path)
+	{
+		if(path instanceof FILE) return path;
+		return new FILE(path);
+	}
+	FILE.filetoString=function(file)
+	{
+		if(file instanceof FILE) return file.filePath;
+		return file;
+	}
 	
 	SMOD("File",FILE);
 	

@@ -11,7 +11,7 @@
 	var UTIL=File.util={
 		findUnusedName:SC.prom.pledge(function(signal,file)
 		{
-			if(!(file instanceof File)) file=new File(file);
+			file=File.stringToFile(file);
 			file.exists().then(function()
 			{
 				var pathInfo=PATH.parse(file.filePath);
@@ -45,7 +45,7 @@
 			}
 			else
 			{
-				if(file instanceof File) file=file.filePath;
+				file=File.stringToFile(file);
 				
 				var check=new File();
 				var rotate=function()
@@ -72,7 +72,7 @@
 		}),
 		enshureDir:function(dir)
 		{
-			if(!(dir instanceof File)) dir=new File(dir);
+			dir=File.stringToFile(dir);
 			return dir.exists().catch(function()
 			{
 				var parentDir=PATH.dirname(dir.filePath);
