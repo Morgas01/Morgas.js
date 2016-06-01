@@ -33,7 +33,7 @@
 				}
 				catch(e)
 				{
-					µ.logger.error(new µ.Warning("could not load nodejs module "+key,{
+					µ.logger.error(new µ.Warning("could not load js module "+key,{
 						path:path.join("..",moduleRegister[key]),
 						name:e.name,
 						message:e.message,
