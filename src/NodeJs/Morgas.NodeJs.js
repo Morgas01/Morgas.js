@@ -1,43 +1,77 @@
-var path=require("path");
-var fs=require("fs");
-require(path.join("..","Morgas"));
-
-var moduleRegister = require("../Morgas.ModuleRegister");
-
-var oldhasModule=µ.hasModule;
-var oldGetModule=µ.getModule;
-
-µ.hasModule=function(key)
-{
-	if(key in moduleRegister||oldhasModule(key)||fs.existsSync(path.resolve(__dirname,key+".js")))return true;
-	return false;
-}
-µ.getModule=function(key)
-{
-	if(!oldhasModule(key))
+(function(){
+	var path=require("path");
+	var fs=require("fs");
+	require(path.join("..","Morgas"));
+	
+	var moduleRegister = require("../Morgas.ModuleRegister");
+	
+	var oldhasModule=µ.hasModule;
+	var oldGetModule=µ.getModule;
+	
+	var resourceFolders=new Set(["./"]);
+	µ.addResourceFolder=function(folder)
 	{
-		if(key in moduleRegister)require(path.join("..",moduleRegister[key]));
-		else
+		if(folder.slice(-1)!=="/")folder+="/";
+		resourceFolders.add(folder);
+	};
+	
+	µ.hasModule=function(key)
+	{
+		if(key in moduleRegister||oldhasModule(key)||fs.existsSync(path.resolve(__dirname,key+".js")))return true;
+		return false;
+	};
+	µ.getModule=function(key)
+	{
+		var error=null;
+		if(!oldhasModule(key))
 		{
-			try
+			if(key in moduleRegister)
 			{
-				var result=require("./"+key);
-				if(!oldhasModule(key))µ.setModule(key,result);
+				try
+				{
+					require(path.join("..",moduleRegister[key]));
+				}
+				catch(e)
+				{
+					µ.logger.error(new µ.Warning("could not load nodejs module "+key,{
+						path:path.join("..",moduleRegister[key]),
+						name:e.name,
+						message:e.message,
+						stack:e.stack,
+						original:e
+					}));
+				}
 			}
-			catch(e)
+			else
 			{
-				µ.logger.error(new µ.Warning("could not load nodejs module "+key,{
-					name:e.name,
-					message:e.message,
-					stack:e.stack,
-					original:e
-				}));
+				for(var dir of resourceFolders)
+				{
+					try
+					{
+						var result=require(dir+key);
+						if(!oldhasModule(key))µ.setModule(key,result);
+						break;
+					}
+					catch(e)
+					{
+						µ.logger.info(new µ.Warning("could not load nodejs module "+dir+key,{
+							name:e.name,
+							message:e.message,
+							stack:e.stack,
+							original:e
+						}));
+					}
+				}
+				if(!oldhasModule(key))
+				{
+					console.error(new µ.Warning("could not load nodejs module "+key))
+				}
 			}
 		}
-	}
-	return oldGetModule(key);
-};
-
-/* polyfills */
-
-Array.slice=Array.prototype.slice.call.bind(Array.slice);
+		return oldGetModule(key);
+	};
+	
+	/* polyfills */
+	
+	//Array.slice=Array.prototype.slice.call.bind(Array.slice);
+})();
