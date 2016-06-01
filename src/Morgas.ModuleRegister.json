@@ -25,6 +25,7 @@
 	"iterate": "Morgas.util.object.iterate.js",
 	"iterateAsync": "Morgas.util.object.iterateAsync.js",
 	"uniquify": "Morgas.util.object.uniquify.js",
+	"Progress": "Morgas.util.Progress.js",
 	"queryParam": "Morgas.util.queryParam.js",
 	"request": "Morgas.util.Request.js",
 	"request.json": "Morgas.util.Request.js",

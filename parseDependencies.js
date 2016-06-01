@@ -1,128 +1,140 @@
 var fs=require("fs");
 var path=require("path");
 
-function concatall(results)
+var File=µ.getModule("File");
+var uniquify=µ.getModule("uniquify");
+
+var flatten= Array.prototype.concat.apply.bind(Array.prototype.concat,[]);
+
+var mapModuleToFile=function (modules,register)
 {
-	return Array.prototype.concat.apply([],results);
-}
-function getFileList(dirs)
-{
-	var p=[];
-	dirs.forEach(function(dir)
+	return uniquify(modules.map(m=>
 	{
-		p.push(new Promise(function(rs)
+		if(!(m in register))
 		{
-			fs.readdir(dir,function(err,list)
-			{
-				if(err) throw err;
-				var fList=[];
-				list.forEach(function(file)
-				{
-					if(path.extname(file)===".js")fList.push(path.join(dir,file))
-				});
-				rs(fList);
-			})
-		}))
-	});
-	return Promise.all(p).then(concatall)
+			µ.logger.warn("module",m,"not found");
+			return false;
+		}
+		return register[m];
+	}).filter(µ.constantFunctions.pass));
 }
 
-function mapToMap(arr,map)
+var depsRegEx=/SC=SC\(((?:[^\)]||\);)+)\);/m;
+
+var relativatePath=function(file,referencePath)
 {
-	var set=new Set();
-	for(var a of arr)
-	{
-		if(!(a in map)) console.warn("module",a,"not found");
-		else set.add(map[a]);
-	}
-	var rtn=[];
-	var it=set.values();
-	var step=null;
-	while(!(step=it.next()).done) rtn.push(step.value);
-	return rtn;
+	return path.relative(referencePath,file.getAbsolutePath()).replace(/\\/g,"/");
 }
-module.exports=function collectDependencies(dirs,rootDir)
+
+module.exports=function collectDependencies(morgasJs,files,referencePath)
 {
-	rootDir=rootDir||"";
-	var depsRegEx=/SC=SC\(((?:[^\)]||\);)+)\);/m;
-	return getFileList(dirs).then(function(list)
+	morgasJs=File.stringToFile(morgasJs);
+	files.push(morgasJs);
+	return Promise.all(files.map(File.stringToFile).map(file=>
+		file.stat().then(s=>
+			s.isDirectory() ?
+				file.listFiles()
+				.then(list=>
+					list.filter(f=>path.extname(f)===".js")
+					.map(f=>file.clone().changePath(f))) :
+				file
+			)
+		)
+	)
+	.then(flatten)
+	.then(files=>uniquify(files,f=>f.getAbsolutePath()))
+	.then(function(files)
 	{
-		var pFile=[];
-		list.forEach(function(filePath)
-		{
-			pFile.push(new Promise(function (rs)
+		return Promise.all( files.map(file=>
+			file.read({encoding:"UTF-8"})
+			.then(function(data)
 			{
-				fs.readFile(filePath,{encoding:"UTF-8"},function(err,data)
+				var deps,uses,prov;
+				var match=data.match(depsRegEx);
+				if(match)
 				{
-					var deps,uses,prov;
-					var match=data.match(depsRegEx);
-					if(match)
-					{
-						uses=match[1].match(/"[^"]+"/g);
-						if(uses)uses=uses.map(function(a){return a.slice(1,-1)});
-						deps=data.slice(0,match.index).match(/GMOD\("[^"]+"\)/g);
-						if (deps)deps=deps.map(function(a){return a.slice(6,-2)});
-					}
-					prov=data.match(/SMOD\("[^"]+"/g);
-					if (prov)prov=prov.map(function(a){return a.slice(6,-1)});
-					rs({file:filePath.slice(4).replace(/\\/g,"/"),deps:deps,uses:uses,prov:prov});
-				});
-			}));
-		});
-		return Promise.all(pFile);
-	})
-		.then(function(dependencies)
-		{
-			var moduleFiles={};
-			for(var i=0;i<dependencies.length;i++)
-			{
-				var dep=dependencies[i];
-				if(dep.prov)
-				{
-					for(var p=0;p<dep.prov.length;p++)
-					{
-						if(dep.prov[p] in moduleFiles) console.warn("module",dep.prov[p],"aleardy defined in",moduleFiles[dep.prov[p]]);
-						moduleFiles[dep.prov[p]]=dep.file;
-					}
-				}
-			}
-			var rtn={
-				modules:moduleFiles,
-				dependencies:{}
-			};
-			for(var i=0;i<dependencies.length;i++)
-			{
-				var dep=dependencies[i];
-				if(dep.file==rootDir+"Morgas.js")
-				{
-					rtn.dependencies[dep.file]=true;
+					uses=match[1].match(/"[^"]+"/g);
+					if(uses)uses=uses.map(function(a){return a.slice(1,-1)});
+					deps=data.slice(0,match.index).match(/GMOD\("[^"]+"\)/g);
+					if (deps)deps=deps.map(function(a){return a.slice(6,-2)});
 				}
 				else
 				{
-					rDep=rtn.dependencies[dep.file]={};
-					if(!dep.deps)
+					µ.logger.warn(file.getName()+" does not have a shortcut section [ SC=SC({}); ]")
+				}
+				
+				prov=data.match(/SMOD\("[^"]+"/g);
+				if (prov)
+				{
+					prov=prov.map(function(a){return a.slice(6,-1)});
+				}
+				else
+				{
+					µ.logger.error(file.getName()+' does not provide a module [ SMOD(""); ]');
+				}
+				
+				return {
+					file:file,
+					filePath:relativatePath(file,referencePath),
+					deps:deps,
+					uses:uses,
+					prov:prov
+				};
+			})
+		));
+	})
+	.then(function(dependencies)
+	{
+		var rtn={
+			modules:{},
+			dependencies:{}
+		};
+
+		for(var dep of dependencies)
+		{
+			if(dep.prov)
+			{
+				for(var module of dep.prov)
+				{
+					if(module in rtn.modules) µ.logger.warn("module",module,"aleardy defined in",rtn.modules[module]);
+					rtn.modules[module]=dep.filePath;
+				}
+			}
+		}
+		
+		for(var dep of dependencies)
+		{
+			if(dep.file===morgasJs)
+			{
+				rtn.dependencies[dep.filePath]=true;
+			}
+			else
+			{
+				var rDep={};
+				rtn.dependencies[dep.filePath]=rDep;
+				if(!dep.deps)
+				{
+					rDep.deps=[relativatePath(morgasJs,referencePath)];
+				}
+				else
+				{
+					rDep.deps=mapModuleToFile(dep.deps,rtn.modules);
+					rDep.deps.unshift(relativatePath(morgasJs,referencePath));
+				}
+				if(dep.uses)
+				{
+					rDep.uses=mapModuleToFile(dep.uses,rtn.modules);
+					if(Array.isArray(rDep.deps))
 					{
-						rDep.deps=[rootDir+"Morgas.js"];
-					}
-					else
-					{
-						rDep.deps=mapToMap(dep.deps,moduleFiles,dep.file);
-						rDep.deps.unshift(rootDir+"Morgas.js");
-					}
-					if(dep.uses)
-					{
-						rDep.uses=mapToMap(dep.uses,moduleFiles);
-						if(Array.isArray(rDep.deps))
+						for(var d=0;d<rDep.deps.length;d++)
 						{
-							for(var d=0;d<rDep.deps.length;d++)
-							{
-								var index=rDep.uses.indexOf(rDep.deps[d]);
-								if(index!==-1)rDep.uses.splice(index,1);
-							}
+							var index=rDep.uses.indexOf(rDep.deps[d]);
+							if(index!==-1)rDep.uses.splice(index,1);
 						}
 					}
 				}
 			}
-			return rtn;
-		});
+		}
+		return rtn;
+	});
 };

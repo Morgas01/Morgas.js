@@ -137,6 +137,15 @@
 			"Morgas.js"
 		]
 	},
+	"Morgas.util.Progress.js": {
+		"deps": [
+			"Morgas.js"
+		],
+		"uses": [
+			"Morgas.util.function.rescope.js",
+			"Morgas.util.object.adopt.js"
+		]
+	},
 	"Morgas.util.queryParam.js": {
 		"deps": [
 			"Morgas.js"

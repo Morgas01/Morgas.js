@@ -3,37 +3,46 @@ var path=require("path");
 
 require("./src/NodeJs/Morgas.NodeJs");
 
-var removeFolder=µ.getModule("removeFolder");
+var parseDependencies=require("./parseDependencies");
 var minify=require("./minify");
 
-removeFolder("build");
+var SC=µ.shortcut({
+	File:"File",
+	DepRes:"DepRes",
+	itAs:"iterateAsync"
+});
 
-require("./parseDependencies")(["src","src/DB"]).then(function(result)
+var rootDir=new SC.File(".");
+var outputDir=rootDir.clone().changePath("build");
+
+outputDir.remove().then(function()
 {
-	fs.writeFile("src/Morgas.ModuleRegister.json",JSON.stringify(result.modules,null,"\t"),function(err)
+	return parseDependencies("src/Morgas.js",["src","src/DB"],"src");
+})
+.then(function(result)
+{
+	rootDir.clone().changePath("src/Morgas.ModuleRegister.json").write(JSON.stringify(result.modules,null,"\t")).then(null,function(err)
 	{
 		if(err) console.error("could not save ModuleRegister",err);
 	});
-	fs.writeFile("src/Morgas.Dependencies.json",JSON.stringify(result.dependencies,null,"\t"),function(err)
+	rootDir.clone().changePath("src/Morgas.Dependencies.json").write(JSON.stringify(result.dependencies,null,"\t")).then(null,function(err)
 	{
 		if(err) console.error("could not save Dependencies",err);
 	});
 
-	require("./src/Morgas.js");
-
-	require("./src/Morgas.DependencyResolver.js");
-	var resolver=new µ.DependencyResolver(result.dependencies);
+	var resolver=new SC.DepRes(result.dependencies,"src/");
 
 	files=Object.keys(resolver.config);
-	for(var i=0;i<files.length;i++)
-	{
-			minify(files[i],[files[i]]);
-	}
-
-	minify("Morgas_CORE.js",["Morgas.js"]);
-	minify("Morgas_DB.js",["DB/Morgas.DB.js","DB/Morgas.DB.ObjectConnector.js","DB/Morgas.DB.IndexedDBConnector.js","DB/Morgas.Organizer.LazyCache.js"]);
-	minify("Morgas_FULL.js",Object.keys(resolver.config));
-}).catch(function(error)
+	
+	return SC.itAs(files,(i,f)=>minify(f.slice(4),[f],"build"))
+	.then(()=>minify("Morgas_DB.js",resolver.resolve(["src/DB/Morgas.DB.js","src/DB/Morgas.DB.ObjectConnector.js","src/DB/Morgas.DB.IndexedDBConnector.js","src/DB/Morgas.Organizer.LazyCache.js"]),"build"))
+	.then(()=>minify("Morgas_FULL.js",resolver.resolve(Object.keys(resolver.config)),"build"));
+})
+.then(function()
+{
+	console.log("build finished!");
+},
+function(error)
 {
 	console.error("build failed!",error,error.stack);
 });
