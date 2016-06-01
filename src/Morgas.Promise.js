@@ -238,8 +238,8 @@
 			delete this.destroy;
 			callbacks.length=0;
 			reject(reason);
-		}
-	}
+		};
+	};
 	
 	SMOD("Promise",PROM);
 	
