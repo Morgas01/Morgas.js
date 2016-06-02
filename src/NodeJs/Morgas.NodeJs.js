@@ -3,6 +3,8 @@
 	var fs=require("fs");
 	require(path.join("..","Morgas"));
 	
+	module.exports=µ;
+	
 	var moduleRegister = require("../Morgas.ModuleRegister");
 	
 	var oldhasModule=µ.hasModule;
