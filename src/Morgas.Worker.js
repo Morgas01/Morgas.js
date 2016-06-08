@@ -102,7 +102,6 @@
 	WORKER.BASESCRIPT="Worker/Morgas.BaseWorker.js";
 	WORKER.workerID=0;
 	WORKER.REQUESTTIMEOUT=60000;
-	WORKER.requestUUID=0;
 	
 	SMOD("Worker",WORKER);
 	

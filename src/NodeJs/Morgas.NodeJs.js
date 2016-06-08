@@ -62,6 +62,7 @@
 							stack:e.stack,
 							original:e
 						}));
+						lastError=e;
 					}
 				}
 				if(!oldhasModule(key))

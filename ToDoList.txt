@@ -1,5 +1,6 @@
 Morgas.js:
 	-	loadedModules
+	-	remove .created statelistener
 build:
 	-	docs (jsDocs ?)
 

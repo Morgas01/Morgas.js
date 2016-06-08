@@ -135,6 +135,7 @@
 			err.promise.then(function()
 			{
 				ok(abortStart+500<Date.now(),"time "+(Date.now()-abortStart)+"ms>500ms");
+				start();
 			})
 		});
 		d1.abort();

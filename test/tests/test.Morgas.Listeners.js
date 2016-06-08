@@ -52,8 +52,9 @@
 		foo.setState(".state","mystate");
 		foo.addListener(".state",result,function(e){
 			this.push("after");
+			this.push(e.value);
 		});
-		deepEqual(result,["before","mystate","after"],"state");
+		deepEqual(result,["before","mystate","after","mystate"],"state");
 		
 		foo.removeListener("event",result);
 		foo.addListener("event",foo,"destroy");
