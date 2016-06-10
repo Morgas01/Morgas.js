@@ -34,7 +34,7 @@ var handleMessage=function(message,handle)
 		{
 			return Promise.resolve(worker[message.method].apply(worker,message.args))
 			.then(result=>process.send({request:message.request,data:result}),
-			error=>process.send({request:message.request,error:result}));
+			error=>process.send({request:message.request,error:error}));
 		}
 		else
 		{
@@ -43,7 +43,9 @@ var handleMessage=function(message,handle)
 	}
 	else
 	{
-		µ.logger.warn(`method ${message.method} is unknown in worker`);
+		var text=`method ${message.method} is unknown in worker`;
+		µ.logger.warn(text);
+		process.send({request:message.request,error:text})
 		return false;
 	}
 };

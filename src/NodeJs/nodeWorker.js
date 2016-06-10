@@ -46,7 +46,8 @@
 			}
 			else if(message.request=="init")
 			{
-				this.setState(".readyState",{state:"running",data:message.data});
+				if(message.error) this.setState(".readyState",{state:"error",error:message.error});
+				else this.setState(".readyState",{state:"running",data:message.data});
 			}
 			else
 			{

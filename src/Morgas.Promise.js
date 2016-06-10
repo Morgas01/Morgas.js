@@ -196,7 +196,7 @@
 		rtn.original=Promise.resolve(value);
 		return rtn;
 	};
-	PROM.rejected=function(value,scope)
+	PROM.reject=function(value,scope)
 	{
 		var rtn=PROM.prototype._wrapNext.call({
 			scope:scope
