@@ -32,23 +32,24 @@ var handleMessage=function(message,handle)
 	{
 		if("request" in message)
 		{
-			Promise.resolve(worker[message.method].apply(worker,message.args))
+			return Promise.resolve(worker[message.method].apply(worker,message.args))
 			.then(result=>process.send({request:message.request,data:result}),
 			error=>process.send({request:message.request,error:result}));
 		}
 		else
 		{
-			worker[message.method].apply(worker,message.args)
+			return worker[message.method].apply(worker,message.args)
 		}
 	}
 	else
 	{
 		µ.logger.warn(`method ${message.method} is unknown in worker`);
+		return false;
 	}
 };
 
 process.on("message",handleMessage);
 
-if(initParam.script) reqire(initParam.script);
+if(initParam.script) require(initParam.script);
 
 handleMessage({method:"init",request:"init",args:worker.args});

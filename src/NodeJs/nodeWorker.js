@@ -10,6 +10,8 @@
 		prom:"Promise"
 	});
 	
+	var path=require("path");
+	
 	var NODEWORKER=µ.NodeJs.Worker=µ.Class(Listeners,{
 		init:function(script,args,cwd)
 		{
@@ -50,7 +52,8 @@
 			{
 				if(this.requests.has(message.request))
 				{
-					this.requests.get(message.request).resolve(message.data);
+					if(message.error) this.requests.get(message.request).reject(message.error);
+					else this.requests.get(message.request).resolve(message.data);
 					this.requests.delete(message.request);
 					clearTimeout(message.request);
 				}

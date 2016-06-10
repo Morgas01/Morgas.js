@@ -40,6 +40,10 @@
 			this.filePath=filePath||".";
 			SC.prom.pledgeAll(this,["realPath","stat","lstat","access","listFiles","mkdir","read","readStream","write","writeStream","rename","copy"]);
 		},
+		getFileName:function()
+		{
+			return PATH.parse(this.filePath).name;
+		},
 		getName:function()
 		{
 			return PATH.parse(this.filePath).base;
