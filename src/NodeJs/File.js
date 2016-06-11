@@ -149,8 +149,7 @@
 		move:function(dir,overwrite)
 		{
 			dir=FILE.stringToFile(dir);
-			var target=dir=PATH.join(dir,PATH.basename(this.filePath))
-			console.log("move",this.filePath,target);
+			var target=dir=PATH.join(dir,PATH.basename(this.filePath));
 			return this.rename(target,overwrite);
 		},
 		remove:function()

@@ -63,8 +63,8 @@
 					}
 					catch (e)
 					{
-						console.error(e.message);
-						console.error(e.stack);
+						µ.logger.error(e.message);
+						µ.logger.error(e.stack);
 					}
 					if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
 				}
@@ -72,7 +72,7 @@
 				{
 					//TODO
 					var cmd=match&&match[1]||line;
-					console.log("unknown command "+cmd);
+					µ.logger.log("unknown command "+cmd);
 					if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
 				}
 			})
@@ -106,7 +106,7 @@
 			for(var c in this.commands)
 			{
 				this.commands[c].scope=this;
-				if(c in this.instance.commands) console.warn("command name "+c+" is already used");
+				if(c in this.instance.commands) µ.logger.warn("command name "+c+" is already used");
 				else this.instance.commands[c]=this.commands[c];
 			}
 		},
@@ -116,7 +116,7 @@
 			this.instance.rl.write(msg+"\n");
 			this.instance.rl.prompt();
 			*/
-			console.log(msg);
+			µ.logger.log(msg);
 		},
 		pause:function()
 		{

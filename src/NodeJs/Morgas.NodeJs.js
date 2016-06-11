@@ -5,6 +5,8 @@
 	
 	module.exports=µ;
 	
+	µ.dirname=path.resolve(__dirname,"..");
+	
 	var moduleRegister = require("../Morgas.ModuleRegister");
 	
 	var oldhasModule=µ.hasModule;
@@ -67,7 +69,7 @@
 				}
 				if(!oldhasModule(key))
 				{
-					console.error(new µ.Warning("could not load nodejs module "+key))
+					µ.logger.error(new µ.Warning("could not load nodejs module "+key))
 				}
 			}
 		}

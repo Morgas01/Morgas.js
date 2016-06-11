@@ -45,7 +45,7 @@ var handleMessage=function(message,handle)
 	{
 		var text=`method ${message.method} is unknown in worker`;
 		µ.logger.warn(text);
-		process.send({request:message.request,error:text})
+		process.send({request:message.request,error:text});
 		return false;
 	}
 };
