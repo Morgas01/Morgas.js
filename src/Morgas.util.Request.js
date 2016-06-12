@@ -23,17 +23,13 @@
 				}
 				else
 				{
-					var w=new µ.Warning(req.status,{url:url,xhr:req});
-					µ.logger.error(w);
-					if(param.urls.length==0) signal.reject(w);
+					if(param.urls.length==0) signal.reject({status:req.status,response:req.response,url:url,xhr:req});
 					else doRequest(signal,param);
 				}
 			};
 			req.onerror=function(error)
 			{
-				var w=new µ.Warning("Network Error",{url:url,xhr:req,error:error});
-				µ.logger.error(w);
-				if(param.urls.length==0) signal.reject(w);
+				if(param.urls.length==0) signal.reject({url:url,xhr:req,error:error});
 				else doRequest(signal,param);
 			};
 			if(param.progress)
