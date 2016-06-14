@@ -45,29 +45,26 @@
 			}
 			else
 			{
-				file=File.stringToFile(file);
-				
-				var check=new File();
+				file=File.filetoString(file);
 				var rotate=function()
 				{
 					if(count===0)
 					{
-						check.changePath(file).exists().then(function()
+						return new File(file).exists().then(function()
 						{
 							return this.rename(file+".0",true);
-						},µ.constantFunctions.pass)
-						.then(signal.resolve,signal.reject);
+						},µ.constantFunctions.pass);
 					}
 					else
 					{
-						check.changePath(file+"."+(--count)).exists().then(function()
+						return new File(file+"."+(--count)).exists().then(function()
 						{
 							return this.rename(file+"."+(count+1),true);
 						},µ.constantFunctions.pass)
-						.then(rotate,signal.reject);
+						.then(rotate);
 					}
 				};
-				rotate();
+				rotate().then(signal.resolve,signal.reject);
 			}
 		}),
 		enshureDir:function(dir)
