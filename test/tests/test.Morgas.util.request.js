@@ -17,7 +17,7 @@
 	{
 		REQ(["bad/url"]).catch(function(error)
 		{
-			ok(error.data.url==="bad/url","error: "+error.message)
+			ok(error.url==="bad/url","error: "+error.response)
 			start();
 		});
 	});

@@ -75,6 +75,9 @@
 
 	WR(srcDir+"Morgas.NodePatch.js");
 	WR(testDir+"test.Morgas.NodePatch.js");
+
+	WR(srcDir+"Morgas.NodePatch.treeCompare.js");
+	WR(testDir+"test.Morgas.NodePatch.treeCompare.js");
 	
 	WR(srcDir+"Morgas.Worker.js");
 	WR(testDir+"test.Morgas.Worker.js");

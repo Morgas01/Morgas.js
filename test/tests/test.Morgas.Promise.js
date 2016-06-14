@@ -124,7 +124,7 @@
 			{
 				return new Promise(function(resolve)
 				{
-					setTimeout(resolve,500);
+					setTimeout(resolve,501);
 				})
 			});
 		});
