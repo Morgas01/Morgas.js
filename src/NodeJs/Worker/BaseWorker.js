@@ -34,7 +34,8 @@ var handleMessage=function(message,handle)
 		{
 			return Promise.resolve(worker[message.method].apply(worker,message.args))
 			.then(result=>process.send({request:message.request,data:result}),
-			error=>process.send({request:message.request,error:error}));
+			error=>process.send({request:message.request,error:error}))
+			.catch(µ.logger.error);
 		}
 		else
 		{
