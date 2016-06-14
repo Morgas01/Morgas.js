@@ -116,7 +116,7 @@
 			this.instance.rl.write(msg+"\n");
 			this.instance.rl.prompt();
 			*/
-			µ.logger.log(msg);
+			console.log(msg);
 		},
 		pause:function()
 		{
