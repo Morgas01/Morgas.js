@@ -5,6 +5,7 @@
 	"Listeners": "Morgas.Listeners.js",
 	"attachListeners": "Morgas.Listeners.js",
 	"NodePatch": "Morgas.NodePatch.js",
+	"NodePatch.treeCompare": "Morgas.NodePatch.treeCompare.js",
 	"Organizer": "Morgas.Organizer.js",
 	"Patch": "Morgas.Patch.js",
 	"Promise": "Morgas.Promise.js",

@@ -19,6 +19,15 @@
 			"Morgas.util.function.proxy.js"
 		]
 	},
+	"Morgas.NodePatch.treeCompare.js": {
+		"deps": [
+			"Morgas.js",
+			"Morgas.NodePatch.js"
+		],
+		"uses": [
+			"Morgas.Patch.js"
+		]
+	},
 	"Morgas.Organizer.js": {
 		"deps": [
 			"Morgas.js",
