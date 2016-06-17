@@ -48,7 +48,11 @@
 								{
 									rtn.push(result);
 									goStep();
-								},signal.reject);
+								},function(error)
+								{
+									rtn.push(error);
+									signal.reject(rtn);
+								});
 							}
 							else rtn.push(result);
 						}
@@ -60,7 +64,8 @@
 					}
 					catch (e)
 					{
-						signal.reject(e);
+						rtn.push(e);
+						signal.reject(rtn);
 					}
 				}
 			};
