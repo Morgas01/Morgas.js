@@ -114,22 +114,21 @@
 		},
 		error:function(efn)
 		{
-			return this._wrapNext(this.original.catch(this.rescopeFn(efn,this.scope)));
+			return this._wrapNext(this.original.catch(SC.rs(efn,this.scope)));
 		},
 		then:function(fn,efn)
 		{
 			if(fn)fn=this.rescopeFn(fn,this.scope);
-			if(efn)efn=this.rescopeFn(efn,this.scope);
+			if(efn)efn=SC.rs(efn,this.scope);
 			return this._wrapNext(this.original.then(fn,efn));
 		},
 		always:function(fn)
 		{
-			fn=this.rescopeFn(fn,this.scope);
-			return this._wrapNext(this.original.then(fn,fn));
+			return this._wrapNext(this.original.then(this.rescopeFn(fn,this.scope),SC.rs(fn,this.scope)));
 		},
 		reverse:function(rejectValue,fn)
 		{
-			if(fn)fn=this.rescopeFn(fn,this.scope);
+			if(fn)fn=SC.rs(fn,this.scope);
 			else fn=µ.constantFunctions.pass;
 			return this._wrapNext(this.original.then(function()
 			{
