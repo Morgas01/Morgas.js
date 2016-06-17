@@ -35,30 +35,6 @@
 			else signal.resolve(result);
 		};
 	};
-
-	var calcCRC=function(file,progress)
-	{
-		return file.stat().then(stat=> 
-			file.readStream().then(stream=>
-				new SC.prom(signal=>
-				{
-					var dataRead=0;
-					var builder=new SC.crc.Builder();
-					stream.on("data",function(data)
-					{
-						builder.add(data);
-						dataRead+=data.length;
-						if(progress)progress(dataRead,stat.size);
-					});
-					stream.on("end",function()
-					{
-						signal.resolve(("00000000"+builder.get().toString(16).toUpperCase()).slice(-8));
-					});
-					stream.on("error",signal.reject);
-				})
-			)
-		);
-	}
 	
 	var FH=µ.NodeJs.FileHelper=µ.Class({
 		init:function(dir)
@@ -170,7 +146,7 @@
 			return SC.itAs(this.selected,function(index,filename)
 			{
 				var calcFile=this.file.clone().changePath(filename);
-				return calcCRC(calcFile,progress).then(crc=>[filename,crc],e=>[filename,e]);
+				return SC.util.calcCRC(calcFile,progress).then(crc=>[filename,crc],e=>[filename,e]);
 			},null,this);
 		},
 		checkCRC:function(cb,progress)
@@ -184,7 +160,7 @@
 					if(cb) cb(result);
 					return result;
 				}
-				return calcCRC(this.file.clone().changePath(filename),progress)
+				return SC.util.calcCRC(this.file.clone().changePath(filename),progress)
 				.then(crc=>
 				{
 					var result=[filename,crc===match[1].toUpperCase(),crc];
@@ -206,7 +182,7 @@
 					return result;
 				}
 				var appendFile=this.file.clone().changePath(filename);
-				return calcCRC(appendFile,progress)
+				return SC.util.calcCRC(appendFile,progress)
 				.then(crc=>
 				{
 					var rn=PATH.parse(filename);
@@ -341,6 +317,7 @@
 			return SC.prom.resolve([]);
 		}
 	});
+	FH.CRC_RegExp=extractChecksum;
 	SMOD("FileHelper",FH);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

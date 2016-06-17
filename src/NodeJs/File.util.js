@@ -3,6 +3,7 @@
 	var File=GMOD("File");
 
 	SC=SC({
+		crc:"util.crc32",
 		prom:"Promise"
 	});
 	
@@ -82,6 +83,30 @@
 					return dir.mkdir(".");
 				})
 			});
+		},
+		calcCRC:function(file,progress)
+		{
+			file=File.stringToFile(file);
+			return file.stat().then(stat=> 
+				file.readStream().then(stream=>
+					new SC.prom(signal=>
+					{
+						var dataRead=0;
+						var builder=new SC.crc.Builder();
+						stream.on("data",function(data)
+						{
+							builder.add(data);
+							dataRead+=data.length;
+							if(progress)progress(dataRead,stat.size);
+						});
+						stream.on("end",function()
+						{
+							signal.resolve(("00000000"+builder.get().toString(16).toUpperCase()).slice(-8));
+						});
+						stream.on("error",signal.reject);
+					})
+				)
+			);
 		}
 	}
 	
