@@ -27,7 +27,10 @@
 				{
 					r.on("error",signal.reject);
 					w.on("error",signal.reject);
-					w.on("end",signal.resolve);
+					w.on("close",function()
+					{
+						signal.resolve(target);
+					});
 					r.pipe(w);
 				});
 			});
@@ -175,7 +178,8 @@
 		},
 		copy:function(signal,filename,overwrite)
 		{
-			var filePath=PATH.join(PATH.parse(this.filePath).dir,filename);
+			filename=FILE.filetoString(filename);
+			var filePath=PATH.resolve(PATH.parse(this.filePath).dir,filename);
 			if(overwrite===true) copyFile(this,new FILE(filePath)).then(signal.resolve,signal.reject);
 			else new FILE(filePath).exists().reverse("FILE_EXISTS",function()
 			{
