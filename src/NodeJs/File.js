@@ -117,11 +117,7 @@
 		writeStream:function(signal,options)
 		{
 			FS.createWriteStream(this.filePath,options)
-			.on("error",function(err)
-			{
-				if(err.code==="ENOENT") signal.resolve(this);
-				else signal.reject(err);
-			})
+			.on("error",signal.reject)
 			.on("open",function()
 			{
 				this.removeListener("error",signal.reject);

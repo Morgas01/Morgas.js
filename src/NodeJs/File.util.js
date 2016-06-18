@@ -73,8 +73,8 @@
 			dir=File.stringToFile(dir);
 			return dir.exists().catch(function()
 			{
-				var parentDir=PATH.dirname(dir.filePath);
-				if(dir.filePath===parentDir)
+				var parentDir=PATH.dirname(dir.getAbsolutePath());
+				if(dir.getAbsolutePath()===parentDir)
 				{
 					signal.reject(new RangeError("no existing dir found"));
 				}
