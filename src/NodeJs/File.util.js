@@ -47,25 +47,21 @@
 			else
 			{
 				file=File.filetoString(file);
-				var rotate=function()
+				var rot=function(prevFile,number)
 				{
-					if(count===0)
+					return new File(file+"."+number).exists().then(function()
 					{
-						return new File(file).exists().then(function()
-						{
-							return this.rename(file+".0",true);
-						},µ.constantFunctions.pass);
-					}
-					else
+						if(number+1>=count) return Promise.reject();
+						return rot(this,number+1);
+					}).always(function()
 					{
-						return new File(file+"."+(--count)).exists().then(function()
-						{
-							return this.rename(file+"."+(count+1),true);
-						},µ.constantFunctions.pass)
-						.then(rotate);
-					}
+						return prevFile.rename(file+"."+(number));
+					});
 				};
-				rotate().then(signal.resolve,signal.reject);
+				new File(file).exists().then(function()
+				{
+					return rot(this,0);
+				}).then(signal.resolve,signal.reject);
 			}
 		}),
 		enshureDir:function(dir)
