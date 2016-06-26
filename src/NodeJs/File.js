@@ -147,8 +147,7 @@
 		},
 		move:function(dir,overwrite)
 		{
-			dir=FILE.stringToFile(dir);
-			var target=dir=PATH.join(dir,PATH.basename(this.filePath));
+			var target=PATH.join(FILE.filetoString(dir),PATH.basename(this.filePath));
 			return this.rename(target,overwrite);
 		},
 		remove:function()
