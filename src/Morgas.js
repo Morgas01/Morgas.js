@@ -11,10 +11,11 @@
 	
 	µ.constantFunctions={
 		"ndef":function(){return undefined},
-		"nul":function(){return null},
+		"n":function(){return null},
 		"f":function(){return false},
-		"t":function(){return true;},
-		"zero":function(){return 0;},
+		"t":function(){return true},
+		"zero":function(){return 0},
+		"es":function(){return ""},
 		"boolean":function(val){return !!val},
 		"pass":function(a){return a}
 	};
@@ -23,8 +24,6 @@
 	 *	Every class and utility function should define a Module, which can
 	 *	be replaced by any other function or class that has similar structure.
 	 *
-	 *	However they should NEVER only define a Module! It should only be used to
-	 *	shortcut paths and ensure flexibility.
 	 */
 	(function(){
 		var modules={};

@@ -262,7 +262,59 @@
 			this.mega();
 		}
 	});
-	
+
+	NODE.traverse=function(root,func,childrenKey)
+	{
+		if(!childrenKey)childrenKey=NODE.BasicAliases.children;
+		var todo=[{
+			node:root,
+			parent:null,
+			parentResult:null,
+			siblingResults:[]
+		}];
+		for(var entry of todo)
+		{
+			entry.siblingResults.push(func(entry.node,entry.parent,entry.parentResult,entry.siblingResults));
+			var children=[];
+			var nodePatch=getNode(entry.node);
+			if(nodePatch)
+			{
+				children.nodePatch.getChildren();
+			}
+			else
+			{
+				children=entry.node[childrenKey];
+			}
+			if(children)
+			{
+				var childSiblings=[];
+				for(var child of children)
+				{
+					todo.push({
+						node:child,
+						parent:entry.node,
+						parentResult:entry.siblingResults[entry.siblingResults.length-1],
+						siblingResults:childSiblings
+					});
+				}
+			}
+		}
+		return todo[0].siblingResults[0];
+	};
+
+	NODE.patchTree=function(root,childrenKey,aliasMap)
+	{
+		return NODE.traverse(root,function(node,parent,parentNode)
+		{
+			var child=new NODE(node,aliasMap);
+			if(parentNode)
+			{
+				parentNode.addChild(child);
+			}
+			return child;
+		},childrenKey);
+	}
+
 	var getNode=function(obj)
 	{
         if(typeof obj==="string")
@@ -301,6 +353,11 @@
             node.instance[alias]=node[symbol];
         }
     };
-	
+
+    var getChildren=function(node,key)
+	{
+		if(node instanceof NODE) return getP
+	}
+
 	SMOD("NodePatch",NODE);
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
