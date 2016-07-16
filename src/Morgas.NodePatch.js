@@ -270,11 +270,12 @@
 			node:root,
 			parent:null,
 			parentResult:null,
-			siblingResults:[]
+			siblingResults:[],
+			index:null
 		}];
 		for(var entry of todo)
 		{
-			entry.siblingResults.push(func(entry.node,entry.parent,entry.parentResult,entry.siblingResults));
+			entry.siblingResults.push(func(entry.node,entry.parent,entry.parentResult,entry));
 			var children=[];
 			var nodePatch=getNode(entry.node);
 			if(nodePatch)
@@ -288,13 +289,14 @@
 			if(children)
 			{
 				var childSiblings=[];
-				for(var child of children)
+				for(var i=0;i<children.length;i++)
 				{
 					todo.push({
-						node:child,
+						node:children[i],
 						parent:entry.node,
 						parentResult:entry.siblingResults[entry.siblingResults.length-1],
-						siblingResults:childSiblings
+						siblingResults:childSiblings,
+						index:i
 					});
 				}
 			}
