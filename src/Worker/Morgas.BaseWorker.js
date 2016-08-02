@@ -3,7 +3,7 @@ self.onmessage=function init(initEvent)
 	var [initRequest,config]=initEvent.data.args;
 	//load Morgas.js
 	importScripts(config.basePath+config.morgasPath);
-	
+
 	if(config.logger&&config.logger.send)
 	{
 		µ.logger.out=function(msg,verbose)
@@ -12,14 +12,13 @@ self.onmessage=function init(initEvent)
 		}
 	}
 	µ.logger.verbose=config.logger&&config.logger.verbose||µ.logger.verbose;
-	
+
 	self.onmessage=function(event)
 	{
 		if(event.data.method&&event.data.method in self)
 		{
-			console.log(event.data);
 			var rtn=self[event.data.method].apply(self,event.data.args);
-			
+
 			if(rtn!==undefined&&event.data.isRequest) self.respond(event.data.args[0],true,rtn);
 		}
 		else
@@ -36,7 +35,7 @@ self.onmessage=function init(initEvent)
 	{
 		self.postMessage({type:type,data:data});
 	};
-	/** 
+	/**
 	 * respond a request
 	 * @param {number} requestID
 	 * @param {boolean} success
@@ -50,9 +49,9 @@ self.onmessage=function init(initEvent)
 			data:data
 		});
 	};
-	
+
 	//-------- METHODS --------//
-	
+
 	self.loadScripts=function(_request)
 	{
 		var i=0;
@@ -61,7 +60,7 @@ self.onmessage=function init(initEvent)
 			i=1;
 		}
 		self.importScripts.apply(self,Array.slice(arguments,i).map(s=>config.basePath+s));
-		
+
 		if(i===1) self.respond(_request,true);
 	};
 	/**
@@ -81,7 +80,7 @@ self.onmessage=function init(initEvent)
 			self.respond(request,false,"module not loaded");
 		}
 	};
-	
+
 	//respond the init request
 	self.respond(initRequest,true);
 };

@@ -1,28 +1,28 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	µ.NodeJs=µ.NodeJs||{};
-	
+
 	var fork=require("child_process").fork;
-	
+
 	var Listeners=GMOD("Listeners");
 	SC=SC({
 		rs:"rescope",
 		prom:"Promise"
 	});
-	
+
 	var path=require("path");
-	
+
 	var NODEWORKER=µ.NodeJs.Worker=µ.Class(Listeners,{
 		init:function(script,args,cwd)
 		{
 			this.mega();
 			this.createListener(".readyState message");
-			SC.prom.pledgeAll(this,["request"]);
+			SC.prom.pledgeAll(this,["request","close"]);
 			SC.rs.all(this,["_onMessage"]);
 
 			this.nextRequestId=0;
 			this.requests=new Map();
-			
+
 			this.worker=fork(path.join(__dirname,"Worker","baseWorker"),
 			[JSON.stringify({
 				script:script,
@@ -38,29 +38,53 @@
 			});
 			this.worker.on("message",this._onMessage);
 		},
+		onFeedback:null,
 		_onMessage:function(message)
 		{
-			if (message.request==null)
-			{
-				this.fire("message",message.data);
-			}
-			else if(message.request=="init")
+			if(message.request=="init")
 			{
 				if(message.error) this.setState(".readyState",{state:"error",error:message.error});
 				else this.setState(".readyState",{state:"running",data:message.data});
 			}
-			else
+			else if (message.feedback!=null)
 			{
-				if(this.requests.has(message.request))
+				var result;
+				if(!this.onFeedback)
 				{
-					if(message.error) this.requests.get(message.request).reject(message.error);
-					else this.requests.get(message.request).resolve(message.data);
-					this.requests.delete(message.request);
-					clearTimeout(message.request);
+					result=Promise.reject("no feedback");
+					µ.logger.warn("no feedback");
 				}
 				else
 				{
-					µ.logger.warning(new µ.Warning("tried to respond to unknown request",message));
+					try {
+						result=Promise.resolve(this.onFeedback(message.type,message.data));
+					} catch (e) {
+						µ.logger.error(e);
+						result=Promise.reject(e);
+					}
+				}
+				result.then(
+					data=>this.worker.send({feedback:message.feedback,data:data}),
+					error=>this.worker.send({feedback:message.feedback,error:error})
+				);
+			}
+			else if (message.request==null)
+			{
+				this.fire("message",message.data);
+			}
+			else
+			{
+				var timeoutEvent=this.requests.get(message.request);
+				if(timeoutEvent)
+				{
+					if(message.error) timeoutEvent.signal.reject(message.error);
+					else timeoutEvent.signal.resolve(message.data);
+					this.requests.delete(message.request);
+					clearTimeout(timeoutEvent.timeout);
+				}
+				else
+				{
+					µ.logger.warn(new µ.Warning("tried to respond to unknown request",message));
 				}
 			}
 		},
@@ -71,27 +95,37 @@
 		request:function(signal,method,args,timeout)
 		{
 			var timeoutEvent={
-				data:{
-					request:this.nextRequestId++,
-					timeout:null,
-					type:"error",
-					data:"timeout"
-				}
+				request:this.nextRequestId++,
+				timeout:null,
+				error:"timeout",
+				signal:signal
 			};
-			timeoutEvent.data.timeout=setTimeout(()=>this._onMessage(timeoutEvent),timeout||NODEWORKER.REQUESTTIMEOUT);
-			this.requests.set(timeoutEvent.data.request,signal);
-			this.worker.send({method:method,request:timeoutEvent.data.request,args:[].concat(args)});
+			timeoutEvent.timeout=setTimeout(()=>this._onMessage(timeoutEvent),timeout||NODEWORKER.REQUESTTIMEOUT);
+			this.requests.set(timeoutEvent.request,timeoutEvent);
+			this.worker.send({method:method,request:timeoutEvent.request,args:[].concat(args)});
 		},
-		stream:function(inStream,outStream,onMessage)
+		close:function(signal,timeout)
 		{
-			
+			var onClose=function()
+			{
+				clearTimeout(timer);
+				signal.resolve();
+			};
+			var timer=setTimeout(()=>
+			{
+				signal.reject();
+				this.worker.removeListener("close",onClose);
+			},timeout||NODEWORKER.REQUESTTIMEOUT);
+			this.worker.on("close",onClose);
+			this.worker.kill();
 		},
 		destroy:function()
 		{
+			this.worker.kill("SIGKILL");
 		}
 	});
 	NODEWORKER.REQUESTTIMEOUT=60000;
-	
+
 	SMOD("nodeWorker",NODEWORKER);
-	
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
