@@ -1,12 +1,12 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	
+
 	var util=µ.util=µ.util||{};
 	var uFn=util["function"]=util["function"]||{};
-	
+
 	SC=SC({
 		it:"iterate"
 	});
-	
+
 	/**
 	 * proxy methods from source to target.
 	 * called methods have scope of its source
@@ -39,11 +39,11 @@
 			}
 			else
 			{
-				fn=function(){return source[sKey].apply(source,arguments)};
+				fn=source[sKey].bind(source);
 			}
 			target[tKey]=fn;
 		});
 	};
 	SMOD("proxy",uFn.proxy);
-	
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
