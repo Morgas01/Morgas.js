@@ -1,4 +1,5 @@
 {
+	"Config": "Morgas.Config.js",
 	"DepRes": "Morgas.DependencyResolver.js",
 	"Listener": "Morgas.Listeners.js",
 	"StateListener": "Morgas.Listeners.js",

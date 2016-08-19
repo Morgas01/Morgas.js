@@ -1,12 +1,14 @@
 {
   "name": "Morgas",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/Morgas01/Morgas.js.git"
   },
   "devDependencies": {
+    "qunitjs": "^2.0.1",
     "uglify-js": "^2.4.24"
   },
-  "main":"src/NodeJs/Morgas.NodeJs.js"
+  "main": "src/NodeJs/Morgas.NodeJs.js",
+  "license": "MIT"
 }

@@ -1,4 +1,9 @@
 {
+	"Morgas.Config.js": {
+		"deps": [
+			"Morgas.js"
+		]
+	},
 	"Morgas.DependencyResolver.js": {
 		"deps": [
 			"Morgas.js"

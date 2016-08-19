@@ -1,5 +1,5 @@
 ﻿(function MorgasInit(oldµ){
-	Morgas={version:"0.4"};
+	Morgas={version:"0.5.0"};
 	µ=Morgas;
 	/**
 	 * revert "µ" to its old value
@@ -8,7 +8,7 @@
 	{
 		return µ=oldµ;
 	};
-	
+
 	µ.constantFunctions={
 		"ndef":function(){return undefined},
 		"n":function(){return null},
@@ -46,11 +46,11 @@
 			return modules[key];
 		};
 	})();
-	
+
 	/**
 	 * log message if it's verbose is >= the current verbose.
 	 * If a message is a function its return value will be logged.
-	 * 
+	 *
 	 * Set µ.logger.out to any function you like to log the events and errors.
 	 * µ.logger.out will be called with (verbose level, [messages...])
 	 */
@@ -65,7 +65,7 @@
 			{
 				if(typeof msg == "function") msg=[].concat(msg());
 				else msg=Array.prototype.slice.call(arguments,1);
-				
+
 				µ.logger.out(verbose,msg);
 			}
 		},
@@ -114,7 +114,7 @@
 			µ.logger.log.apply(null,args);
 		}
 	})(level);
-	
+
 	/** shortcut
 	 * creates an object that will evaluate its values defined in {map} on its first call.
 	 * when {context} is provided and {map.value} is not a function it will treated as a path from {context}
@@ -158,32 +158,32 @@
 		})(map[m],m)}
 		return target;
 	};
-	
+
 	/** Class function
 	 * Designed to create JavaScript Classes
-	 * 
+	 *
 	 *  It does the inheritance, checks for arguments,
 	 *  adds the core patch to it and calls the init() method.
-	 *  
-	 *  
+	 *
+	 *
 	 *  To create a class do this:
-	 *  
+	 *
 	 *  myClass=µ.Class(mySuperClass,myPrototype)
-	 *  
+	 *
 	 *  OR
-	 *  
+	 *
 	 *  myClass=µ.Class(mySuperClass)
 	 *  myClass.protoype.init=function()
 	 *  {
 	 *  	//call constructor of superclass
 	 *  	mySuperClass.prototype.init.call(this,arg1,arg2...);
 	 *  	//or this.mega();
-	 *  
+	 *
 	 *  	//your constructor
 	 *  }
-	 *  
+	 *
 	 *  You also can derive this classes with "ordinary" classes like this:
-	 *  
+	 *
 	 *  myClass=µ.Class(mySuperClass,myPrototype)
 	 *  mySubClass=function()
 	 *  {
@@ -191,7 +191,7 @@
 	 *  }
 	 *  mySubClass.protoytpe=new myClass(µ._EXTEND);
 	 *  mySubClass.prototype.constructor=mySubClass;
-	 *  
+	 *
 	 *  @param	superClass	(optional)	default: µ.BaseClass
 	 *  @param	prototype	(optional)
 	 */
@@ -216,24 +216,25 @@
 			newClass.prototype=Object.create(superClass.prototype);
 			newClass.prototype.constructor=newClass;
 		}
-		
+
 		for(var i in prot)
 		{
 			newClass.prototype[i]=prot[i];
 		}
 		return newClass;
 	};
-	
+
 	µ.Warning=µ.Class(Error,{
-		init:function(msg,data)
+		init:function(msg,data,error)
 		{
 			this.name = 'warning';
 			this.message = msg || 'Default Message';
-			this.stack = (new Error()).stack;
 			this.data=data;
+			this.error=error;
+			this.stack = (new Error()).stack;
 		}
 	});
-	
+
 	/** Base Class
 	 *	allows to check of being a class ( foo instanceof µ.BaseClass )
 	 *	provides mega and basic destroy method
