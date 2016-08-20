@@ -17,46 +17,48 @@
 		reset:null,
 		toDescription:null
 	});
-	CONFIG.parse=function(desc)
+	CONFIG.parse=function(desc,value)
 	{
-		if(typeof desc=="string") return new FIELD({type:desc});
-		else if (Array.isArray(desc)) return new ARRAY({model:desc});
+		if(typeof desc=="string") return new FIELD({type:desc},value);
+		else if (Array.isArray(desc)) return new ARRAY({model:desc},value);
 		switch(desc.type)
 		{
 			case "object":
 			case undefined:
 				var defaults=desc.default;
 				if("model" in desc) desc=desc.model;
-				return new OBJECT(desc,defaults);
+				return new OBJECT(desc,defaults,value);
 				break;
 			case "map":
-				return new MAP(desc);
+				return new MAP(desc,value);
 				break;
 			case "array":
-				return new ARRAY(desc);
+				return new ARRAY(desc,value);
 			case "string":
 			case "boolean":
 			case "number":
 			case "select":
-				return new FIELD(desc);
+				return new FIELD(desc,value);
 		}
 	}
 	SMOD("Config",CONFIG);
 
 	var FIELD=CONFIG.Field=µ.Class(CONFIG,{
-		init:function(param)
+		init:function(param,value)
 		{
 			this.type=param.type;
 			this.setDefault(param.default);
 			this.pattern=param.pattern||null;
 			this.validate=param.validate||null;
+			this.value=null;
 
 			if(this.type=="select")
 			{
 				this.values=param.values;
 				this.muliple=param.multiple||false;
 			}
-			this.reset();
+			if(value!==undefined) this.set(value);
+			else this.reset();
 		},
 		get:function()
 		{
@@ -105,7 +107,12 @@
 		},
 		toDescription:function()
 		{
-			return this;
+			return {
+				type:this.type,
+				pattern:this.pattern,
+				validate:this.validate,
+				default:this.default
+			};
 		}
 	});
 	FIELD.TYPES=["string","boolean","number","select"];
@@ -116,7 +123,7 @@
 		[Symbol.iterator]:null,
 		get:function(key)
 		{
-			if(arguments.length>0)
+			if(key!=null)
 			{
 				if(!Array.isArray(key))key=[key];
 				for(var entry of this)
@@ -133,6 +140,11 @@
 		},
 		set:function(key,value)
 		{
+			if(arguments.length==1&&typeof key=="object")
+			{
+				this.setAll(key,true);
+				return true;
+			}
 			if(!Array.isArray(key))key=[key];
 			for(var entry of this)
 			{
@@ -143,7 +155,7 @@
 	});
 
 	var OBJECT=CONTAINER.Object=µ.Class(CONTAINER,{
-		init:function(configs,defaults)
+		init:function(configs,defaults,value)
 		{
 			this.configs=new Map();
 			this.setDefault(defaults);
@@ -152,6 +164,8 @@
 				this.addAll(configs);
 			}
 			this[Symbol.iterator]=this.configs.entries.bind(this.configs);
+
+			if(value!==undefined) this.setAll(value,true);
 		},
 		addAll:function(configs)
 		{
@@ -165,22 +179,30 @@
 		add:function(key,config)
 		{
 			if(!(config instanceof CONFIG))config=CONFIG.parse(config);
-			if(this.configs.has(key))
+			if(config)
 			{
-				µ.logger.warn(new µ.Warning(String.raw`overwriting config in Object under key ${key}`,{
-					old:this.configs.get(key),
-					new:config
-				}));
+				if(this.configs.has(key))
+				{
+					µ.logger.warn(new µ.Warning(String.raw`overwriting config in Object under key ${key}`,{
+						old:this.configs.get(key),
+						new:config
+					}));
+				}
+				if(this.default && key in this.default) config.setDefault(this.default[key]);
+				this.configs.set(key,config);
+				return config;
 			}
-			if(this.default && key in this.default) config.setDefault(this.default[key]);
-			this.configs.set(key,config);
-			return config;
+			return false;
 		},
-		setAll:function(configs)
+		setAll:function(configs,create)
 		{
 			for(var key in configs)
 			{
-				this.set(key,configs[key]);
+				if(typeof configs[key]=="object")
+				{
+					if(this.configs.has(key))this.configs.get(key).setAll(configs[key],create);
+				}
+				else this.set(key,configs[key]);
 			}
 		},
 		reset:function()
@@ -215,13 +237,20 @@
 	});
 
 	var ARRAY=CONTAINER.Array=µ.Class(CONTAINER,{
-		init:function(param)
+		init:function(param,value)
 		{
 			this.model=param.model;
 			this.setDefault(param.default);
 			this.configs=[];
 			this[Symbol.iterator]=this.configs.entries.bind(this.configs);
-			this.reset();
+			Object.defineProperty(this,"length",{
+				configurable:false,
+				enumerable:true,
+				get:()=>this.configs.length
+			});
+
+			if(value!==undefined) this.setAll(value,true);
+			else this.reset();
 		},
 		pushAll:function(configs)
 		{
@@ -229,19 +258,29 @@
 		},
 		push:function(config)
 		{
-			var value=CONFIG.parse(this.model);
-			if(arguments.length==0||value.set(config))
+			var model;
+			if(this.default&&this.default.length>this.configs.length)
+			{
+				if(typeof this.model=="string") model={type:this.model};
+				else model=Object.create(this.model);
+				model.default=this.default[this.configs.length];
+			}
+			else model=this.model;
+			var value=CONFIG.parse(model);
+			if(value&&(config===undefined||value.set(config)))
 			{
 				this.configs.push(value);
 				return value;
 			}
 			return false;
 		},
-		setAll:function(values)
+		setAll:function(values,create)
 		{
+			if(create&&this.configs.length>values.length) this.configs.length=values.length
 			for(var index=0;index<values.length;index++)
 			{
-				this.set(index,values[index]);
+				if(create&&this.configs.length<=index) this.push(values[index]);
+				else this.set(index,values[index]);
 			}
 		},
 		reset:function()
@@ -249,8 +288,13 @@
 			this.configs.length=0;
 			if(this.default)
 			{
-				var _model=Object.create(this.model);
-				_model.default=undefined;
+				var _model;
+				if(typeof this.model=="string"||!("default" in this.model))_model=this.model;
+				else
+				{
+					_model=Object.create(this.model);
+					_model.default=undefined;
+				}
 				while (this.configs.length<this.default.length)
 				{
 					this.configs.push(CONFIG.parse(_model));
@@ -277,13 +321,15 @@
 	});
 
 	var MAP=CONTAINER.Map=µ.Class(CONTAINER,{
-		init:function(param)
+		init:function(param,value)
 		{
 			this.model=param.model;
 			this.setDefault(param.default);
 			this.configs=new Map();
 			this[Symbol.iterator]=this.configs.entries.bind(this.configs);
-			this.reset();
+
+			if(value!==undefined) this.setAll(value,true);
+			else this.reset();
 		},
 		addAll:function(configs)
 		{
@@ -297,7 +343,7 @@
 		add:function(key,config)
 		{
 			var value=CONFIG.parse(this.model);
-			if(key!==undefined&&(!config||value.set(config)))
+			if(value&&key!==undefined&&(!config||value.set(config)))
 			{
 				if(this.configs.has(key))
 				{
@@ -311,11 +357,22 @@
 			}
 			return false;
 		},
-		setAll:function(values)
+		setAll:function(values,create)
 		{
-			for(var key in configs)
+			if(create)
 			{
-				this.set(key,configs[key]);
+				for(var key of this.configs.keys())
+				{
+					if(!(key in values))
+					{
+						this.configs.delete(key);
+					}
+				}
+			}
+			for(var key in values)
+			{
+				if(create&&!this.configs.has(key)) this.add(key,values[key]);
+				else this.set(key,values[key]);
 			}
 		},
 		reset:function()
@@ -323,8 +380,13 @@
 			this.configs.clear();
 			if(this.default)
 			{
-				var _model=Object.create(this.model);
-				_model.default=undefined;
+				var _model;
+				if(typeof this.model=="string"||!("default" in this.model))_model=this.model;
+				else
+				{
+					var _model=Object.create(this.model);
+					_model.default=undefined;
+				}
 				for(var key in this.default)
 				{
 					var config=CONFIG.parse(_model);

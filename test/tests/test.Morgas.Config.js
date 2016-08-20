@@ -140,6 +140,11 @@
 			},
 			default:null
 		};
+		var values={
+			map:{
+				foobar:[123]
+			}
+		};
 
 		var parsed=SC.Config.parse(desc);
 		var map=parsed.get("map");
@@ -151,12 +156,14 @@
 		assert.strictEqual(parsedField.get(),3,"map default");
 		assert.strictEqual(arrayField.get(),2,"array default");
 		assert.strictEqual(fieldField.get(),1,"field default");
-		assert.deepEqual(parsed.get(),{
-			map:{
-				foo:[3],
-				bar:[2,1]
-			}
-		},"check");
+		array.setAll([5,6]);
+		assert.deepEqual(array.get(),[5,6],"setAll")
+		array.setAll([7],true);
+		assert.deepEqual(array.get(),[7],"setAll (overwrite)")
+		parsed.set(values);
+		assert.deepEqual(parsed.get(),values,"set container (overwrite)");
+		parsed=SC.Config.parse(desc,values);
+		assert.deepEqual(parsed.get(),values,"parse with values");
 	})
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
