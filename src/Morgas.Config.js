@@ -52,11 +52,18 @@
 			this.validate=param.validate||null;
 			this.value=null;
 
-			if(this.type=="select")
+			switch(this.type)
 			{
-				this.values=param.values;
-				this.muliple=param.multiple||false;
+				case "select":
+					this.values=param.values;
+					this.muliple=param.multiple||false;
+					break;
+				case "number":
+					this.min=param.min;
+					this.step=param.step;
+					this.max=param.max;
 			}
+
 			if(value!==undefined) this.set(value);
 			else this.reset();
 		},
@@ -94,6 +101,12 @@
 				typeof value==this.type
 				&& (!this.pattern || this.pattern.test(value))
 				&& (!this.validate|| this.validate(value,this.value)) // type, pattern and validator ok
+				&& (this.type!="number"||(
+					(this.min==null||value>=this.min)
+					&& (this.max==null||value<=this.max)
+					&& (this.step==null||value%this.step==0)
+					)
+				)
 			);
 		},
 		reset:function()
@@ -194,6 +207,23 @@
 			}
 			return false;
 		},
+		remove:function(key)
+		{
+			if(key instanceof CONFIG)
+			{
+				for(var entry of this.configs.entries)
+				{
+					if(entry[1]==key)
+					{
+						key=entry[0];
+						break;
+					}
+				}
+			}
+			var rtn=this.configs.get(key);
+			this.configs.delete(key);
+			return rtn;
+		},
 		setAll:function(configs,create)
 		{
 			for(var key in configs)
@@ -273,6 +303,14 @@
 				return value;
 			}
 			return false;
+		},
+		splice:function(index)
+		{
+			if(index instanceof CONFIG)
+			{
+				index=this.configs.indexOf(index);
+			}
+			return this.configs.splice(index,1)[0];
 		},
 		setAll:function(values,create)
 		{
@@ -356,6 +394,23 @@
 				return value;
 			}
 			return false;
+		},
+		remove:function(key)
+		{
+			if(key instanceof CONFIG)
+			{
+				for(var entry of this.configs.entries)
+				{
+					if(entry[1]==key)
+					{
+						key=entry[0];
+						break;
+					}
+				}
+			}
+			var rtn=this.configs.get(key);
+			this.configs.delete(key);
+			return rtn;
 		},
 		setAll:function(values,create)
 		{
