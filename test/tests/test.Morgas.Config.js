@@ -12,6 +12,7 @@
 		var numberField=new SC.Config.Field({type:"number",default:3,validate:n=>n>0});
 		var selectField=new SC.Config.Field({type:"select",values:["s1","s2","s3"],default:"s4"});
 		var booleanField=new SC.Config.Field({type:"boolean"});
+		var rangeField=new SC.Config.Field({type:"number",min:2,step:2,max:4});
 
 
 		assert.strictEqual(stringField.get(),null,"initial null value");
@@ -44,6 +45,16 @@
 		assert.strictEqual(booleanField.get(),null,"boolean value not set");
 		assert.ok(booleanField.set(true),"accept valid boolean value");
 		assert.strictEqual(booleanField.get(),true,"boolean value set");
+
+		assert.notOk(rangeField.set(0),"reject invalid number value (min)");
+		assert.notOk(rangeField.set(1),"reject invalid number value (min/step)");
+		assert.notOk(rangeField.set(3),"reject invalid number value (step)");
+		assert.notOk(rangeField.set(5),"reject invalid number value (step/max)");
+		assert.notOk(rangeField.set(6),"reject invalid number value (max)");
+		assert.ok(rangeField.set(2),"accept valid number value");
+		assert.strictEqual(rangeField.get(),2,"boolean value set");
+		assert.ok(rangeField.set(4),"accept valid number value");
+		assert.strictEqual(rangeField.get(),4,"boolean value set");
 	});
 
 	QUnit.test("object",function(assert)
