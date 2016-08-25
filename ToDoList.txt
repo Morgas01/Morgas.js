@@ -6,7 +6,7 @@ build:
 
 µ.DependencyResolver:
 	-	merged packages
-	
+
 µ.Worker:
 	-	DBWorker
 	-	batch ?
@@ -16,7 +16,7 @@ build:
 
 µ.DB.Connector.IndexedDBConnector:
 	-	isAvailable()
-	
+
 Morgas.util.object.inputValues.js:
 	-	array support
 	-	dynamic option (object with getter & setter)
@@ -31,6 +31,7 @@ NodeJs/Commander:
 File/FileHelper:
 	-	copy
 	-	move (copy) to other devices (drives)
+	-	getRotatedFile
 NEW:
 	generic DB Object
 	RemoteDBConnector (worker/REST)
@@ -39,6 +40,4 @@ NEW:
 	resource handler (server push?)
 	translations
 	translated resources
-	NodeJs: add source folder for µ.getModule lookup
-	MorgasUI
-	sass + minify
+	less + minify
