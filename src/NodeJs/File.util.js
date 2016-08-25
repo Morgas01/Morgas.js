@@ -6,9 +6,9 @@
 		crc:"util.crc32",
 		prom:"Promise"
 	});
-	
+
 	var PATH=require("path");
-	
+
 	var UTIL=File.util={
 		findUnusedName:SC.prom.pledge(function(signal,file)
 		{
@@ -17,7 +17,7 @@
 			{
 				var pathInfo=PATH.parse(file.filePath);
 				var counter=1;
-				
+
 				var find=function()
 				{
 					return file.changePath(PATH.format({
@@ -40,29 +40,27 @@
 		rotateFile:SC.prom.pledge(function(signal,file,count)
 		{
 			if(!count) count=3;
-			if(--count<0)
+			file=File.filetoString(file);
+			var rot=function(prevFile,number)
 			{
-				signal.resolve();
-			}
-			else
+				return new File(file+"."+number).exists().then(function()
+				{
+					if(number+1>=count) return Promise.reject();
+					return rot(this,number+1);
+				}).always(function()
+				{
+					return prevFile.rename(file+"."+(number),true);
+				});
+			};
+			new File(file).exists().then(function()
 			{
-				file=File.filetoString(file);
-				var rot=function(prevFile,number)
-				{
-					return new File(file+"."+number).exists().then(function()
-					{
-						if(number+1>=count) return Promise.reject();
-						return rot(this,number+1);
-					}).always(function()
-					{
-						return prevFile.rename(file+"."+(number));
-					});
-				};
-				new File(file).exists().then(function()
-				{
-					return rot(this,0);
-				}).then(signal.resolve,signal.reject);
-			}
+				return rot(this,0);
+			})
+			.then(signal.resolve,signal.reject);
+		}),
+		getRotatedFile:SC.prom.pledge(function(signal,file,validator)
+		{
+			//TODO
 		}),
 		enshureDir:function(dir)
 		{
@@ -83,7 +81,7 @@
 		calcCRC:function(file,progress)
 		{
 			file=File.stringToFile(file);
-			return file.stat().then(stat=> 
+			return file.stat().then(stat=>
 				file.readStream().then(stream=>
 					new SC.prom(signal=>
 					{
@@ -105,7 +103,7 @@
 			);
 		}
 	}
-	
+
 	SMOD("File.util",UTIL);
-	
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
