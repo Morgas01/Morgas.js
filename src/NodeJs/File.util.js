@@ -4,7 +4,8 @@
 
 	SC=SC({
 		crc:"util.crc32",
-		prom:"Promise"
+		prom:"Promise",
+		itAs:"iterateAsync"
 	});
 
 	var PATH=require("path");
@@ -58,10 +59,37 @@
 			})
 			.then(signal.resolve,signal.reject);
 		}),
-		getRotatedFile:SC.prom.pledge(function(signal,file,validator)
+		getRotatedFile:function(file,mapper)
 		{
-			//TODO
-		}),
+			file=File.stringToFile(file);
+			var folder=file.clone().changePath("..");
+			var regex=new RegExp(String.raw`^${file.getName()}(\.([0-9]+))?$`);
+			return folder.exists()
+			.then(()=>folder.listFiles())
+			.then(files=>files.filter(f=>regex.test(f))
+				.sort((a,b)=>
+				{
+					var aMatch=a.match(regex),bMatch=b.match(regex);
+					a=parseInt(aMatch&&aMatch[2]||null,10);
+					b=parseInt(bMatch&&bMatch[2]||null,10);
+					return a>b;
+				})
+			)
+			.then(files=>SC.itAs(files,function(index,file)
+				{
+					return folder.clone().changePath(file)
+					.read()
+					.then(mapper)
+					.then(data=>Promise.reject({data:data,file:file}),error=>({error:error,file:file}))//invert to control iteration
+				})
+				.then(Promise.reject,result=>
+				{
+					var loaded=result.pop();
+					loaded.others=result;
+					return loaded;
+				})//invert to control iteration
+			);
+		},
 		enshureDir:function(dir)
 		{
 			dir=File.stringToFile(dir);
