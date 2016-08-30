@@ -56,7 +56,7 @@
 			{
 				case "select":
 					this.values=param.values;
-					this.muliple=param.multiple||false;
+					this.multiple=param.multiple||false;
 					break;
 				case "number":
 					this.min=param.min;
