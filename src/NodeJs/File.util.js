@@ -80,9 +80,18 @@
 					return folder.clone().changePath(file)
 					.read()
 					.then(mapper)
-					.then(data=>Promise.reject({data:data,file:file}),error=>({error:error,file:file}))//invert to control iteration
+					.then(function(data)
+					{
+						return Promise.reject({
+							data:data,
+							file:this
+						});
+					},function(error)
+					{
+						return {error:error,file:this};
+					});//invert to control iteration
 				})
-				.then(Promise.reject,result=>
+				.then(e=>Promise.reject(e),result=>
 				{
 					var loaded=result.pop();
 					loaded.others=result;
