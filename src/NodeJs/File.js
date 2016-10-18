@@ -194,12 +194,12 @@
 	{
 		if(path instanceof FILE) return path;
 		return new FILE(path);
-	}
+	};
 	FILE.filetoString=function(file)
 	{
 		if(file instanceof FILE) return file.filePath;
 		return file;
-	}
+	};
 	
 	SMOD("File",FILE);
 	
