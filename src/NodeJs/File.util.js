@@ -9,6 +9,7 @@
 	});
 
 	var PATH=require("path");
+	var FS=require("fs");
 
 	var UTIL=File.util={
 		findUnusedName:SC.prom.pledge(function(signal,file)
@@ -114,6 +115,20 @@
 					return dir.mkdir(".");
 				})
 			});
+		},
+		enshureDirSync:function(dir)
+		{
+			dir=File.stringToFile(dir).clone();
+			var todo=[];
+			while (!FS.existsSync(dir.getAbsolutePath()))
+			{
+				todo.push(dir.getAbsolutePath());
+				dir=dir.changePath("..");
+			}
+			while (todo.length>0)
+			{
+				FS.mkdirSync(todo.pop())
+			}
 		},
 		calcCRC:function(file,progress)
 		{
