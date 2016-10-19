@@ -4,7 +4,7 @@
 	var util=µ.NodeJs.util=µ.NodeJs.util||{};
 	
 	
-	mdoule.exports=function(options,args)
+	module.exports=function(options,args)
 	{
 		var rtn={};
 		if(!args) args=process.argv.slice();
@@ -16,15 +16,30 @@
 				var index=args.indexOf(names[n]);
 				if(index!==-1)
 				{
-					if(options[o].type==="boolean")
+					switch(options[o].type)
 					{
-						rtn[o]=true;
-						args.splice(index,1);
-					}
-					else
-					{
-						rtn[o]=args[index+1]
-						args.splice(index,2);
+						case "number":
+							try
+							{
+								rtn[o]=parseFloat(args[index+1]);
+								args.splice(index,2);
+							} catch (e){console.log(e)}
+							break;
+						case "boolean":
+							rtn[o]=true;
+							args.splice(index,1);
+							break;
+						case "json":
+							try
+							{
+								rtn[o]=JSON.parse(args[index+1]);
+								args.splice(index,2);
+							} catch (e){console.log(e)}
+							break;
+						default:
+							rtn[o]=args[index+1]
+							args.splice(index,2);
+							break
 					}
 					continue next;
 				}
