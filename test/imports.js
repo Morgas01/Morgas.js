@@ -10,8 +10,13 @@
 	WR(srcDir+"Morgas.js");
 	//WR(testDir+"test.Morgas.js");
 
-	WR(srcDir+"Morgas.Config.js");
-	WR(testDir+"test.Morgas.Config.js");/*
+	 WR(srcDir+"Morgas.Config.js");
+	 WR(testDir+"test.Morgas.Config.js");
+
+	 WR(srcDir+"Morgas.util.fuzzySearch.js");
+	 WR(testDir+"test.Morgas.util.fuzzySearch.js");
+
+	/*
 
 	WR(srcDir+"Morgas.DependencyResolver.js");
 	WR(testDir+"test.Morgas.DependencyResolver.js");
