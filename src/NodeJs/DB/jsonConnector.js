@@ -1,10 +1,10 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	
+
 	var fs=require("fs");
 	var path=require("path");
-	
+
 	var OCON=GMOD("ObjectConnector");
-	
+
 	SC=SC({
 		Promise:"Promise",
 		File:"File",
@@ -12,7 +12,7 @@
 		rs:"rescope",
 		itAs:"iterateAsync"
 	});
-	
+
 	module.exports=µ.Class(OCON,{
 		init:function(file,param)
 		{
@@ -20,7 +20,7 @@
 			this.mega(true);
 
 			SC.rs.all(this,["flush"]);
-			
+
 			param=param||{};
 			this.flushTimer=null;
 			this.maxFlushTimer=null;
@@ -29,7 +29,7 @@
 			this.fileRotation=param.fileRotation||0;
 			this.prettyPrint=param.prettyPrint||false;
 			this.file=SC.File.stringToFile(file);
-			
+
 			var folder=this.file.clone().changePath("..");
 			this.open=SC.Promise.resolve(folder.exists()
 			.then(function()
@@ -102,9 +102,13 @@
 			{//has something to save
 				var data=JSON.stringify(this.db.getValues(),null,(this.prettyPrint?"\t":""));
 				var p;
-				if(this.fileRotation>0) p=SC.FileUtil.rotateFile(this.file,this.fileRotation);
+				if(this.fileRotation>0)
+				{
+					p=SC.FileUtil.rotateFile(this.file,this.fileRotation);
+					p.then(()=>µ.logger.info("rotated file"),err=> µ.logger.error(new µ.Warning("failed to rotate dbFile "+this.file.getAbsolutePath(),err)));
+				}
 				else p=Promise.resolve();
-				
+
 				p.then(()=> this.file.write(data))
 				.then(
 					()=>µ.logger.debug("saved dbFile "+this.file.getAbsolutePath()),
@@ -120,5 +124,5 @@
 			}
 		}
 	});
-	
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

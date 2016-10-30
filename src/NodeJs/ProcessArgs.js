@@ -1,9 +1,9 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	
+
 	µ.NodeJs=µ.NodeJs||{};
 	var util=µ.NodeJs.util=µ.NodeJs.util||{};
-	
-	
+
+
 	module.exports=function(options,args)
 	{
 		var rtn={};
@@ -23,7 +23,7 @@
 							{
 								rtn[o]=parseFloat(args[index+1]);
 								args.splice(index,2);
-							} catch (e){console.log(e)}
+							} catch (e){µ.logger.warn(e)}
 							break;
 						case "boolean":
 							rtn[o]=true;
@@ -34,7 +34,7 @@
 							{
 								rtn[o]=JSON.parse(args[index+1]);
 								args.splice(index,2);
-							} catch (e){console.log(e)}
+							} catch (e){µ.logger.warn(e)}
 							break;
 						default:
 							rtn[o]=args[index+1]
@@ -48,6 +48,6 @@
 		}
 		return rtn;
 	};
-	
-	
+
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
