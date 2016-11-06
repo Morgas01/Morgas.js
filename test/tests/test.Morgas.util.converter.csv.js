@@ -1,6 +1,6 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	module("util.converter.csv");
+	QUnit.module("util.converter.csv");
 	
 	var CSV=GMOD("CSV");
 	
@@ -9,9 +9,9 @@
 		rq:"request"
 	});
 	
-	asyncTest("csv",function()
+	QUnit.test("csv",function(assert)
 	{
-		new SC.prom([SC.rq("resources/csv.csv"),SC.rq("resources/tsv.tsv")]).then(function(csvData,tsvData)
+		return new SC.prom([SC.rq("resources/csv.csv"),SC.rq("resources/tsv.tsv")]).then(function(csvData,tsvData)
 		{
 			var expected={
 				columns:["field1","field2","field3"],
@@ -39,7 +39,7 @@
 					},
 				]
 			};
-			deepEqual(CSV.from(csvData),expected,"csv");
+			assert.deepEqual(CSV.from(csvData),expected,"csv");
 			
 			expected={
 					columns:["field1","field2","field3"],
@@ -67,8 +67,7 @@
 						},
 					]
 				};
-			deepEqual(CSV.from(tsvData,expected.columns,"\t"),expected,"tsv");
-			start();
+			assert.deepEqual(CSV.from(tsvData,expected.columns,"\t"),expected,"tsv");
 		});
 	});
 	

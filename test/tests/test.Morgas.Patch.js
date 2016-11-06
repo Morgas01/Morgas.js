@@ -1,6 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	module("Patch");
-	
+
+	QUnit.module("Patch");
+
 	var class1=function(value)
 	{
 		this.value=value
@@ -25,11 +26,12 @@
 	});
 	
 	
-	test("Patch",function(assert)
+	QUnit.test("Patch",function(assert)
 	{
 		
 		assert.propEqual2(new patch(new class1(1),1),{instance:{value:2}},"Patch class");
 		assert.propEqual2(new class2(2),{value:4},"Patch Listeners");
 		assert.propEqual2(new class2(2,true),{value:2},"Patch Listeners now");
 	});
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

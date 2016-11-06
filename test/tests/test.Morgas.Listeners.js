@@ -1,8 +1,8 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	module("Listeners");
-	
-	
-	test("Listeners",function(assert)
+
+	QUnit.module("Listeners");
+
+	QUnit.test("Listeners",function(assert)
 	{
 		var foo=new (µ.getModule("Listeners"))();
 		
@@ -22,16 +22,16 @@
 		});
 		
 		foo.fire("event",{value:1});
-		deepEqual(result,["first 1","normal 1","last 1","once 1"],"scope and order");
+		assert.deepEqual(result,["first 1","normal 1","last 1","once 1"],"scope and order");
 		
 		foo.fire("event",{value:2});
-		deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2",],"once removed");
+		assert.deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2",],"once removed");
 		
 		foo.disableListener("event",true);
-		ok(foo.isListenerDisabled("event"),"disabled (getter)");
+		assert.ok(foo.isListenerDisabled("event"),"disabled (getter)");
 		
 		foo.fire("event",{value:3});
-		deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2"],"disabled");
+		assert.deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2"],"disabled");
 		
 		foo.disableListener("event",false);
 		foo.removeListener("event",result,"all");
@@ -39,7 +39,7 @@
 			this.push(e.value);
 		});
 		foo.fire("event",{value:"cleared"});
-		deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2","cleared"],"remove listeners");
+		assert.deepEqual(result,["first 1","normal 1","last 1","once 1","first 2","normal 2","last 2","cleared"],"remove listeners");
 		
 		foo.createListener(".state");
 		result=[];
@@ -54,11 +54,11 @@
 			this.push("after");
 			this.push(e.value);
 		});
-		deepEqual(result,["before","mystate","after","mystate"],"state");
+		assert.deepEqual(result,["before","mystate","after","mystate"],"state");
 		
 		foo.removeListener("event",result);
 		foo.addListener("event",foo,"destroy");
 		foo.fire("event");
-		ok(true,"destroyed")
+		assert.ok(true,"destroyed")
 	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

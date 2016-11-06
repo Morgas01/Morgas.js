@@ -1,13 +1,13 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	module("util.function.bind");
+	QUnit.module("util.function.bind");
 	
-	test("bind",function()
+	QUnit.test("bind",function(assert)
 	{
 		var scope={
 			fn:function(value){
-				ok(this===otherScope,"scope");
-				ok(value===3,"param")
+				assert.ok(this===otherScope,"scope");
+				assert.ok(value===3,"param")
 			}
 		};
 		var otherScope={};

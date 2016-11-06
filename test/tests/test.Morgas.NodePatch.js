@@ -1,10 +1,10 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	module("NodePatch");
+	QUnit.module("NodePatch");
 	SC=SC({
 		node:"NodePatch"
 	});
 
-	test("connect",function()
+	QUnit.test("connect",function(assert)
 	{
 		var parent=new SC.node.Basic(),
 		child1=new SC.node.Basic(),
@@ -13,18 +13,18 @@
 		parent.addChild(child1);
 		child2.setParent(parent);
 
-		ok(parent===child1.parent&&parent.hasChild(child1),"child1 connected");
-		ok(parent===child2.parent&&parent.hasChild(child2),"child2 connected");
+		assert.ok(parent===child1.parent&&parent.hasChild(child1),"child1 connected");
+		assert.ok(parent===child2.parent&&parent.hasChild(child2),"child2 connected");
 
 		parent.removeChild(child1);
 		child2.remove();
 
-		ok(parent!==child1.parent&&!parent.hasChild(child1),"child1 removed");
-		ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
+		assert.ok(parent!==child1.parent&&!parent.hasChild(child1),"child1 removed");
+		assert.ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
 
 	});
 
-	test("alias",function()
+	QUnit.test("alias",function(assert)
 	{
 		var parent=new SC.node.Basic({addChild:"add",removeChild:"remove",remove:null}),
 		child1=new SC.node(new µ.BaseClass(),{parent:"up"}).instance,
@@ -33,18 +33,18 @@
 		parent.add(child1);
 		child2.fuse(parent);
 
-		ok(parent===child1.up&&parent.hasChild(child1),"child1 connected");
-		ok(parent===child2.parent&&parent.hasChild(child2),"child2 connected");
+		assert.ok(parent===child1.up&&parent.hasChild(child1),"child1 connected");
+		assert.ok(parent===child2.parent&&parent.hasChild(child2),"child2 connected");
 
 		parent.remove(child1);
 		child2.explode();
 
-		ok(parent!==child1.up&&!parent.hasChild(child1),"child1 removed");
-		ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
+		assert.ok(parent!==child1.up&&!parent.hasChild(child1),"child1 removed");
+		assert.ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
 
 	});
 
-	test("alias predefined",function()
+	QUnit.test("alias predefined",function(assert)
 	{
 		var confirmNode= µ.Class({
             init:function()
@@ -82,22 +82,22 @@
         parent.addChild(child1,true);
         child2.setParent(parent);
 
-        ok(parent===child1.parent&&parent.hasChild(child1),"child1 connected");
-        ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 not connected");
+        assert.ok(parent===child1.parent&&parent.hasChild(child1),"child1 connected");
+        assert.ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 not connected");
         parent.addChild(child2,true);
-        ok(parent==child2.parent&&parent.hasChild(child2),"child2 connected");
+        assert.ok(parent==child2.parent&&parent.hasChild(child2),"child2 connected");
 
         parent.removeChild(child1);
         child2.remove();
 
-        ok(parent===child1.parent&&parent.hasChild(child1),"child1 not removed");
+        assert.ok(parent===child1.parent&&parent.hasChild(child1),"child1 not removed");
         child1.remove(true);
-        ok(parent!==child1.parent&&!parent.hasChild(child1),"child1 removed");
-        ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
+        assert.ok(parent!==child1.parent&&!parent.hasChild(child1),"child1 removed");
+        assert.ok(parent!==child2.parent&&!parent.hasChild(child2),"child2 removed");
 
 	});
 
-	test("change",function()
+	QUnit.test("change",function(assert)
 	{
 		var parent1=new SC.node.Basic(),
 		parent2=new SC.node.Basic(),
@@ -105,16 +105,16 @@
 
 		parent1.addChild(child);
 
-		ok(parent1===child.parent&&parent1.hasChild(child),"parent1 connected");
-		ok(parent2!==child.parent&&!parent2.hasChild(child),"parent2 not connected");
+		assert.ok(parent1===child.parent&&parent1.hasChild(child),"parent1 connected");
+		assert.ok(parent2!==child.parent&&!parent2.hasChild(child),"parent2 not connected");
 
 		parent2.addChild(child);
 
-		ok(parent1!==child.parent&&!parent1.hasChild(child),"parent1 not connected");
-		ok(parent2===child.parent&&parent2.hasChild(child),"parent2 connected");
+		assert.ok(parent1!==child.parent&&!parent1.hasChild(child),"parent1 not connected");
+		assert.ok(parent2===child.parent&&parent2.hasChild(child),"parent2 connected");
 	});
 
-	test("traverse",function()
+	QUnit.test("traverse",function(assert)
 	{
 		var root={
 			name:"root",
@@ -137,7 +137,7 @@
 		var result=[];
 		SC.node.traverse(root,node=>result.push(node.name));
 		result.sort();
-		deepEqual(result,["child1","child2","grandchild","root"],"all traversed");
+		assert.deepEqual(result,["child1","child2","grandchild","root"],"all traversed");
 	})
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

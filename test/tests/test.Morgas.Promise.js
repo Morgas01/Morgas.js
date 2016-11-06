@@ -1,49 +1,47 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	module("Promise");
+
+	QUnit.module("Promise");
+
 	var PROM=GMOD("Promise");
 	var pledge=PROM.pledge;
 	
-	asyncTest("call",function()
+	QUnit.test("call",function(assert)
 	{
-		new PROM(function(signal)
+		return new PROM(function(signal)
 		{
-			ok(true);
-			start();
+			assert.ok(true);
 			signal.resolve();
 		});
 	});
-	asyncTest("call arguments",function()
+	QUnit.test("call arguments",function(assert)
 	{
 		var scope={};
-		new PROM(function(signal,arg,arg2)
+		return new PROM(function(signal,arg,arg2)
 		{
-			propEqual([arg,arg2],["callarg","callarg2"],"arguments");
-			strictEqual(this,scope,"scope");
-			start();
+			assert.propEqual([arg,arg2],["callarg","callarg2"],"arguments");
+			assert.strictEqual(this,scope,"scope");
 			signal.resolve();
 		},{args:["callarg","callarg2"],scope:scope});
 	});
 
-	asyncTest("on complete",function()
+	QUnit.test("on complete",function(assert)
 	{
-		new PROM(function(signal){signal.resolve("some arg");}).complete(function(arg)
+		return new PROM(function(signal){signal.resolve("some arg");}).complete(function(arg)
 		{
-			strictEqual(arg,"some arg");
-			start();
+			assert.strictEqual(arg,"some arg");
 		});
 	});
-	asyncTest("on complete no args",function()
+	QUnit.test("on complete no args",function(assert)
 	{
-		new PROM().complete(function()
+		return new PROM().complete(function()
 		{
-			ok(true);
-			start();
+			assert.ok(true);
 		});
 	});
 	
-	asyncTest("chain",function()
+	QUnit.test("chain",function(assert)
 	{
-		new PROM(function(signal)
+		return new PROM(function(signal)
 		{
 			signal.resolve("this");
 		})
@@ -61,34 +59,31 @@
 		})
 		.complete(function(arg)
 		{
-			strictEqual(arg,"this is chaining");
-			start();
+			assert.strictEqual(arg,"this is chaining");
 		});
 	});
 	
-	asyncTest("on error called",function()
+	QUnit.test("on error called",function(assert)
 	{
-		new PROM(function(signal)
+		return new PROM(function(signal)
 		{
 			signal.reject("reason");
 		}).error(function(err)
 		{
-			strictEqual(err,"reason","error called");
-			start();
+			assert.strictEqual(err,"reason","error called");
 		});
 	});
-	asyncTest("on error thrown",function()
+	QUnit.test("on error thrown",function(assert)
 	{	
-		new PROM(function()
+		return new PROM(function()
 		{
 			throw("reason");
 		}).error(function(err)
 		{
-			strictEqual(err,"reason","error thrown");
-			start();
+			assert.strictEqual(err,"reason","error thrown");
 		});
 	});
-	asyncTest("on error propagate",function()
+	QUnit.test("on error propagate",function(assert)
 	{
 		var d1=new PROM(function()
 		{
@@ -98,25 +93,24 @@
 		{
 			return "complete";
 		});
-		d2.error(function(err)
+		return d2.error(function(err)
 		{
-			strictEqual(err,"reason","error propagated");
-			start();
+			assert.strictEqual(err,"reason","error propagated");
 		});
 	});
-	asyncTest("on abort",function()
+	QUnit.test("on abort",function(assert)
 	{	
 		var d1=new PROM(function(signal)
 		{
 			signal.onAbort(start);
 		});
-		d1.error(function(err)
-		{
-			strictEqual(err.reason,"abort","abort");
-		});
 		d1.abort();
+		return d1.error(function(err)
+		{
+			assert.strictEqual(err.reason,"abort","abort");
+		});
 	});
-	asyncTest("on abort time",function()
+	QUnit.test("on abort time",function(assert)
 	{	
 		var d1=new PROM(function(signal)
 		{
@@ -125,40 +119,38 @@
 				return new Promise(function(resolve)
 				{
 					setTimeout(resolve,501);
-				})
+				});
 			});
 		});
-		d1.error(function(err)
+		d1.abort();
+		return d1.error(function(err)
 		{
-			strictEqual(err.reason,"abort","abort");
+			assert.strictEqual(err.reason,"abort","abort");
 			var abortStart=Date.now();
 			err.promise.then(function()
 			{
-				ok(abortStart+500<Date.now(),"time "+(Date.now()-abortStart)+"ms>500ms");
-				start();
-			})
+				assert.ok(abortStart+500<Date.now(),"time "+(Date.now()-abortStart)+"ms>500ms");
+			});
 		});
-		d1.abort();
 	});
 	
-	asyncTest("pledged function",function()
+	QUnit.test("pledged function",function(assert)
 	{
 		var scope={};
 		var func=pledge(function(signal,arg)
 		{
-			strictEqual(this,scope);
+			assert.strictEqual(this,scope);
 			signal.resolve(arg);
 		},scope);
-		func(3).complete(function(arg)
+		return func(3).complete(function(arg)
 		{
-			strictEqual(arg,3);
-			start();
-		})
+			assert.strictEqual(arg,3);
+		});
 	});
 	
-	asyncTest("wait for native",function()
+	QUnit.test("wait for native",function(assert)
 	{
-		new PROM(function(signal)
+		return new PROM(function(signal)
 		{
 			signal.resolve(new Promise(function(resolve,reject)
 			{
@@ -166,14 +158,13 @@
 			}));
 		}).then(function(fromNative)
 		{
-			strictEqual(fromNative,"args");
-			start();
+			assert.strictEqual(fromNative,"args");
 		});
 	});
 	
-	asyncTest("when all",function()
+	QUnit.test("when all",function(assert)
 	{
-		new PROM([function(signal)
+		return new PROM([function(signal)
 			{
 				signal.resolve("Hello")
 			},function(signal)
@@ -187,60 +178,57 @@
 			"!"
 		])
 		.complete(function(){
-			strictEqual(Array.slice(arguments).join(" "),"Hello Promise World !");
-			start();
+			assert.strictEqual(Array.slice(arguments).join(" "),"Hello Promise World !");
 		})
 	});
 	
-	asyncTest("simple",function()
+	QUnit.test("simple",function(assert)
 	{
-		new PROM(function(a,b)
+		return new PROM(function(a,b)
 		{
-			return a*b
+			return a*b;
 		},{args:[6,7],simple:true}).then(function(result)
 		{
-			strictEqual(result,42,"simple function");
-			start();
+			assert.strictEqual(result,42,"simple function");
 		},µ.logger.error);
 	});
 	
-	asyncTest("scope",function()
+	QUnit.test("scope",function(assert)
 	{
 		var scope={};
-		new PROM(function(signal)
+		return new PROM(function(signal)
 		{
-			strictEqual(this,scope,"scope first");
+			assert.strictEqual(this,scope,"scope first");
 			signal.resolve();
 		},{scope:scope}).then(function()
 		{
-			strictEqual(this,scope,"scope second");
+			assert.strictEqual(this,scope,"scope second");
 		}).then(function()
 		{
-			strictEqual(this,scope,"scope third");
-			start();
+			assert.strictEqual(this,scope,"scope third");
 		},µ.logger.error);
 	});
 	
-	asyncTest("open",function()
+	QUnit.test("open",function(assert)
 	{
 		var scope={};
 		var p=PROM.open(scope);
-		p.then(function(arg)
+		var rtn=p.then(function(arg)
 		{
-			strictEqual(this,scope,"scope first");
-			strictEqual(arg,1,"arg first");
+			assert.strictEqual(this,scope,"scope first");
+			assert.strictEqual(arg,1,"arg first");
 			return ++arg;
 		}).then(function(arg)
 		{
-			strictEqual(this,scope,"scope second");
-			strictEqual(arg,2,"arg second");
+			assert.strictEqual(this,scope,"scope second");
+			assert.strictEqual(arg,2,"arg second");
 			return ++arg;
 		}).then(function(arg)
 		{
-			strictEqual(this,scope,"scope third");
-			strictEqual(arg,3,"arg third");
-			start();
+			assert.strictEqual(this,scope,"scope third");
+			assert.strictEqual(arg,3,"arg third");
 		},µ.logger.error);
 		p.resolve(1);
+		return rtn;
 	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

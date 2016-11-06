@@ -1,5 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	module("DB.ObjectConnector");
+
+	QUnit.module("DB.ObjectConnector");
+
 	var OCON=GMOD("ObjectConnector");
 	
 	window.DBTest(new OCON(true));

@@ -1,31 +1,30 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	module("Worker");
+	QUnit.module("Worker");
 	
 	var WORKER=GMOD("Worker");
 	
 	var worker=null;
-	asyncTest("init",function()
+	QUnit.test("init",function(assert)
 	{
+	    var done=assert.async();
 		worker=new WORKER({basePath:"../src/"});
 		worker.addListener(".created",null,function()
 		{
-			ok(true,"created");
-			start();
+			assert.ok(true,"created");
+			done();
 		})
 	});
-	asyncTest("util test",function()
+	QUnit.test("util test",function(assert)
 	{
 		worker.send("loadScripts","Morgas.util.crc32.js");
-		worker.request("util",["util.crc32","123456789"]).then(function(result)
+		return worker.request("util",["util.crc32","123456789"]).then(function(result)
 		{
-			strictEqual(result,0xCBF43926,"util result");
-			start();
+			assert.strictEqual(result,0xCBF43926,"util result");
 		},function(error)
 		{
 			µ.logger.error(error);
-			ok(false,error)
-			start();
+			assert.ok(false,error)
 		});
 	});
 	

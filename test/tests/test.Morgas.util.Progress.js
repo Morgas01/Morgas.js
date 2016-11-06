@@ -1,6 +1,6 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	module("util.Progress");
+	QUnit.module("util.Progress");
 	
 	var Progress=GMOD("Progress");
 
@@ -15,7 +15,7 @@
 		return msg;
 	}
 	
-	test("single",function()
+	QUnit.test("single",function(assert)
 	{
 
 		var p=new Progress();
@@ -38,7 +38,7 @@
 
 		p.add(function(v,m)
 		{
-			deepEqual([v,m],results.shift(),generateMessage(v,m));
+			assert.deepEqual([v,m],results.shift(),generateMessage(v,m));
 		});
 		for(var s of steps)
 		{
@@ -46,7 +46,7 @@
 		}
 	});
 
-	test("single factor",function()
+	QUnit.test("single factor",function(assert)
 	{
 
 		var p=new Progress();
@@ -69,7 +69,7 @@
 
 		p.add(function(v,m)
 		{
-			deepEqual([v,m],results.shift(),generateMessage(v,m));
+			assert.deepEqual([v,m],results.shift(),generateMessage(v,m));
 		});
 		for(var s of steps)
 		{
@@ -77,7 +77,7 @@
 		}
 	});
 
-	test("multi",function()
+	QUnit.test("multi",function(assert)
 	{
 
 		var p=new Progress();
@@ -116,7 +116,7 @@
 
 		p.add(function(v,m)
 		{
-			deepEqual([v,m],results.shift(),generateMessage(v,m));
+			assert.deepEqual([v,m],results.shift(),generateMessage(v,m));
 		});
 		for(var s of steps)
 		{
@@ -124,7 +124,7 @@
 		}
 	});
 
-	test("multi factor",function()
+	QUnit.test("multi factor",function(assert)
 	{
 
 		var p=new Progress();
@@ -162,7 +162,7 @@
 
 		p.add(function(v,m)
 		{
-			deepEqual([v,m],results.shift(),generateMessage(v,m));
+			assert.deepEqual([v,m],results.shift(),generateMessage(v,m));
 		});
 		for(var s of steps)
 		{

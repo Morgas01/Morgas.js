@@ -1,13 +1,13 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
-	module("util.object.inputValues");
+	QUnit.module("util.object.inputValues");
 	
 	SC=SC({
 		s:"setInputValues",
 		g:"getInputValues"
 	});
 	
-	test("inputValues",function()
+	QUnit.test("inputValues",function(assert)
 	{
 		var domElement=document.createElement("div");
 		domElement.innerHTML='<input type="text" name="field1">'+
@@ -33,7 +33,7 @@
 		SC.s(domElement.children,set);
 		SC.g(domElement.children,get);
 		
-		deepEqual(get,{
+		assert.deepEqual(get,{
 			"field1":"value1",
 			"field2":5,
 			"foo":{"bar":{"field3":true}},
@@ -43,7 +43,7 @@
 		
 		SC.g(domElement.children,get,true);
 
-		deepEqual(get,{
+		assert.deepEqual(get,{
 			"field1":"value1",
 			"field2":5,
 			"foo":{"bar":{"field3":true}},
@@ -51,7 +51,7 @@
 			"selection":"select2",
 			"default":"default value"
 		},"create new paths");
-		deepEqual(GMOD("getInputValues")(domElement.children),get,"no target");
+		assert.deepEqual(GMOD("getInputValues")(domElement.children),get,"no target");
 	});
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

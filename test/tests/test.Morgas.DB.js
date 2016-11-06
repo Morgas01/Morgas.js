@@ -53,55 +53,55 @@
 
 		//tests
 
-		test("save single",function()
+		QUnit.test("save single",function(assert)
 		{
 			console.log("save single");
 			return dbConn.save(obj1).then(function()
 			{
-				notEqual(obj1.getID(),undefined,"ID generated");
+				assert.notEqual(obj1.getID(),undefined,"ID generated");
 			});
 		});
-		test("save multiple",function()
+		QUnit.test("save multiple",function(assert)
 		{
 			console.log("save multiple");
 			obj1.setValueOf("testDouble",1.2);
 			return dbConn.save([obj1,obj2,obj3])
 			.then(function()
 			{
-				notEqual(obj1.getID(),undefined,"ID generated");
-				notEqual(obj2.getID(),undefined,"ID generated");
-				notEqual(obj3.getID(),undefined,"ID generated");
+				assert.notEqual(obj2.getID(),undefined,"ID generated");
+				assert.notEqual(obj1.getID(),undefined,"ID generated");
+				assert.notEqual(obj3.getID(),undefined,"ID generated");
 			});
 		});
-		test("save friendships",function()
+		QUnit.test("save friendships",function(assert)
 		{
 			console.log("save friendships");
 			return dbConn.saveFriendships(obj2,"friendRel")
 			.then(function()
 			{
-				ok(true);
+				assert.ok(true);
 			});
 		});
-		test("load single via int",function()
+		QUnit.test("load single via int",function(assert)
 		{
 			console.log("load single via int");
 			return dbConn.load(testObject,{testInt:10}).then(function(result)
 			{
-				deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load single via int");
-				equal(result.length,1,"result count");
+				assert.deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load single via int");
+				assert.equal(result.length,1,"result count");
 			});
 		});
-		test("load multiple via string",function()
+		QUnit.test("load multiple via string",function(assert)
 		{
 			console.log("load multiple via string");
 			return dbConn.load(testObject,{testString:"testString"}).then(function(result)
 			{
-				deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load multiple via string (1)");
-				deepEqual(result[1]&&result[1].toJSON(),obj2.toJSON(),"load multiple via string (2)");
-				equal(result.length,2,"result count");
+				assert.deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load multiple via string (1)");
+				assert.deepEqual(result[1]&&result[1].toJSON(),obj2.toJSON(),"load multiple via string (2)");
+				assert.equal(result.length,2,"result count");
 			});
 		});
-		test("load relations",function()
+		QUnit.test("load relations",function(assert)
 		{
 			console.log("load relations");
 			var o1,o2;
@@ -109,16 +109,16 @@
 			.then(function(result)
 			{
 				o2=result[0];
-				deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
+				assert.deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
 				return dbConn.loadParent(o2,"parentRel");
 			},µ.logger.error)
 			.then(function(result)
 			{
 				o1=result;
-				deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
+				assert.deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
 			},µ.logger.error)
 		});
-		test("deleteFriendships",function()
+		QUnit.test("deleteFriendships",function(assert)
 		{
 			console.log("deleteFriendships");
 			return dbConn.deleteFriendships(obj2,"friendRel")
@@ -128,10 +128,10 @@
 			},µ.logger.error)
 			.then(function(result)
 			{
-				strictEqual(result.length,0,"firendship deleted");
+				assert.strictEqual(result.length,0,"firendship deleted");
 			},µ.logger.error);
 		});
-		test("delete",function()
+		QUnit.test("delete",function(assert)
 		{
 			console.log("delete");
 			return dbConn["delete"](testObject,obj1)
@@ -141,7 +141,7 @@
 			},µ.logger.error)
 			.then(function(result)
 			{
-				strictEqual(result.length,0,"deleted Object");
+				assert.strictEqual(result.length,0,"deleted Object");
 				return dbConn["delete"](testObject,{testBool:true});
 			},µ.logger.error)
 			.then(function()
@@ -150,7 +150,7 @@
 			},µ.logger.error)
 			.then(function(result)
 			{
-				strictEqual(result.length,0,"deleted pattern");
+				assert.strictEqual(result.length,0,"deleted pattern");
 			});
 		});
 		if(extra)

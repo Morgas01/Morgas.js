@@ -1,5 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	module("NodePatch.treeCompare");
+
+	QUnit.module("NodePatch.treeCompare");
+
 	SC=SC({
 		node:"NodePatch",
 		compare:"NodePatch.treeCompare"
@@ -12,7 +14,7 @@
 			return value;
 		}));
 	}
-	test("treeCompare",function()
+	QUnit.test("treeCompare",function(assert)
 	{
 		var oldParent=new SC.node.Basic();
 		oldParent.name="parent";
@@ -67,7 +69,7 @@
 			return old.size==fresh.size&&old.age==fresh.age;
 		});
 		
-		propEqual(parse(changes),parse({
+		assert.propEqual(parse(changes),parse({
 			created:[{fresh:freshChild2,oldParent:oldParent}],
 			changed:[{old:oldChild1,fresh:freshChild1},{old:oldGrandchild,fresh:freshGrandchild}],
 			deleted:[{old:oldChild2,freshParent:freshParent}]

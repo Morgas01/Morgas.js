@@ -1,5 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	module("DB.IndexedDBConnector");
+
+	QUnit.module("DB.IndexedDBConnector");
+
 	var ICON=GMOD("IndexedDBConnector");
 
 	indexedDB.deleteDatabase("testDB");

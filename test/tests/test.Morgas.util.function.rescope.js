@@ -1,12 +1,12 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	module("util.function.rescope");
+	QUnit.module("util.function.rescope");
 	
-	test("rescope",function()
+	QUnit.test("rescope",function(assert)
 	{
 		var scope={
 			fn:function(){
-				ok(this===otherScope);
+				assert.ok(this===otherScope);
 			}
 		};
 		var otherScope={};

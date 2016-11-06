@@ -1,40 +1,36 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	module("util.Request");
+	QUnit.module("util.Request");
 	
 	var REQ=GMOD("request");
 	var RJS=GMOD("request.json");
 
-	asyncTest("request",function()
+	QUnit.test("request",function(assert)
 	{
-		REQ("resources/request.json").then(function(text)
+		return REQ("resources/request.json").then(function(text)
 		{
-			strictEqual(text,'{\r\n	"name":"test response",\r\n	"value":"something"\r\n}',"response");
-			start();
+			assert.strictEqual(text,'{\r\n	"name":"test response",\r\n	"value":"something"\r\n}',"response");
 		});
 	});
-	asyncTest("bad request",function()
+	QUnit.test("bad request",function(assert)
 	{
-		REQ(["bad/url"]).catch(function(error)
+		return REQ(["bad/url"]).catch(function(error)
 		{
-			ok(error.url==="bad/url","error: "+error.response)
-			start();
+			assert.ok(error.url==="bad/url","error: "+error.response)
 		});
 	});
-	asyncTest("request fallback",function()
+	QUnit.test("request fallback",function(assert)
 	{
-		REQ(["bad/url","resources/request.json"]).then(function(text)
+		return REQ(["bad/url","resources/request.json"]).then(function(text)
 		{
-			strictEqual(text,'{\r\n	"name":"test response",\r\n	"value":"something"\r\n}',"fallback response");
-			start();
+			assert.strictEqual(text,'{\r\n	"name":"test response",\r\n	"value":"something"\r\n}',"fallback response");
 		});
 	});
-	asyncTest("request json",function()
+	QUnit.test("request json",function(assert)
 	{
-		RJS("resources/request.json").then(function(json)
+		return RJS("resources/request.json").then(function(json)
 		{
-			deepEqual(json,{"name":"test response","value":"something"},"response");
-			start();
+			assert.deepEqual(json,{"name":"test response","value":"something"},"response");
 		});
 	});
 	
