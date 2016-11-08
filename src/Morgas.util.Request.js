@@ -78,7 +78,7 @@
 	 * @param {any} scope
 	 * @returns {Morgas.Promise}
 	 */
-	REQ=µ.util.Request=function Request_init(param,scope)
+	var REQ=µ.util.Request=function Request_init(param,scope)
 	{
 		param=parseParam(param);
 		return new SC.prom(doRequest,{args:param,scope:scope});

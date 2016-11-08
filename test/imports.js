@@ -1,4 +1,12 @@
 (function(){
+
+	var globals=Object.keys(window);
+	QUnit.done(function()
+	{
+		var addedGlobals=Object.keys(window).filter(e=>globals.indexOf(e)==-1&&e!="Morgas"&&e!="µ"&&e!="DBTest")
+		if(addedGlobals.length>0) alert(`⚠ added globals: ${addedGlobals}`);
+	});
+
 	var WR=function(path){
 		document.write('<script type="application/javascript" charset="utf-8" src="'+path+'"></script>');
 	};
