@@ -29,7 +29,7 @@
 	{
 		sessionStorage.clear(); //clear to ensure execution order
 
-		var obj1=new testObject({
+		var parent=new testObject({
 			testInt:10,
 			testDouble:1.1,
 			testBool:true,
@@ -37,46 +37,43 @@
 			testJSON:{test:"json",success:true,score:10},
 			testDate:new Date()
 		}),
-		obj2=new testObject({
+		child=new testObject({
 			testInt:20,
 			testString:"testString",
 			testBool:true
 		}),
-		obj3=new testObject({
+		friend=new testObject({
 			testInt:30,
 			testString:"testString2",
 			testBool:true
 		});
 		
-		obj1.addChild("childRel",obj2);
-		obj2.addFriend("friendRel",obj3);
+		parent.addChild("childRel",child);
+		child.addFriend("friendRel",friend);
 
 		//tests
 
 		QUnit.test("save single",function(assert)
 		{
-			console.log("save single");
-			return dbConn.save(obj1).then(function()
+			return dbConn.save(parent).then(function()
 			{
-				assert.notEqual(obj1.getID(),undefined,"ID generated");
+				assert.notEqual(parent.getID(),undefined,"ID generated");
 			});
 		});
 		QUnit.test("save multiple",function(assert)
 		{
-			console.log("save multiple");
-			obj1.setValueOf("testDouble",1.2);
-			return dbConn.save([obj1,obj2,obj3])
+			parent.setValueOf("testDouble",1.2);
+			return dbConn.save([parent,child,friend])
 			.then(function()
 			{
-				assert.notEqual(obj2.getID(),undefined,"ID generated");
-				assert.notEqual(obj1.getID(),undefined,"ID generated");
-				assert.notEqual(obj3.getID(),undefined,"ID generated");
+				assert.notEqual(child.getID(),undefined,"ID generated");
+				assert.notEqual(parent.getID(),undefined,"ID generated");
+				assert.notEqual(friend.getID(),undefined,"ID generated");
 			});
 		});
 		QUnit.test("save friendships",function(assert)
 		{
-			console.log("save friendships");
-			return dbConn.saveFriendships(obj2,"friendRel")
+			return dbConn.saveFriendships(child,"friendRel")
 			.then(function()
 			{
 				assert.ok(true);
@@ -84,47 +81,53 @@
 		});
 		QUnit.test("load single via int",function(assert)
 		{
-			console.log("load single via int");
 			return dbConn.load(testObject,{testInt:10}).then(function(result)
 			{
-				assert.deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load single via int");
+				assert.deepEqual(result[0]&&result[0].toJSON(),parent.toJSON(),"load single via int");
 				assert.equal(result.length,1,"result count");
 			});
 		});
 		QUnit.test("load multiple via string",function(assert)
 		{
-			console.log("load multiple via string");
 			return dbConn.load(testObject,{testString:"testString"}).then(function(result)
 			{
-				assert.deepEqual(result[0]&&result[0].toJSON(),obj1.toJSON(),"load multiple via string (1)");
-				assert.deepEqual(result[1]&&result[1].toJSON(),obj2.toJSON(),"load multiple via string (2)");
+				assert.deepEqual(result[0]&&result[0].toJSON(),parent.toJSON(),"load multiple via string (1)");
+				assert.deepEqual(result[1]&&result[1].toJSON(),child.toJSON(),"load multiple via string (2)");
 				assert.equal(result.length,2,"result count");
 			});
 		});
-		QUnit.test("load relations",function(assert)
+		QUnit.test("load parent",function(assert)
 		{
-			console.log("load relations");
-			var o1,o2;
-			return dbConn.loadFriends(obj3,"friendRel",{testInt:20})
+			return dbConn.loadParent(child,"parentRel")
 			.then(function(result)
 			{
-				o2=result[0];
-				assert.deepEqual(obj2.toJSON(),o2.toJSON(),"load firend");
-				return dbConn.loadParent(o2,"parentRel");
-			},µ.logger.error)
+				assert.deepEqual(parent.toJSON(),result.toJSON(),"load parent");
+			},µ.logger.error);
+		});
+		QUnit.test("load children",function(assert)
+		{
+			return dbConn.loadChildren(parent,"childRel")
 			.then(function(result)
 			{
-				o1=result;
-				assert.deepEqual(obj1.toJSON(),o1.toJSON(),"load parent");
-			},µ.logger.error)
+				result=result[0];
+				assert.deepEqual(child.toJSON(),result.toJSON(),"load friend");
+			},µ.logger.error);
+		});
+		QUnit.test("load friends",function(assert)
+		{
+			return dbConn.loadFriends(child,"friendRel")
+			.then(function(result)
+			{
+				result=result[0];
+				assert.deepEqual(friend.toJSON(),result.toJSON(),"load friend");
+			},µ.logger.error);
 		});
 		QUnit.test("deleteFriendships",function(assert)
 		{
-			console.log("deleteFriendships");
-			return dbConn.deleteFriendships(obj2,"friendRel")
+			return dbConn.deleteFriendships(child,"friendRel")
 			.then(function()
 			{
-				return dbConn.loadFriends(obj3,"friendRel",{testInt:20});
+				return dbConn.loadFriends(friend,"friendRel",{testInt:20});
 			},µ.logger.error)
 			.then(function(result)
 			{
@@ -133,8 +136,7 @@
 		});
 		QUnit.test("delete",function(assert)
 		{
-			console.log("delete");
-			return dbConn["delete"](testObject,obj1)
+			return dbConn["delete"](testObject,parent)
 			.then(function()
 			{
 				return dbConn.load(testObject,{testInt:10});

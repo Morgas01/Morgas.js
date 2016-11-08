@@ -103,12 +103,16 @@
 		loadChildren:function(obj,relationName,pattern)
 		{
 			var relation=obj.relations[relationName],
-				childClass=rel.relatedClass,
-				fieldName=relation.fieldName;
-			pattern[fieldName]=this.getID();
+				childClass=relation.relatedClass,
+				childRelation=new childClass().relations[relation.targetRelationName],
+				fieldName=childRelation.fieldName;
+
+			pattern=pattern||{};
+			pattern[fieldName]=obj.getID();
+
 			return this.load(childClass,pattern).then(function(children)
 			{
-				obj.addChildren(children);
+				obj.addChildren(relationName,children);
 				return children;
 			});
 		},
@@ -121,7 +125,7 @@
 				fid=friendClass.prototype.objectType+"_ID",
 				type=DBC.getFriendTableName(obj.objectType,relationName,friendClass.prototype.objectType,rel.targetRelationName),
 				fPattern={};
-			
+
 			if (rel.relatedClass===fRel.relatedClass)
 			{
 				fid+=2;
@@ -153,6 +157,7 @@
 			{
 				if(results.length>0)
 				{
+					pattern=pattern||{};
 					pattern.ID=results.map(function(val)
 					{
 						return val.fields[fid].value;
@@ -215,6 +220,10 @@
 				wait.push(this["delete"](fClass,toDelete[i]));
 			}
 			return new SC.prom.always(wait,{scope:this});
+		},
+		connectFriends:function(dbObjects)
+		{
+			//TODO
 		}
 	});
 
@@ -369,6 +378,41 @@
 		{
 			return this._get(this.friends,relationName);
 		},
+		connectObjects:function(dbObjects)
+		{
+			var relationKeys=Object.keys(this.relations);
+			for(var i=0;i<relationKeys.length;i++)
+			{
+				var relation=this.relations[relationKeys[i]];
+
+				if(relation.type===REL.TYPES.FRIEND) continue; // use DBConn
+
+				for(var dbObject of dbObjects)
+				{
+					if(dbObject instanceof relation.relatedClass)
+					{
+						var parent,child,childRelation;
+						switch (relation.type)
+						{
+							case REL.TYPES.PARENT:
+								child=this;
+								childRelation=relation;
+								parent=dbObject;
+								break;
+							case REL.TYPES.CHILD:
+								child=dbObject;
+								childRelation=dbObject.relations[relation.targetRelationName];
+								parent=this;
+								break;
+						}
+						if(child.getValueOf(childRelation.fieldName)==parent.getID())
+						{
+							parent.addChild(child);
+						}
+					}
+				}
+			}
+		},
 		toJSON:function()
 		{
 			var rtn={};
@@ -427,7 +471,7 @@
 			if(fieldName==null)
 			{
 				if(type==REL.TYPES.PARENT)
-					throw "DB.Relation: "+type+" relation needs a fieldName";
+					throw "DB.Relation: parent relation needs a fieldName";
 				else
 					fieldName="ID";
 			}
@@ -500,12 +544,12 @@
 					this.value=1*val;
 					break;
 				case FIELD.TYPES.DATE:
-					this.fromJSON(JSON.parse(val));
-					break;
 				case FIELD.TYPES.STRING:
+				    this.value=val;
+				    break;
 				case FIELD.TYPES.JSON:
 				default:
-					this.value=JSON.parse(val);
+					this.fromJSON(JSON.parse(val));
 					break;
 			}
 		}
