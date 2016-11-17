@@ -17,7 +17,7 @@
 		{
 			this.mega();
 			this.createListener(".readyState message");
-			SC.prom.pledgeAll(this,["request","close"]);
+			SC.prom.pledgeAll(this,["request","close","ready"]);
 			SC.rs.all(this,["_onMessage"]);
 
 			this.nextRequestId=0;
@@ -38,6 +38,12 @@
 			});
 			this.worker.on("message",this._onMessage);
 		},
+		/** set a function to react to feedback requests from worker
+		 * @function
+		 * @param {String} type
+		 * @param {*} data
+		 * @returns {*} feedback
+		 */
 		onFeedback:null,
 		_onMessage:function(message)
 		{
@@ -87,6 +93,21 @@
 					µ.logger.warn(new µ.Warning("tried to respond to unknown request",message));
 				}
 			}
+		},
+		ready:function(signal)
+		{
+			this.addListener(".readyState:once",this,function(event)
+			{
+				switch(event.value.state)
+				{
+					case "running":
+						signal.resolve(event.value.data);
+						break;
+					case "error":
+						signal.reject(event.value.error);
+						break;
+				}
+			});
 		},
 		send:function(method,args)
 		{
