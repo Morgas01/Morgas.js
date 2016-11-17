@@ -81,9 +81,10 @@
 			{
 				fidName+=2;
 			}
+			var friendship=DBFRIEND.generator(obj,relationName);
 			for(var i=0;i<fids.length;i++)
 			{
-				toSave.push(new DBFRIEND(tableName,idName,id,fidName,fids[i]));
+				toSave.push(new friendship(id,fids[i]));
 			}
 			return this.save(toSave);
 		},
@@ -118,36 +119,25 @@
 		},
 		loadFriends:function(obj,relationName,pattern)
 		{
-			var rel=obj.relations[relationName],
-				friendClass=rel.relatedClass,
-				fRel=new friendClass().relations[rel.targetRelationName],
-				id=obj.objectType+"_ID",
-				fid=friendClass.prototype.objectType+"_ID",
-				type=DBC.getFriendTableName(obj.objectType,relationName,friendClass.prototype.objectType,rel.targetRelationName),
-				fPattern={};
+			var friendship=DBFRIEND.generator(obj,relationName);
+			var fPattern={};
+			fPattern[friendship.objFieldname]=obj.getID();
 
-			if (rel.relatedClass===fRel.relatedClass)
-			{
-				fid+=2;
-			}
-			fPattern[id]=obj.getID();
-			var friendship=DBFRIEND.Generator(type,id,fid);
-			
 			var p=this.load(friendship,fPattern);
 			
-			if (rel.relatedClass===fRel.relatedClass)
+			if (friendship.objClass===friendship.friendClass)
 			{
 				p=p.then(function(results)
 				{
-					fPattern[fid]=fPattern[id];
-					delete fPattern[id];
+					fPattern[friendship.friendFieldname]=fPattern[friendship.objFieldname];
+					delete fPattern[friendship.objFieldname];
 					return this.load(friendship,fPattern).then(function(results2)
 					{
 						for(var i=0;i<results2.length;i++)
 						{
-							var t=results2[i].fields[id].value;
-							results2[i].fields[id].value=results2[i].fields[fid].value;
-							results2[i].fields[fid].value=t;
+							var t=results2[i].fields[friendship.objFieldname].value;
+							results2[i].fields[friendship.objFieldname].value=results2[i].fields[friendship.friendFieldname].value;
+							results2[i].fields[friendship.friendFieldname].value=t;
 						}
 						return results.concat(results2);
 					});
@@ -160,9 +150,9 @@
 					pattern=pattern||{};
 					pattern.ID=results.map(function(val)
 					{
-						return val.fields[fid].value;
+						return val.fields[friendship.friendFieldname].value;
 					});
-					return this.load(friendClass,pattern);
+					return this.load(friendship.friendClass,pattern);
 				}
 				else return [];
 			});
@@ -181,7 +171,7 @@
 				id=obj.getID();
 			if(id==null)
 			{
-				µ.logger.warn("friend id is null",2);
+				µ.logger.warn("object's id is null",2);
 				return new SC.prom.resolve(false,this);
 			}
 			var fids=[];
@@ -196,30 +186,21 @@
 				µ.logger.warn("no friend with friend id found");
 				return new SC.prom.resolve(false,this);
 			}
-			var tableName=DBC.getFriendTableName(obj.objectType,relationName,friends[0].objectType,rel.targetRelationName),
-				idName=obj.objectType+"_ID",
-				fidName=friends[0].objectType+"_ID",
+			var fClass=DBFRIEND.generator(obj,relationName),
 				toDelete=[];
-			if (rel.relatedClass===fRel.relatedClass)
+			if (fClass.objClass===fClass.friendClass)
 			{
-				fidName+=2;
 				var pattern={};
-				pattern[idName]=fids;
-				pattern[fidName]=id;
+				pattern[fClass.objFieldname]=fids;
+				pattern[fClass.friendFieldname]=id;
 				toDelete.push(pattern);
 			}
 			var pattern={};
-			pattern[idName]=id;
-			pattern[fidName]=fids;
+			pattern[fClass.objFieldname]=id;
+			pattern[fClass.friendFieldname]=fids;
 			toDelete.push(pattern);
-			
-			var wait=[],
-			fClass=DBFRIEND.Generator(tableName,idName,fidName);
-			for(var i=0;i<toDelete.length;i++)
-			{
-				wait.push(this["delete"](fClass,toDelete[i]));
-			}
-			return new SC.prom.always(wait,{scope:this});
+
+			return new SC.prom.always(toDelete.map(p=>this.delete(fClass,p)),{scope:this});
 		},
 		connectFriends:function(dbObjects)
 		{
@@ -438,29 +419,62 @@
 			return JSON.stringify(this);
 		}
 	});
+	DBOBJECT.connectObjects=function(dbObjects)
+	{
+		for(var i=0;i<dbObjects.length;i++)
+		{
+			var dbObj=dbObjects[i];
+			if(dbObj instanceof DBOBJECT)
+			{
+				dbObj.connectObjects(dbObjects.slice(i));
+			}
+		}
+	}
 	SMOD("DBObj",DBOBJECT);
 	
 	var DBFRIEND=DB.Firendship=µ.Class(
 	{
-		init:function(type,fieldName1,value1,fieldName2,value2)
+		init:function()
 		{
-			this.objectType=type;
-			this.fields={};
-			this.fields[fieldName1]=new FIELD(FIELD.TYPES.INT,value1);
-			this.fields[fieldName2]=new FIELD(FIELD.TYPES.INT,value2);
+			throw "DB.Friendship is abstract.\nPlease use the generator";
 		},
 		toJSON:DBOBJECT.prototype.toJSON,
 		fromJSON:DBOBJECT.prototype.fromJSON
 	});
-	DBFRIEND.Generator=function(type,fieldname1,fieldname2)
+	DBFRIEND.generator=function(DBobj,relationName)
 	{
-		return µ.Class(DBFRIEND,
+		var objClass=DBobj.constructor,
+			rel=DBobj.relations[relationName],
+			friendClass=rel.relatedClass,
+			friendInst=new friendClass(),
+			objFieldname=DBobj.objectType+"_ID",
+			friendFieldname=friendClass.prototype.objectType+"_ID",
+			type=[DBobj.objectType,relationName,friendInst.objectType,rel.targetRelationName].sort().join("_");
+
+		if (objClass===friendClass)
+		{
+			friendFieldname+=2;
+		}
+
+		var friendship=µ.Class(DBFRIEND,
 		{
 			objectType:type,
-			init:function(){
-				this.mega(type,fieldname1,null,fieldname2,null);
-			}
+			init:function(objId,friendId)
+			{
+				this.fields={};
+				this.fields[objFieldname]=new FIELD(FIELD.TYPES.INT,objId);
+				this.fields[friendFieldname]=new FIELD(FIELD.TYPES.INT,friendId);
+			},
+			objClass:objClass,
+			objFieldname:objFieldname,
+			friendClass:friendClass,
+			friendFieldname:friendFieldname
 		});
+		friendship.objClass=objClass;
+		friendship.objFieldname=objFieldname;
+		friendship.friendClass=friendClass;
+		friendship.friendFieldname=friendFieldname;
+		return friendship;
 	};
 	SMOD("DBFriend",DBFRIEND);
 	
