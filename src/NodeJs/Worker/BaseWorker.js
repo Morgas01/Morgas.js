@@ -1,7 +1,10 @@
 var path=require("path");
 require("../Morgas.NodeJs");
 
-var PROMISE=µ.getModule("Promise");
+var SC=µ.shortcut({
+	Promise:"Promise",
+	es:"errorSerializer"
+});
 
 
 var initParam=JSON.parse(process.argv[2]);
@@ -35,7 +38,7 @@ worker={
 		return true;
 	}
 };
-worker.feedback=PROMISE.pledge(function(signal,type, data,timeout)
+worker.feedback=SC.Promise.pledge(function(signal,type, data,timeout)
 {
 	var timeoutEvent={
 		feedback:nextFeedbackId++,
@@ -80,7 +83,7 @@ var handleMessage=function(message,handle)
 				p=Promise.reject(e);
 			}
 			return p.then(result=>process.send({request:message.request,data:result}),
-			error=>process.send({request:message.request,error:error}))
+			error=>process.send({request:message.request,error:SC.es(error)}))
 			.catch(µ.logger.error);
 		}
 		else
