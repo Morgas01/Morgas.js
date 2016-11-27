@@ -26,6 +26,13 @@
 		}
 		return target;
 	};
+	/**
+	 * creates a new object so that parameters are left unchanged
+	 *
+	 * @param {object} target
+	 * @param {object} [provider=undefined]
+	 * @param {boolean} [extend=false]
+	 */
 	obj.adopt.setDefaults=function(defaults,param,extend)
 	{
 		return obj.adopt(obj.adopt({},defaults,true),param,extend);
