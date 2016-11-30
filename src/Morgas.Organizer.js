@@ -258,6 +258,10 @@
 			this.values.length=0;
 			return this;
 		},
+		/**
+		 * @param {Boolean} (some=false) - collect values that are anywhere included ( false = everywhere )
+		 * @param {String} (sort) - name of sort
+		 */
 		combine:function(some,sort)
 		{
 			some=!!some;
