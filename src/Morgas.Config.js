@@ -15,12 +15,13 @@
 			else this.default=null;
 		},
 		reset:null,
+		toJSON:null,
 		toDescription:null
 	});
 	CONFIG.parse=function(desc,value)
 	{
 		if(typeof desc=="string") return new FIELD({type:desc},value);
-		else if (Array.isArray(desc)) return new ARRAY({model:desc},value);
+		else if (Array.isArray(desc)) return new ARRAY({model:desc[0]},value);
 		switch(desc.type)
 		{
 			case "object":
@@ -380,7 +381,7 @@
 		},
 		add:function(key,config)
 		{
-			var value=CONFIG.parse(this.model);
+			var value=CONFIG.parse(this.model,config);
 			if(value&&key!==undefined&&(!config||value.set(config)))
 			{
 				if(this.configs.has(key))
@@ -460,7 +461,7 @@
 			}
 			return rtn;
 		},
-		toDescription:function()
+		toDescription	:function()
 		{
 			return {
 				type:"map",
