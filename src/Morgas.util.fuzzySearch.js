@@ -7,7 +7,7 @@
 	/**
 	 * @typedef {object} fuzzySearchResult
 	 * @property {String} data
-	 * @property {Number} index - former idex in array
+	 * @property {Number} index - former index in array
 	 * @property {Number[]} score
 	 */
 	/**
@@ -16,8 +16,25 @@
 	 * @param {String[]} data
 	 * @returns {fuzzySearchResult[]}
 	 */
-	util.fuzzySearch=function fuzzySearch(search,data)
+	 var FUZZ=util.fuzzySearch=function fuzzySearch(search,data)
 	{
+		var scorer=FUZZ.scoreFunction(search);
+		return data.map(function(d,i)
+		{
+			return {
+				data:d,
+				index:i,
+				score:scorer(d)
+			};
+		})
+		.sort(function(a,b)
+		{
+			return FUZZ.sortScore(a.score,b.score);
+		});
+	};
+	FUZZ.scoreFunction=function(search)
+	{
+		search=search.replace(/([.*+?^${}()|[\]\\])/g,"\\$1")
 		var regexs=[
 			new RegExp(search,"ig"), //whole string
 			new RegExp(search.trim().split(/\s+/).join(".*"),"ig"), // all words in order
@@ -26,33 +43,29 @@
 			new RegExp(search.replace(/[A-Z]/g,s=>s+"[a-z]*").trim().split(/\s+/).join("|"),"ig"), // camel case words
 		];
 
-		return data.map(function(d,i)
+		return function(data)
 		{
-			var rtn={
-				data:d,
-				index:i,
-				score:[]
-			};
+			var rtn=[];
+
 			for (var r of regexs)
 			{
 				var score=0;
-				while(r.exec(d))
+				while(r.exec(data))
 				{
 					score++;
 				}
-				rtn.score.push(score);
+				rtn.push(score);
 			}
 			return rtn;
-		})
-			.sort(function(a,b)
-			{
-				var rtn=0;
-				for(var i=0;i<regexs.length&&rtn==0;i++) rtn=b.score[i]-a.score[i];
-				return rtn;
-			});
+		};
 	};
-	util.fuzzySearch.scoreFunction
+	FUZZ.sortScore=function(score1,score2)
+	{
+		var rtn=0;
+		for(var i=0;i<score1.length&&rtn==0;i++) rtn=score2[i]-score1[i];
+		return rtn;
+	}
 
-	SMOD("fuzzySearch",util.fuzzySearch);
+	SMOD("fuzzySearch",FUZZ);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
