@@ -8,6 +8,7 @@ build:
 	-	merged packages
 
 µ.Worker:
+	-	populate timeout
 	-	DBWorker
 	-	batch ?
 
@@ -17,27 +18,22 @@ build:
 µ.DB.Connector.IndexedDBConnector:
 	-	isAvailable()
 
-Morgas.util.object.inputValues.js:
+Morgas.util.object.inputValues.js: (deprecated?)
 	-	array support
 	-	dynamic option (object with getter & setter)
 	-	subscribers? (zb: slider + input)
 
-Morgas.util.Request.js:
-	-	scope as param (in param object)
 NodeJs/Commander:
 	-	help command
 	-	command in new process (multithread patch ?)
 	-	command options ( -c )
 File/FileHelper:
-	-	copy
 	-	move (copy) to other devices (drives)
-	-	getRotatedFile
 NEW:
 	generic DB Object
 	RemoteDBConnector (worker/REST)
 	(Indexed)DB GUI
 	simple tool for custom builds (concating files, settings, dependencies, )
-	resource handler (server push?)
+	service worker - resource handler (server push?)
 	translations
 	translated resources
-	less + minify
