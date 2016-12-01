@@ -17,7 +17,8 @@
 		"zero":function(){return 0},
 		"es":function(){return ""},
 		"boolean":function(val){return !!val},
-		"pass":function(a){return a}
+		"pass":function(a){return a},
+		"scope":function(){return this}
 	};
 
 	/** Modules
