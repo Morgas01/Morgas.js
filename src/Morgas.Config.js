@@ -121,12 +121,24 @@
 		},
 		toDescription:function()
 		{
-			return {
+			var rtn={
 				type:this.type,
 				pattern:this.pattern,
 				validate:this.validate,
 				default:this.default
 			};
+			switch(this.type)
+			{
+				case "select":
+					rtn.values=this.values;
+					rtn.multiple=this.multiple;
+					break;
+				case "number":
+					rtn.min=this.min;
+					rtn.step=this.step;
+					rtn.max=this.max;
+			}
+			return rtn;
 		}
 	});
 	FIELD.TYPES=["string","boolean","number","select"];
