@@ -231,4 +231,14 @@
 		p.resolve(1);
 		return rtn;
 	});
+
+	QUnit.test("bug: catch wraps result in array",function(assert)
+	{
+		return new PROM(function(signal){signal.resolve("some arg");})
+		.catch(function(){throw "called"}) // never called
+		.complete(function(arg)
+		{
+			assert.strictEqual(arg,"some arg");
+		});
+	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

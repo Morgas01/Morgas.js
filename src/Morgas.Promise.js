@@ -110,11 +110,11 @@
 		},
 		complete:function(fn)
 		{
-			return this._wrapNext(this.original.then(this.rescopeFn(fn,this.scope)));
+			return this.then(fn);
 		},
 		error:function(efn)
 		{
-			return this._wrapNext(this.original.catch(SC.rs(efn,this.scope)));
+			return this.then(µ.constantFunctions.pass,efn);
 		},
 		then:function(fn,efn)
 		{
@@ -124,16 +124,16 @@
 		},
 		always:function(fn)
 		{
-			return this._wrapNext(this.original.then(this.rescopeFn(fn,this.scope),SC.rs(fn,this.scope)));
+			return this.then(fn,fn);
 		},
 		reverse:function(rejectValue,fn)
 		{
 			if(fn)fn=SC.rs(fn,this.scope);
 			else fn=µ.constantFunctions.pass;
-			return this._wrapNext(this.original.then(function()
+			return this.then(function()
 			{
 				return Promise.reject(rejectValue);
-			},fn));
+			},fn);
 		},
 		abort:function()
 		{
