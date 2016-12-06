@@ -100,6 +100,11 @@
 			"Morgas.js"
 		]
 	},
+	"Morgas.util.fuzzySearch.js": {
+		"deps": [
+			"Morgas.js"
+		]
+	},
 	"Morgas.util.object.adopt.js": {
 		"deps": [
 			"Morgas.js"
