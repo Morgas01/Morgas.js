@@ -91,23 +91,29 @@
 		{
 			var tDb=this.db.getGroupPart("objectType",objClass.prototype.objectType);
 			if(!tDb) return signal.resolve([]);
-			var patternKey=null;
-			switch(typeof pattern)
+
+			var pDb;
+			if(pattern!=null)
 			{
-				case "object":
-					patternKey=JSON.stringify(pattern);
-					pattern={fields:pattern};
-					break;
-				case "function":
-					patternKey=pattern;
-					pattern={fields:pattern};
-					break;
-				default:
-					patternKey=pattern;
-					break;
+				var patternKey=null;
+				switch(typeof pattern)
+				{
+					case "object":
+						patternKey=JSON.stringify(pattern);
+						pattern={fields:pattern};
+						break;
+					case "function":
+						patternKey=pattern;
+						pattern={fields:pattern};
+						break;
+					default:
+						patternKey=pattern;
+						break;
+				}
+				if(!tDb.hasFilter(patternKey)) tDb.filter(patternKey,pattern);
+				pDb=tDb.getFilter(patternKey);
 			}
-			if(!tDb.hasFilter(patternKey)) tDb.filter(patternKey,pattern);
-			var pDb=tDb.getFilter(patternKey);
+			else pDb=tDb;
 			var rtn;
 			if(sort)
 			{
