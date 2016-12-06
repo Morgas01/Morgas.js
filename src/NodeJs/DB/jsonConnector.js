@@ -30,41 +30,17 @@
 			this.prettyPrint=param.prettyPrint||false;
 			this.file=SC.File.stringToFile(file);
 
-			var folder=this.file.clone().changePath("..");
-			this.open=SC.Promise.resolve(folder.exists()
-			.then(function()
+			this.open=new SC.Promise(SC.FileUtil.getRotatedFile(this.file,JSON.parse),{scope:this})
+			.then(function(result)
 			{
-				return folder.listFiles();
-			}),this)
-			.then(function(files)
-			{
-				var regex=new RegExp(String.raw`^${this.file.getName()}(\.([0-9]+))?$`);
-				files=files.filter(s=>s.match(regex))
-				.sort((a,b)=>
-				{
-					var aMatch=a.match(regex),bMatch=b.match(regex);
-					a=parseInt(aMatch&&aMatch[2]||null,10);
-					b=parseInt(bMatch&&bMatch[2]||null,10);
-					return a>b;
-				});
-				if(files.length==0) return files;
-				return SC.itAs(files,function(i,file)
-				{
-					return folder.clone().changePath(file).read({encoding:"utf8"}).then(JSON.parse)
-					.then(d=>Promise.reject(d),
-					e=>Promise.resolve({file:file,error:e}));
-				},null,this)
-				.then(e=>Promise.reject(e),
-				function(results)
-				{
-					this.db.add(results.pop());
-					return Promise.resolve(results)
-				});
+				this.db.add(result.data);
+				delete result.data;
+				return result;
 			});
 		},
 		save:function(signal,objs)
 		{
-			this.open.then(()=>
+			this.open.always(()=>
 			{
 				OCON.prototype.save.apply(this,arguments);
 				this.startFlushStimer();
@@ -72,14 +48,14 @@
 		},
 		load:function(signal,objClass,pattern,sort)
 		{
-			this.open.then(()=>
+			this.open.always(()=>
 			{
 				OCON.prototype.load.apply(this,arguments);
 			}).catch(signal.reject)
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
-			this.open.then(()=>
+			this.open.always(()=>
 			{
 				OCON.prototype.delete.apply(this,arguments);
 				this.startFlushStimer();
