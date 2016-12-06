@@ -8,7 +8,7 @@
 	 */
 	uFn.rescope=function(fn,scope)
 	{
-		if(fn==null)µ.logger.warn(new µ.Warning("function is not defined"));
+		if(fn==null||fn.apply==null)µ.logger.warn(new µ.Warning("function is not defined"));
 		else return function()
 		{
 			return fn.apply(scope,arguments);
