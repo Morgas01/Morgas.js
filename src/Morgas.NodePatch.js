@@ -271,7 +271,8 @@
 			parent:null,
 			parentResult:null,
 			siblingResults:[],
-			index:null
+			index:null,
+			depth:0
 		}];
 		for(var entry of todo)
 		{
@@ -296,7 +297,8 @@
 						parent:entry.node,
 						parentResult:entry.siblingResults[entry.siblingResults.length-1],
 						siblingResults:childSiblings,
-						index:i
+						index:i,
+						depth:entry.depth+1
 					});
 				}
 			}
