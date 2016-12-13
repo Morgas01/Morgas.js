@@ -306,6 +306,18 @@
 		return todo[0].siblingResults[0];
 	};
 
+	NODE.traverseTo=function(root,path,childrenKey)
+	{
+		if(!childrenKey)childrenKey=NODE.BasicAliases.children;
+		if(typeof path=="string") path=path.split(".");
+		for(var key of path)
+		{
+			root=root[childrenKey][key];
+			if(!root) return null;
+		}
+		return root;
+	};
+
 	NODE.patchTree=function(root,childrenKey,aliasMap)
 	{
 		return NODE.traverse(root,function(node,parent,parentNode)
