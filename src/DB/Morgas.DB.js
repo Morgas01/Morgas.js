@@ -232,8 +232,7 @@
 	//make toDelete a Pattern from Number, DB.Object or Array
 	DBC.getDeletePattern=function(objClass,toDelete)
 	{
-		var type=typeof toDelete;
-		if(type==="number" || toDelete instanceof DB.Object)
+		if(typeof toDelete==="number" || toDelete instanceof DB.Object)
 		{
 			toDelete=[toDelete];
 		}
@@ -246,7 +245,7 @@
 				{
 					ids.push(toDelete[i].getID());
 				}
-				else ids.push(toDelete[i]);
+				else if (typeof toDelete[i]==="number") ids.push(toDelete[i]);
 			}
 			toDelete={ID:ids};
 		}
