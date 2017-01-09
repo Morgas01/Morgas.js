@@ -12,7 +12,7 @@
 		var values;
 		if(fn)
 		{
-			values=new Map();
+			var idMap=new Map();
 			for(var i=0;i<arr.length;i++)
 			{
 				var id=arr[i];
@@ -20,20 +20,15 @@
 				{
 					id=fn(arr[i]);
 				}
-				values.set(id,arr[i]);
+				idMap.set(id,arr[i]);
 			}
+			values=idMap.values();
 		}
 		else
 		{
 			values=new Set(arr);
 		}
-		var rtn=[];
-		var it=values.values();
-		for(var step=it.next();!step.done;step=it.next())
-		{
-			rtn.push(step.value);
-		}
-		return rtn;
+		return Array.from(values);
 	};
 	SMOD("uniquify",obj.uniquify);
 	
