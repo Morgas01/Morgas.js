@@ -76,7 +76,6 @@
         },
 		removeListener:function removeListener(fn,scope)
 		{
-            //TODO remove fn from all scopes
 			var timesFound=0;
             var entry=this.listeners.get(scope);
             if(entry)

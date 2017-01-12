@@ -206,7 +206,6 @@
 				return args;
 			});
 		},
-		//TODO
 		"delete":function()
 		{
 			var promise=SC.itAs(this.selected.slice(),(index,filename)=>this.file.clone().changePath(filename).remove()
@@ -232,7 +231,7 @@
 				return p;
 			});
 		},
-		//TODO
+		//TODO fix dot between numbers
 		cleanNames:function()
 		{
 			return SC.itAs(this.selected,(index,filename)=>

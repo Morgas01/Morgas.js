@@ -226,9 +226,6 @@
 		return rtn;
 	};
 
-	//TODO
-	//DBC.normalizePattern=function(pattern)
-
 	//make toDelete a Pattern from Number, DB.Object or Array
 	DBC.getDeletePattern=function(objClass,toDelete)
 	{

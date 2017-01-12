@@ -7,7 +7,7 @@
 	 * Creates an iterator for {any} in {backward} order.
 	 * {isObject} declares {any} as a Map or Array. 
 	 */
-	//TODO iterator & Set & Map
+	//TODO Symbol iterator
 	obj.createIterator=function* (any,isObject)
 	{
 		if (typeof any.next==="function"||typeof any.entries==="function")
