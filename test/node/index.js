@@ -17,7 +17,7 @@ fs.readdir(path.resolve(__dirname,"tests"),function(err,files)
 			}
 			catch(e)
 			{
-				console.error(e);
+				µ.logger.error(e);
 				return Promise.reject(e);
 			}
 		}).then(function(results)
