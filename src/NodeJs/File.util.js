@@ -39,7 +39,7 @@
 				signal.resolve(file.filePath);
 			});
 		}),
-		rotateFile:SC.prom.pledge(function(signal,file,count)
+		rotateFile:function(file,count)
 		{
 			if(!count) count=3;
 			file=File.filetoString(file);
@@ -51,15 +51,14 @@
 					return rot(this,number+1);
 				}).always(function()
 				{
-					return prevFile.rename(file+"."+(number),true);
+					return prevFile.rename(PATH.basename(file)+"."+number,true);
 				});
 			};
-			new File(file).exists().then(function()
+			return new File(file).exists().then(function()
 			{
 				return rot(this,0);
-			})
-			.then(signal.resolve,signal.reject);
-		}),
+			});
+		},
 		getRotatedFile:function(file,mapper)
 		{
 			file=File.stringToFile(file);
