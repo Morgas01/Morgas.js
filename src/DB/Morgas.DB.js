@@ -490,7 +490,7 @@
 					fieldName="ID";
 			}
 			this.type=type;
-			this.relatedClass=relatedClass;
+			this.relatedClass=relatedClass; //TODO change to array of classes to support inheritance
 			this.fieldName=fieldName;
 			this.targetRelationName=targetRelationName;
 		}
