@@ -57,7 +57,7 @@
 			return new File(file).exists().then(function()
 			{
 				return rot(this,0);
-			});
+			},µ.constantFunctions.pass);
 		},
 		getRotatedFile:function(file,mapper)
 		{
