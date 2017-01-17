@@ -130,7 +130,7 @@
 		{
 			toDelete=SC.find(this.db.values,{objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)},true);
 			this.db.remove(toDelete);
-			signal.resolve();
+			signal.resolve(toDelete.map(d=>d.fields.ID));
 		},
 		destroy:function()
 		{
