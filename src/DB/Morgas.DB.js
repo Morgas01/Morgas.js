@@ -278,6 +278,12 @@
 			if(type===REL.TYPES.PARENT)
 			{
 				this.fields[fieldName]=new REFERENCEFIELD(this,name);
+				Object.defineProperty(this,fieldName,{
+					configurable:false,
+					enumerable:true,
+					get:()=>this.getValueOf(fieldName),
+					set:v=>this.setValueOf(fieldName,v)
+				});
 			}
 		},
 		addField:function(name,type,value,options)
@@ -373,29 +379,31 @@
 			{
 				var relation=this.relations[relationKeys[i]];
 
-				if(relation.type===REL.TYPES.FRIEND) continue; // use DBConn
+				if(relation.type===REL.TYPES.FRIEND) continue; // use DBConn //TODO search for DBFriend
 
 				for(var dbObject of dbObjects)
 				{
 					if(dbObject instanceof relation.relatedClass)
 					{
-						var parent,child,childRelation;
+						var parent,child,childRelation,childRelationName;
 						switch (relation.type)
 						{
 							case REL.TYPES.PARENT:
 								child=this;
 								childRelation=relation;
+								childRelationName=relation.targetRelationName;
 								parent=dbObject;
 								break;
 							case REL.TYPES.CHILD:
 								child=dbObject;
+								childRelationName=relationKeys[i];
 								childRelation=dbObject.relations[relation.targetRelationName];
 								parent=this;
 								break;
 						}
 						if(child.getValueOf(childRelation.fieldName)==parent.ID)
 						{
-							parent.addChild(child);
+							parent.addChild(childRelationName,child);
 						}
 					}
 				}
@@ -496,6 +504,7 @@
 				else
 					fieldName="ID";
 			}
+			if(type==null) throw "no relation type";
 			this.type=type;
 			this.relatedClass=relatedClass; //TODO change to array of classes to support inheritance
 			this.fieldName=fieldName;
