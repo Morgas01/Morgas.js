@@ -45,7 +45,7 @@
 				for(var i=0;i<objs.length;i++)
 				{
 					var id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
-					objs[i].setID(id);
+					objs[i].ID=id;
 					this.db.add([{objectType:objs[i].objectType,fields:objs[i].toJSON()}]);
 				}
 			}
@@ -57,7 +57,7 @@
 				ids=this.db.getGroupPart("objectType",objectType).getMap("ID");
 				for(var i=0;i<objs.length;i++)
 				{
-					var found=ids[objs[i].getID()];
+					var found=ids[objs[i].ID];
 					if(found)
 					{
 						found.fields=objs[i].toJSON();

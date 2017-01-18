@@ -63,7 +63,7 @@
 						req.onsuccess=function(event)
 						{
 							µ.logger.debug(event);
-							object.setID&&object.setID(req.result);//if (!(object instanceof DBFRIEND)) {object.setID(req.result)} 
+							if (object instanceof SC.DBObj) object.ID=req.result;
 						}
 					});
 				}),true);

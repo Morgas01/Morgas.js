@@ -18,8 +18,6 @@
 //			this.addField("testBlob",	FIELD.TYPES.BLOB	,param.testBlob		);
 			this.addField("testDate",	FIELD.TYPES.DATE	,param.testDate 	);
 
-			this.addField("testParent_ID",FIELD.TYPES.INT);
-
 			this.addRelation("parentRel",	testObject,	REL.TYPES.PARENT,	"childRel",	"testParent_ID");
 			this.addRelation("childRel",	testObject,	REL.TYPES.CHILD,	"parentRel"	);
 			this.addRelation("friendRel",	testObject,	REL.TYPES.FRIEND,	"friendRel"	);
@@ -57,7 +55,7 @@
 		{
 			return dbConn.save(parent).then(function()
 			{
-				assert.notEqual(parent.getID(),undefined,"ID generated");
+				assert.notEqual(parent.ID,undefined,"ID generated");
 			});
 		});
 		QUnit.test("save multiple",function(assert)
@@ -66,9 +64,9 @@
 			return dbConn.save([parent,child,friend])
 			.then(function()
 			{
-				assert.notEqual(child.getID(),undefined,"ID generated");
-				assert.notEqual(parent.getID(),undefined,"ID generated");
-				assert.notEqual(friend.getID(),undefined,"ID generated");
+				assert.notEqual(child.ID,undefined,"ID generated");
+				assert.notEqual(parent.ID,undefined,"ID generated");
+				assert.notEqual(friend.ID,undefined,"ID generated");
 			});
 		});
 		QUnit.test("save friendships",function(assert)

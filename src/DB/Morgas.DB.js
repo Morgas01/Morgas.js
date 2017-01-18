@@ -55,7 +55,7 @@
 				return new SC.prom.resolve(false,this);
 			}
 			var fRel=friends[0].relations[rel.targetRelationName],
-				id=obj.getID();
+				id=obj.ID;
 			if(id==null)
 			{
 				µ.logger.warn("friend id is null");
@@ -64,7 +64,7 @@
 			var fids=[];
 			for(var i=0;i<friends.length;i++)
 			{
-				var fid=friends[i].getID();
+				var fid=friends[i].ID;
 				if(fid!=null)
 					fids.push(fid);
 			}
@@ -109,7 +109,7 @@
 				fieldName=childRelation.fieldName;
 
 			pattern=pattern||{};
-			pattern[fieldName]=obj.getID();
+			pattern[fieldName]=obj.ID;
 
 			return this.load(childClass,pattern).then(function(children)
 			{
@@ -121,7 +121,7 @@
 		{
 			var friendship=DBFRIEND.generator(obj,relationName);
 			var fPattern={};
-			fPattern[friendship.objFieldname]=obj.getID();
+			fPattern[friendship.objFieldname]=obj.ID;
 
 			var p=this.load(friendship,fPattern);
 			
@@ -168,7 +168,7 @@
 				return new SC.prom.resolve(false,this);
 			}
 			var fRel=friends[0].relations[rel.targetRelationName],
-				id=obj.getID();
+				id=obj.ID;
 			if(id==null)
 			{
 				µ.logger.warn("object's id is null",2);
@@ -177,7 +177,7 @@
 			var fids=[];
 			for(var i=0;i<friends.length;i++)
 			{
-				var fid=friends[i].getID();
+				var fid=friends[i].ID;
 				if(fid!=null)
 					fids.push(fid);
 			}
@@ -214,7 +214,7 @@
 		for(var i=0;i<objs.length;i++)
 		{
 			var obj=objs[i],
-			type=(obj instanceof DBFRIEND ? "friend" :(obj.getID()===undefined ? "fresh" : "preserved")),
+			type=(obj instanceof DBFRIEND ? "friend" :(obj.ID===undefined ? "fresh" : "preserved")),
 			objType=obj.objectType;
 			
 			if(rtn[type][objType]===undefined)
@@ -240,7 +240,7 @@
 			{
 				if(toDelete[i] instanceof objClass)
 				{
-					ids.push(toDelete[i].getID());
+					ids.push(toDelete[i].ID);
 				}
 				else if (typeof toDelete[i]==="number") ids.push(toDelete[i]);
 			}
@@ -275,6 +275,10 @@
 		addRelation:function(name,relatedClass,type,targetRelationName,fieldName)
 		{
 			this.relations[name]=new REL(relatedClass,type,targetRelationName||name,fieldName);
+			if(type===REL.TYPES.PARENT)
+			{
+				this.fields[fieldName]=new REFERENCEFIELD(this,name);
+			}
 		},
 		addField:function(name,type,value,options)
 		{
@@ -287,29 +291,16 @@
 			});
 		},
 		getValueOf:function(fieldName){return this.fields[fieldName].getValue();},
-		setValueOf:function(fieldName,val){if(fieldName!="ID")this.fields[fieldName].setValue(val);},
-		setID:function(val)
-		{
-			this.fields["ID"].setValue(val);
-			for(var c in this.children)
-			{
-				var children=this.children[c];
-				for(var i=0;i<children.length;i++)
-				{
-					children[i]._setParent(this.relations[c],this);
-				}
-			}
-		},
-		getID:function(){return this.getValueOf("ID");},
+		setValueOf:function(fieldName,val){this.fields[fieldName].setValue(val);},
 		getParent:function(relationName)
 		{
 			return this.parents[relationName];
 		},
-		_setParent:function(pRel,parent)
+		setParent:function(relationName,parent)
 		{
-			var cRel=this.relations[pRel.targetRelationName];
-			this.parents[pRel.targetRelationName]=parent;
-			this.setValueOf(cRel.fieldName,parent.getValueOf(pRel.fieldName));
+			var rel=this.relations[relationName];
+			this.parents[relationName]=parent;
+			this.setValueOf(rel.fieldName,null);
 		},
 		_add:function(container,relationName,value)
 		{
@@ -326,7 +317,7 @@
 			if(this.relations[relationName].type==REL.TYPES.CHILD)
 			{
 				this._add(this.children,relationName,child);
-				child._setParent(this.relations[relationName],this);
+				child.setParent(this.relations[relationName].targetRelationName,this);
 			}
 		},
 		addChildren:function(relationName,children)
@@ -339,6 +330,22 @@
 		getChildren:function(relationName)
 		{
 			return this._get(this.children,relationName);
+		},
+		removeChild:function(relationName,child)
+		{
+			if(relationName in this.relations)
+			{
+				var rel=this.relations[relationName];
+				var container=this.children[relationName];
+				if(container)
+				{
+					var index=container.findIndex(c=>c===child||(c.objectType===child.objectType&&c.ID==child.ID));
+					if(index!==-1) container.splice(index,1);
+				}
+
+				var cRel=child.relations[rel.targetRelationName];
+				if(child.getValueOf(cRel.fieldName)===this.ID) child.setParent(rel.targetRelationName,null);
+			}
 		},
 		addFriend:function(relationName,friend)
 		{
@@ -386,7 +393,7 @@
 								parent=this;
 								break;
 						}
-						if(child.getValueOf(childRelation.fieldName)==parent.getID())
+						if(child.getValueOf(childRelation.fieldName)==parent.ID)
 						{
 							parent.addChild(child);
 						}
@@ -578,4 +585,19 @@
 		"BLOB"		:6
 	};
 	SMOD("DBField",FIELD);
+
+	var REFERENCEFIELD=DB.Field.Reference=µ.Class(FIELD,{
+		init:function(dbObj,relationName)
+		{
+			this.mega(FIELD.TYPES.INT);
+			this.dbObj=dbObj;
+			this.relationName=relationName;
+		},
+		getValue:function()
+		{
+			var parent=this.dbObj.parents[this.relationName];
+			if(parent) return parent.ID;
+			return this.value;
+		}
+	})
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
