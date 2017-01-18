@@ -70,9 +70,9 @@
 				.sort((a,b)=>
 				{
 					var aMatch=a.match(regex),bMatch=b.match(regex);
-					a=parseInt(aMatch&&aMatch[2]||null,10);
-					b=parseInt(bMatch&&bMatch[2]||null,10);
-					return a>b;
+					a=parseInt(aMatch&&aMatch[2]||-1,10);
+					b=parseInt(bMatch&&bMatch[2]||-1,10);
+					return a-b;
 				})
 			)
 			.then(files=>SC.itAs(files,function(index,file)
