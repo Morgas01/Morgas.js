@@ -263,9 +263,16 @@
 		}
 	});
 
-	NODE.traverse=function(root,func,childrenKey)
+	var normalizeChildrenGetter=function(childrenGetter)
 	{
-		if(!childrenKey)childrenKey=NODE.BasicAliases.children;
+		if(!childrenGetter) childrenGetter=NODE.BasicAliases.children;
+		if(typeof childrenGetter == "string") return c=>c[childrenGetter];
+		return childrenGetter;
+	}
+
+	NODE.traverse=function(root,func,childrenGetter)
+	{
+		childrenGetter=normalizeChildrenGetter(childrenGetter);
 		var todo=[{
 			node:root,
 			parent:null,
@@ -285,7 +292,7 @@
 			}
 			else
 			{
-				children=entry.node[childrenKey];
+				children=childrenGetter(entry.node);
 			}
 			if(children)
 			{
@@ -306,19 +313,19 @@
 		return todo[0].siblingResults[0];
 	};
 
-	NODE.traverseTo=function(root,path,childrenKey)
+	NODE.traverseTo=function(root,path,childrenGetter)
 	{
-		if(!childrenKey)childrenKey=NODE.BasicAliases.children;
+		childrenGetter=normalizeChildrenGetter(childrenGetter);
 		if(typeof path=="string") path=path.split(".");
 		for(var key of path)
 		{
-			root=root[childrenKey][key];
+			root=childrenGetter(root)[key];
 			if(!root) return null;
 		}
 		return root;
 	};
 
-	NODE.patchTree=function(root,childrenKey,aliasMap)
+	NODE.patchTree=function(root,childrenGetter,aliasMap)
 	{
 		return NODE.traverse(root,function(node,parent,parentNode)
 		{
@@ -328,7 +335,7 @@
 				parentNode.addChild(child);
 			}
 			return child;
-		},childrenKey);
+		},childrenGetter);
 	}
 
 	var getNode=function(obj)
