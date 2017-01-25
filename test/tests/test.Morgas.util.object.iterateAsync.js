@@ -16,7 +16,7 @@
 		});
 	});
 	
-	QUnit.test("iterateAsync",function(assert)
+	QUnit.test("iterateAsync abort",function(assert)
 	{
 		assert.ok(true,"start: "+new Date());
 		return itAS([0,1,2,3,4,5000,6,7,8,9],function(index,value)

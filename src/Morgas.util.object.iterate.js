@@ -10,12 +10,12 @@
 	//TODO Symbol iterator
 	obj.createIterator=function* (any,isObject)
 	{
-		if (typeof any.next==="function"||typeof any.entries==="function")
+		if(typeof any.entries==="function")
 		{
-			if(typeof any.entries==="function")
-			{
-				any=any.entries();
-			}
+			any=any.entries();
+		}
+		if (typeof any.next==="function")
+		{
 			var step=null;
 			while(step=any.next(),!step.done)
 			{
