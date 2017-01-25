@@ -89,15 +89,20 @@
 			return this.save(toSave);
 		},
 		
-		loadParent:function(obj,relationName)
+		loadParent:function(child,relationName)
 		{
-			var relation=obj.relations[relationName],
+			var relation=child.relations[relationName],
 				parentClass=relation.relatedClass,
-				fieldName=relation.fieldName;
-			return this.load(parentClass,{ID:obj.getValueOf(fieldName)}).then(function(result)
+				fieldName=relation.fieldName,
+				targetRelationName=relation.targetRelationName;
+			return this.load(parentClass,{ID:child.getValueOf(fieldName)}).then(function(result)
 			{
 				var parent=result[0];
-				parent.addChild(relationName,obj);
+				if(parent)
+				{
+					if(targetRelationName) parent.addChild(targetRelationName,child);
+					else child.setParent(relationName,parent);
+				}
 				return parent;
 			});
 		},
@@ -508,6 +513,7 @@
 			this.type=type;
 			this.relatedClass=relatedClass; //TODO change to array of classes to support inheritance
 			this.fieldName=fieldName;
+			if(targetRelationName==null&&(type==REL.TYPES.CHILD||type==REL.TYPES.FRIEND)) throw "DB.Relation: relations other than parent need a targetRelationName";
 			this.targetRelationName=targetRelationName;
 		}
 	});
