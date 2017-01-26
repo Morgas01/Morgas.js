@@ -48,6 +48,7 @@
 		},pattern),"obj");
 		assert.ok(EQ(complex,5),"obj.equals 1");
 		assert.ok(!EQ(complex,3),"obj.equals 2");
+		assert.ok(!EQ(1,null),"pattern null");
 	});
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

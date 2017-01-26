@@ -26,7 +26,7 @@
 	{
 		if(obj===pattern)
 			return true;
-		if(obj===undefined||obj===null)
+		if(obj===undefined||obj===null||pattern===null)
 			return false;
 		if(pattern instanceof RegExp)
 			return pattern.test(obj);
