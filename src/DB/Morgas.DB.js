@@ -219,7 +219,7 @@
 		for(var i=0;i<objs.length;i++)
 		{
 			var obj=objs[i],
-			type=(obj instanceof DBFRIEND ? "friend" :(obj.ID===undefined ? "fresh" : "preserved")),
+			type=(obj instanceof DBFRIEND ? "friend" :(obj.ID===null ? "fresh" : "preserved")),
 			objType=obj.objectType;
 			
 			if(rtn[type][objType]===undefined)
@@ -419,7 +419,8 @@
 			var rtn={};
 			for(var f in this.fields)
 			{
-				rtn[f]=this.fields[f].toJSON();
+				var value=this.fields[f].toJSON();
+				if(value!=null)rtn[f]=value;
 			}
 			return rtn;
 		},
@@ -536,7 +537,11 @@
 		{
 			this.value=val;
 		},
-		getValue:function(){return this.value;},
+		getValue:function()
+		{
+			if(this.value===undefined) return null;
+			return this.value;
+		},
 		toJSON:function()
 		{
 			switch(this.type)
@@ -612,7 +617,7 @@
 		{
 			var parent=this.dbObj.parents[this.relationName];
 			if(parent) return parent.ID;
-			return this.value;
+			return this.mega();
 		}
 	})
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

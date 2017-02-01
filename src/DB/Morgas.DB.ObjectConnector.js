@@ -95,21 +95,8 @@
 			var pDb;
 			if(pattern!=null)
 			{
-				var patternKey=null;
-				switch(typeof pattern)
-				{
-					case "object":
-						patternKey=JSON.stringify(pattern);
-						pattern={fields:pattern};
-						break;
-					case "function":
-						patternKey=pattern;
-						pattern={fields:pattern};
-						break;
-					default:
-						patternKey=pattern;
-						break;
-				}
+				pattern={fields:pattern};
+				var patternKey=SC.eq.patternToString(pattern);
 				if(!tDb.hasFilter(patternKey)) tDb.filter(patternKey,pattern);
 				pDb=tDb.getFilter(patternKey);
 			}
