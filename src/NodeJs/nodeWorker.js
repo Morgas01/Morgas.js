@@ -23,7 +23,7 @@
 			this.nextRequestId=0;
 			this.requests=new Map();
 
-			this.worker=fork(path.join(__dirname,"Worker","baseWorker"),
+			this.worker=fork(path.join(__dirname,"Worker","BaseWorker"),
 			[JSON.stringify({
 				script:script,
 				args:[].concat(args)
