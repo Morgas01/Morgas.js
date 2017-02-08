@@ -47,6 +47,7 @@
 			}
 			else
 			{
+				var folders={};
 				for(var dir of resourceFolders)
 				{
 					try
@@ -57,13 +58,12 @@
 					}
 					catch(e)
 					{
-						µ.logger.info(new µ.Warning("could not load nodejs module '"+dir+key+"'",null,e));
-						lastError=e;
+						folders[dir+key]=e;
 					}
 				}
 				if(!oldhasModule(key))
 				{
-					µ.logger.error(new µ.Warning("could not load nodejs module '"+key+"'"))
+					µ.logger.error(new µ.Warning("could not load nodejs module '"+key+"'",folders));
 				}
 			}
 		}
