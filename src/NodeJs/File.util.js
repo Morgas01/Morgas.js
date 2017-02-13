@@ -42,7 +42,7 @@
 		rotateFile:function(file,count)
 		{
 			if(!count) count=3;
-			file=File.filetoString(file);
+			file=File.fileToString(file);
 			var rot=function(prevFile,number)
 			{
 				return new File(file+"."+number).exists().then(function()

@@ -61,16 +61,17 @@
 		},
 		changePath:function(path)
 		{
+			if(path instanceof FILE) path=path.getAbsolutePath();
 			this.filePath=PATH.resolve(this.filePath,path);
 			return this;
 		},
 		getAbsolutePath:function()
 		{
-			return this.filePath=PATH.resolve(this.filePath)
+			return this.filePath=PATH.resolve(this.filePath);
 		},
 		realPath:function(signal)
 		{
-			FS.realpath(this.filePath,asyncCallback(signal))
+			FS.realpath(this.filePath,asyncCallback(signal));
 		},
 		stat:function(signal)
 		{
@@ -147,7 +148,7 @@
 		},
 		move:function(dir,overwrite)
 		{
-			var target=PATH.join(FILE.filetoString(dir),PATH.basename(this.filePath));
+			var target=PATH.join(FILE.fileToString(dir),PATH.basename(this.filePath));
 			return this.rename(target,overwrite);
 		},
 		remove:function()
@@ -173,7 +174,7 @@
 		},
 		copy:function(signal,filename,overwrite)
 		{
-			filename=FILE.filetoString(filename);
+			filename=FILE.fileToString(filename);
 			var filePath=PATH.resolve(PATH.parse(this.filePath).dir,filename);
 			if(overwrite===true) copyFile(this,new FILE(filePath)).then(signal.resolve,signal.reject);
 			else new FILE(filePath).exists().reverse("FILE_EXISTS",function()
@@ -188,6 +189,14 @@
 		clone:function()
 		{
 			return new FILE(this.filePath);
+		},
+		toString:function()
+		{
+			return "[FILE: "+this.filePath+"]";
+		},
+		equals:function(other)
+		{
+			return (other instanceof FILE) && other.getAbsolutePath()==this.getAbsolutePath();
 		}
 	});
 	FILE.stringToFile=function(path)
@@ -195,10 +204,15 @@
 		if(path instanceof FILE) return path;
 		return new FILE(path);
 	};
-	FILE.filetoString=function(file)
+	FILE.fileToString=function(file)
 	{
 		if(file instanceof FILE) return file.filePath;
 		return file;
+	};
+	FILE.fileToAbsoluteString=function(file)
+	{
+		if(file instanceof FILE) return file.getAbsolutePath();
+		return PATH.resolve(file);
 	};
 	
 	SMOD("File",FILE);

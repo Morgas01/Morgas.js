@@ -17,29 +17,29 @@
 	},
 	"Morgas.NodePatch.js": {
 		"deps": [
-			"Morgas.Patch.js"
+			"Patch"
 		],
 		"uses": [
-			"Morgas.util.function.proxy.js"
+			"proxy"
 		]
 	},
 	"Morgas.NodePatch.treeCompare.js": {
 		"deps": [
-			"Morgas.NodePatch.js"
+			"NodePatch"
 		],
 		"uses": [
-			"Morgas.Patch.js"
+			"Patch"
 		]
 	},
 	"Morgas.Organizer.js": {
 		"deps": [
-			"Morgas.SortedArray.js"
+			"SortedArray"
 		],
 		"uses": [
-			"Morgas.util.object.iterate.js",
-			"Morgas.util.object.equals.js",
-			"Morgas.util.object.goPath.js",
-			"Morgas.util.function.proxy.js"
+			"iterate",
+			"equals",
+			"goPath",
+			"proxy"
 		]
 	},
 	"Morgas.Patch.js": {
@@ -49,14 +49,14 @@
 	"Morgas.Promise.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.util.object.adopt.js",
-			"Morgas.util.function.rescope.js"
+			"adopt",
+			"rescope"
 		]
 	},
 	"Morgas.SortedArray.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.util.object.iterate.js"
+			"iterate"
 		]
 	},
 	"Morgas.util.converter.csv.js": {
@@ -78,7 +78,7 @@
 	"Morgas.util.function.proxy.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.util.object.iterate.js"
+			"iterate"
 		]
 	},
 	"Morgas.util.function.rescope.js": {
@@ -100,8 +100,8 @@
 	"Morgas.util.object.find.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.util.object.equals.js",
-			"Morgas.util.object.iterate.js"
+			"equals",
+			"iterate"
 		]
 	},
 	"Morgas.util.object.flatten.js": {
@@ -115,7 +115,7 @@
 	"Morgas.util.object.inputValues.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.util.object.goPath.js"
+			"goPath"
 		]
 	},
 	"Morgas.util.object.iterate.js": {
@@ -125,8 +125,8 @@
 	"Morgas.util.object.iterateAsync.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.Promise.js",
-			"Morgas.util.object.iterate.js"
+			"Promise",
+			"Iterator"
 		]
 	},
 	"Morgas.util.object.uniquify.js": {
@@ -136,8 +136,8 @@
 	"Morgas.util.Progress.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.util.function.rescope.js",
-			"Morgas.util.object.adopt.js"
+			"rescope",
+			"adopt"
 		]
 	},
 	"Morgas.util.queryParam.js": {
@@ -147,43 +147,45 @@
 	"Morgas.util.Request.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.Promise.js"
+			"Promise"
 		]
 	},
 	"Morgas.Worker.js": {
 		"deps": [
-			"Morgas.Listeners.js"
+			"Listeners"
 		],
 		"uses": [
-			"Morgas.Promise.js",
-			"Morgas.util.function.rescope.js",
-			"Morgas.util.function.bind.js"
+			"Promise",
+			"rescope",
+			"bind"
 		]
 	},
 	"DB/Morgas.DB.IndexedDBConnector.js": {
 		"deps": [
-			"DB/Morgas.DB.js"
+			"DBConn"
 		],
 		"uses": [
-			"Morgas.Promise.js",
-			"Morgas.util.object.iterate.js",
-			"Morgas.util.object.equals.js"
+			"Promise",
+			"iterate",
+			"equals",
+			"DBObj",
+			"DBFriend"
 		]
 	},
 	"DB/Morgas.DB.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.Promise.js"
+			"Promise"
 		]
 	},
 	"DB/Morgas.DB.ObjectConnector.js": {
 		"deps": [
-			"DB/Morgas.DB.js",
-			"Morgas.Organizer.js"
+			"DBConn",
+			"Organizer"
 		],
 		"uses": [
-			"Morgas.util.object.equals.js",
-			"Morgas.util.object.find.js"
+			"equals",
+			"find"
 		]
 	}
 }

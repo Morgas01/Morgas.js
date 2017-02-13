@@ -7,7 +7,10 @@
 
 	µ.dirname=path.resolve(__dirname,"..");
 
-	var moduleRegister = require("../Morgas.ModuleRegister");
+	var moduleRegister = require("../Morgas.ModuleRegister.json");
+	moduleRegister["Morgas.Dependencies"]=path.resolve(µ.dirname,"Morgas.Dependencies.json");
+	moduleRegister["Morgas.ModuleDependencies"]=path.resolve(µ.dirname,"Morgas.ModuleDependencies.json");
+	µ.setModule("Morgas.ModuleRegister",moduleRegister);
 
 	var oldhasModule=µ.hasModule;
 	var oldGetModule=µ.getModule;
@@ -38,7 +41,10 @@
 			{
 				try
 				{
-					require(path.join("..",moduleRegister[key]));
+					var filePath=moduleRegister[key];
+					if(!path.isAbsolute(filePath))filePath=path.join("..",filePath);
+					var rtn=require(filePath);
+					if(!oldhasModule(key)) µ.setModule(key,rtn);
 				}
 				catch(e)
 				{
@@ -50,15 +56,16 @@
 				var folders={};
 				for(var dir of resourceFolders)
 				{
+					var filePath=path.resolve(dir,key);
 					try
 					{
-						var result=require(dir+key);
+						var result=require(filePath);
 						if(!oldhasModule(key))µ.setModule(key,result);
 						break;
 					}
 					catch(e)
 					{
-						folders[dir+key]=e;
+						folders[filePath]=e;
 					}
 				}
 				if(!oldhasModule(key))

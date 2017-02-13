@@ -103,6 +103,7 @@
             return new µ.DependencyResolver(this.config,prefix);
         }
 	});
+	SMOD("DependencyResolver",µ.DependencyResolver);
 	SMOD("DepRes",µ.DependencyResolver);
-	
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

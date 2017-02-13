@@ -1,5 +1,6 @@
 {
 	"Config": "Morgas.Config.js",
+	"DependencyResolver": "Morgas.DependencyResolver.js",
 	"DepRes": "Morgas.DependencyResolver.js",
 	"Listener": "Morgas.Listeners.js",
 	"StateListener": "Morgas.Listeners.js",
@@ -21,6 +22,7 @@
 	"adopt": "Morgas.util.object.adopt.js",
 	"equals": "Morgas.util.object.equals.js",
 	"find": "Morgas.util.object.find.js",
+	"flatten": "Morgas.util.object.flatten.js",
 	"goPath": "Morgas.util.object.goPath.js",
 	"setInputValues": "Morgas.util.object.inputValues.js",
 	"getInputValues": "Morgas.util.object.inputValues.js",
