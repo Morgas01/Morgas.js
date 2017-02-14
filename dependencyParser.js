@@ -39,7 +39,7 @@
 		if(relativeTarget) relativeTarget=new SC.File(relativeTarget);
     	for(var module in moduleRegister)
     	{
-    		var file=moduleRegister[file];
+    		var file=moduleRegister[module];
     		this.addModule(module,file,relativeTarget);
     	}
     	return this;
@@ -154,6 +154,7 @@
 		if(relativeTarget)
 		{
 			relativeTarget=SC.File.stringToFile(relativeTarget);
+			console.log(file);
 			file=relativeTarget.clone().changePath(file);
 		}
 		else file=SC.File.stringToFile(file);

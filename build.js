@@ -25,15 +25,15 @@ outputDir.remove().then(function()
 {
 	rootDir.clone().changePath("src/Morgas.ModuleRegister.json").write(JSON.stringify(result.moduleRegister,null,"\t")).then(null,function(err)
 	{
-		if(err) console.error("could not save ModuleRegister",err);
+		µ.logger.error("could not save ModuleRegister",err);
 	});
 	rootDir.clone().changePath("src/Morgas.ModuleDependencies.json").write(JSON.stringify(result.moduleDependencies,null,"\t")).then(null,function(err)
 	{
-		if(err) console.error("could not save ModuleRegister",err);
+		µ.logger.error("could not save ModuleDependencies",err);
 	});
 	rootDir.clone().changePath("src/Morgas.Dependencies.json").write(JSON.stringify(result.fileDependencies,null,"\t")).then(null,function(err)
 	{
-		if(err) console.error("could not save Dependencies",err);
+		µ.logger.error("could not save Dependencies",err);
 	});
 
 	var resolver=new SC.DepRes(result.fileDependencies,"src/");
