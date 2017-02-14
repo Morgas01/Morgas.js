@@ -154,7 +154,6 @@
 		if(relativeTarget)
 		{
 			relativeTarget=SC.File.stringToFile(relativeTarget);
-			console.log(file);
 			file=relativeTarget.clone().changePath(file);
 		}
 		else file=SC.File.stringToFile(file);
