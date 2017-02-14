@@ -28,7 +28,7 @@
 		if(key in moduleRegister||oldhasModule(key))return true;
 		for (var dir of resourceFolders)
 		{
-			if(fs.existsSync(path.resolve(dir,key+".js"))) return true;
+			if(fs.existsSync(path.resolve(dir,key+".js"))||fs.existsSync(path.resolve(dir,key+".json"))) return true;
 		}
 		return false;
 	};
