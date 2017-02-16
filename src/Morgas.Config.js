@@ -241,11 +241,14 @@
 		{
 			for(var key in configs)
 			{
-				if(typeof configs[key]=="object")
+				if(this.configs.has(key))
 				{
-					if(this.configs.has(key))this.configs.get(key).setAll(configs[key],create);
+					if(this.configs.get(key) instanceof CONTAINER)
+					{
+						this.configs.get(key).setAll(configs[key],create);
+					}
+					else this.set(key,configs[key]);
 				}
-				else this.set(key,configs[key]);
 			}
 		},
 		reset:function()
