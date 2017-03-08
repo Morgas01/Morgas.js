@@ -8,7 +8,7 @@
 	var CONFIG=µ.Config=µ.Class({
 		init:null,
 		get:null,
-		set:null,// (key,value)=>{} // (value)=>
+		set:null,// (key,value)=>{} // (value)=>{}
 		setDefault:function(def)
 		{
 			if(def!=null) this.default=def;
@@ -49,7 +49,15 @@
 		{
 			this.type=param.type;
 			this.setDefault(param.default);
-			this.pattern=param.pattern||null;
+			this.pattern=null;
+			if(typeof param.pattern == "string")
+			{
+				var match=param.pattern.match(/^\/(.+)\/(.*)$/);
+				if(match) this.pattern=new RegExp(match[1],match[2])
+				else this.pattern=new RegExp(param.pattern);
+				this.pattern.toJSON=RegExp.prototype.toString;
+			}
+			else if (param.pattern) this.pattern=param.pattern;
 			this.validate=param.validate||null;
 			this.value=null;
 
@@ -396,7 +404,7 @@
 		},
 		add:function(key,config)
 		{
-			var value=CONFIG.parse(this.model,config);
+			var value=CONFIG.parse(this.model);
 			if(value&&key!==undefined&&(!config||value.set(config)))
 			{
 				if(this.configs.has(key))
