@@ -484,13 +484,17 @@
 			}
 			return rtn;
 		},
-		toDescription	:function()
+		toDescription:function()
 		{
 			return {
 				type:"map",
 				model:this.model,
 				default:this.default
 			};
+		},
+		keys:function()
+		{
+			return Array.from(this.configs.keys());
 		}
 	});
 
