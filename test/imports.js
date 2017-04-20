@@ -75,6 +75,9 @@
 	WR(srcDir+"Morgas.util.Request.js");
 	WR(testDir+"test.Morgas.util.request.js");
 
+	WR(srcDir+"Morgas.util.object.register.js");
+	WR(testDir+"test.Morgas.util.object.register.js");
+
 	WR(srcDir+"Morgas.util.object.uniquify.js");
 	WR(testDir+"test.Morgas.util.object.uniquify.js");
 
