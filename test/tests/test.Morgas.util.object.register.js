@@ -43,4 +43,14 @@
 		});
 	});
 
+	QUnit.test("delete",function(assert)
+	{
+		var r=register();
+		assert.deepEqual(Object.keys(r),[]);
+		r.foo.bar="foobar";
+		assert.deepEqual(Object.keys(r),["foo"]);
+		delete r.foo;
+		assert.deepEqual(Object.keys(r),[]);
+	});
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
