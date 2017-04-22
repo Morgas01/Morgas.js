@@ -87,7 +87,7 @@
 		},
 		exists:function()
 		{
-				return this.access(FS.F_OK);
+			return this.access(FS.F_OK);
 		},
 		listFiles:function(signal)
 		{
