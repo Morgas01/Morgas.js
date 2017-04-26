@@ -25,10 +25,10 @@
 	var OCON=DBC.ObjectConnector=µ.Class(DBC,
 	{
 		db:getDb(),
-		init:function(local)
+		init:function(global)
 		{
 			this.mega();
-			if(!local)
+			if(!global)
 			{
 				this.db=getDb();
 			}
