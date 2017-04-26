@@ -129,6 +129,10 @@
 			"Iterator"
 		]
 	},
+	"Morgas.util.object.register.js": {
+		"deps": [],
+		"uses": []
+	},
 	"Morgas.util.object.uniquify.js": {
 		"deps": [],
 		"uses": []
