@@ -83,17 +83,17 @@
 		set:function(value)
 		{
 			if(arguments.length==2) value=arguments[1];
-
-			if(this.isValid(value))
-			{
-				this.value=value
-			}
-			else
-			{
-				return false;
-			}
+			var validity=this.isValid(value);
+			if(validity===true) this.value=value;
+			else return validity;
 			return true;
 		},
+		/**
+		 * checks value and returns a boolean or any error object from validate callback.
+		 * if you want to use validation messages check if isValid(value)===true
+		 * @param {*} value
+		 * @returns {boolean|*}
+		 */
 		isValid:function(value)
 		{
 			return (this.type=="select"
@@ -109,13 +109,13 @@
 			(
 				typeof value==this.type
 				&& (!this.pattern || this.pattern.test(value))
-				&& (!this.validate|| this.validate(value,this.value)) // type, pattern and validator ok
 				&& (this.type!="number"||(
 					(this.min==null||value>=this.min)
 					&& (this.max==null||value<=this.max)
 					&& (this.step==null||value%this.step==0)
 					)
 				)
+				&& (!this.validate|| this.validate(value,this.value)) // type, pattern and validator ok
 			);
 		},
 		reset:function()
