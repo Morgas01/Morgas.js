@@ -63,7 +63,7 @@
                     {
                         if(list.indexOf(conf.uses[i])===-1&&rtn.indexOf(conf.uses[i])===-1)
                         {
-                            list.push(conf.uses[i]);
+                            list.splice(1,0,conf.uses[i]);
                             items.push(conf.uses[i]);
                         }
                     }
