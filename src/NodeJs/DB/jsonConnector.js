@@ -17,7 +17,7 @@
 		init:function(file,param)
 		{
 			param=param||{};
-			this.mega(true);
+			this.mega();
 
 			SC.rs.all(this,["flush"]);
 
