@@ -26,7 +26,7 @@
 		});
 		assert.deepEqual(dr.resolve("a"),["b","d","c","a"],"single");
 		assert.deepEqual(dr.resolve("c"),["d","b","a","c"],"single 2");
-		assert.deepEqual(dr.resolve(["a","c"]),["b","d","c","a"],"multiple");
+		assert.deepEqual(dr.resolve(["a","c"]),["b","a","d","c"],"multiple");
 	});
 
 	QUnit.test("added",function(assert)
