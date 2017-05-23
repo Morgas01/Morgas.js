@@ -24,14 +24,10 @@
 	
 	var OCON=DBC.ObjectConnector=µ.Class(DBC,
 	{
-		db:getDb(),
 		init:function(global)
 		{
 			this.mega();
-			if(!global)
-			{
-				this.db=getDb();
-			}
+			this.db=getDb();
 		},
 		save:function(signal,objs)
 		{
