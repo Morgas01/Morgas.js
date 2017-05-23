@@ -40,22 +40,22 @@
 		oldParent.addChild(oldChild2);
 		oldChild1.addChild(oldGrandchild);
 		
-		freshParent=new SC.node.Basic();
+		var freshParent=new SC.node.Basic();
 		freshParent.name="parent";
 		freshParent.size=1.6;
 		freshParent.age=40;
 		
-		freshChild1=new SC.node.Basic();
+		var freshChild1=new SC.node.Basic();
 		freshChild1.name="child 1";
 		freshChild1.size=1.7;
 		freshChild1.age=23;
 		
-		freshGrandchild=new SC.node.Basic();
+		var freshGrandchild=new SC.node.Basic();
 		freshGrandchild.name="grandchild";
 		freshGrandchild.size=0.8;
 		freshGrandchild.age=3;
 		
-		freshChild2=new SC.node.Basic();
+		var freshChild2=new SC.node.Basic();
 		freshChild2.name="child 3";
 		freshChild2.size=1.75;
 		freshChild2.age=20;
