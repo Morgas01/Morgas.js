@@ -129,11 +129,7 @@
 		reverse:function(rejectValue,fn)
 		{
 			if(fn)fn=SC.rs(fn,this.scope);
-			else fn=µ.constantFunctions.pass;
-			return this.then(function()
-			{
-				return Promise.reject(rejectValue);
-			},fn);
+			return PROM.reverse(this,rejectValue,fn);
 		},
 		abort:function()
 		{
@@ -202,6 +198,14 @@
 		});
 		rtn.original=Promise.reject(value);
 		return rtn;
+	};
+	PROM.reverse=function(promise,rejectValue,fn)
+	{
+		if(!fn) fn=µ.constantFunctions.pass;
+		return promise.then(function()
+		{
+			return Promise.reject(rejectValue);
+		},fn);
 	};
 	
 	PROM.AbortEvent=function(reject)
