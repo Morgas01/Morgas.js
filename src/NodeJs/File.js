@@ -47,6 +47,7 @@
 		{
 			return PATH.parse(this.filePath).name;
 		},
+		/** fileName+Ext **/
 		getName:function()
 		{
 			return PATH.parse(this.filePath).base;
