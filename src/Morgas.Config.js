@@ -405,7 +405,7 @@
 		add:function(key,config)
 		{
 			var value=CONFIG.parse(this.model);
-			if(value&&key!==undefined&&(!config||value.set(config)))
+			if(value&&key!==undefined&&(config===undefined||value.set(config)))
 			{
 				if(this.configs.has(key))
 				{
