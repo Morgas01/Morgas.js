@@ -111,7 +111,12 @@
 				}
 				else return UTIL.enshureDir(parentDir).then(function()
 				{
-					return dir.mkdir(".");
+					return dir.mkdir(".")
+					.catch(function(error))
+					{
+						if(error.code === 'EEXIST') return;
+						return Promise.reject(error);
+					};
 				})
 			});
 		},
