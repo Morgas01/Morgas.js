@@ -18,8 +18,8 @@
 	/** iterateAsync
 	 * Async iterate but puts a timeout between the iteration steps if duration exceeds stepTime
 	 * and waits for promises to finish
-	 * 
-	 * returns: µ.Promise
+	 *
+	 * @returns µ.Promise resolves an array of results; rejects an array of results in which the last is the actual error
 	 */
 	obj.iterateAsync=function(any,func,isObject,scope,stepTime)
 	{
