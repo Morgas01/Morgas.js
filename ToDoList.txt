@@ -1,39 +1,51 @@
 Morgas.js:
-	-	loadedModules
-	-	remove .created statelistener
+	- loadedModules
+	- onExtend symbol for classes ?
+
+µ.Listeners
+	- remove .created statelistener
+	- change attachListeners to patch
 build:
-	-	docs (jsDocs ?)
+	- docs (jsDocs ?)
 
 µ.DependencyResolver:
-	-	merged packages
+	- merged files support (part builds)
 
 µ.Worker:
-	-	populate timeout
-	-	DBWorker
-	-	batch ?
+	- populate timeout to worker
+	- DBWorker
+	- batch (underscore chain)
 
 µ.DB.Connector, µ.DB.Connector.*:
-	-	getObjectTypes()
+	- getObjectTypes()
+	- custom result objects (views)
+	- select functions ( count, sum, ... )
+	- constraints
+
+µ.DB.Object:
+	- update(current,updated) updates array of loaded instances with freshly loaded ( or upgrade connectObjects )
 
 µ.DB.Connector.IndexedDBConnector:
-	-	isAvailable()
+	- custom upgrade sequence ( like liquibase )
 
 Morgas.util.object.inputValues.js: (deprecated?)
-	-	array support
-	-	dynamic option (object with getter & setter)
-	-	subscribers? (zb: slider + input)
+	- array support
+	- dynamic option (object with getter & setter)
+	- subscribers? (zb: slider + input)
 
 NodeJs/Commander:
-	-	help command
-	-	command in new process (multithread patch ?)
-	-	command options ( -c )
+	- help command
+	- command in new process (multithread patch ?)
+	- command options ( -c )
+
 File/FileHelper:
-	-	move (copy) to other devices (drives)
+	- move (copy) to other devices (drives)
+
+
 NEW:
-	generic DB Object
-	RemoteDBConnector (worker/REST)
-	(Indexed)DB GUI
-	simple tool for custom builds (concating files, settings, dependencies, )
-	service worker - resource handler (server push?)
-	translations
-	translated resources
+	- RemoteDBConnector (worker/REST)
+	- (Indexed)DB GUI
+	- simple tool for custom builds (concating files, settings, dependencies, )
+	- service worker - resource handler (server push?)
+	- translations
+	- translated resources
