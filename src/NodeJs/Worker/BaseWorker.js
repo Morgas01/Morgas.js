@@ -69,7 +69,7 @@ var handleMessage=function(message,handle)
 		}
 		else
 		{
-			µ.logger.warning(new µ.Warning("tried to respond to unknown feedback",message));
+			µ.logger.warn(new µ.Warning("tried to respond to unknown feedback",message));
 		}
 	}
 	else if(message.method in worker)
