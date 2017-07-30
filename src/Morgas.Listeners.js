@@ -128,10 +128,9 @@
 			}
 			return rtn;
 		},
-		fire:function fire(source,event)
+		fire:function fire(event)
 		{
 			event=event||{};
-			event.source=source;
 			if(!this.disabled)
 			{
 				var run=true;
@@ -221,7 +220,7 @@
 			if(!this.stateDisabled)
 			{
 				this.disabled=false;
-				rtn=this.fire(this,this.state);
+				rtn=this.fire(this.state);
 				this.disabled=true
 			}
 			return rtn;
@@ -329,9 +328,10 @@
 		{
 			event=event||{};
 			event.type=name;
+			event.source=this;
 			if(this.listeners[name])
 			{
-				return this.listeners[name].fire(this,event);
+				return this.listeners[name].fire(event);
 			}
 			return undefined
 		},
