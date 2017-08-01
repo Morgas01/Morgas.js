@@ -23,7 +23,7 @@
 			this.mega();
 			this.name=dbName;
 
-			SC.prom.pledgeAll(this,["_open"]);
+			SC.prom.pledgeAll(this,["_open","drop"]);
 		},
 		
 		save:function(signal,objs)
@@ -289,11 +289,28 @@
 					db.close();
 				}
 			}
+		},
+		/**
+		 * requests to drop the whole database
+		 */
+		drop:function(signal)
+		{
+			var req=indexedDB.deleteDatabase(this.name)
+			req.onsuccess=signal.resolve;
+			rec.onerror=signal.reject;
 		}
 	});
 	ICON.isAvailable=function()
 	{
-
+		try
+		{
+			indexedDB.open("availability test");
+			return true;
+		}
+		catch (e)
+		{
+			return false;
+		}
 	};
 	ICON.sortObjs=function(objs)
 	{
