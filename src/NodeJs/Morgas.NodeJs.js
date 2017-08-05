@@ -23,6 +23,18 @@
 	};
 	µ.addResourceFolder(__dirname);
 
+	µ.addModuleRegister=function(register,dir,prefix="")
+	{
+		for(var module in register)
+		{
+			var modulePath=path.resolve(dir,register[module]);
+
+			module=prefix+module;
+			if(module in moduleRegister) µ.logger.warn(new µ.Warning("module "+key+" is overwritten"),{old:moduleRegister[module],"new":modulePath});
+			moduleRegister[module]=modulePath;
+		}
+	};
+
 	µ.hasModule=function(key)
 	{
 		if(key in moduleRegister||oldhasModule(key))return true;
