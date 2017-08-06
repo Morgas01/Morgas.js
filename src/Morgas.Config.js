@@ -494,7 +494,7 @@
 		},
 		keys:function()
 		{
-			return this.configs.keys();
+			return Array.from(this.configs.keys());
 		}
 	});
 
