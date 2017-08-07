@@ -263,7 +263,7 @@
 		}
 	});
 
-	var normalizeChildrenGetter=function(childrenGetter)
+	NODE.normalizeChildrenGetter=function(childrenGetter)
 	{
 		if(!childrenGetter) childrenGetter=NODE.BasicAliases.children;
 		if(typeof childrenGetter == "string") return c=>c[childrenGetter];
@@ -272,7 +272,7 @@
 
 	NODE.traverse=function(root,func,childrenGetter)
 	{
-		childrenGetter=normalizeChildrenGetter(childrenGetter);
+		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
 		var todo=[{
 			node:root,
 			parent:null,
@@ -315,7 +315,7 @@
 
 	NODE.traverseTo=function(root,path,childrenGetter)
 	{
-		childrenGetter=normalizeChildrenGetter(childrenGetter);
+		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
 		if(typeof path=="string") path=path.split(".");
 		for(var key of path)
 		{
@@ -336,7 +336,7 @@
 			}
 			return child;
 		},childrenGetter);
-	}
+	};
 
 	var getNode=function(obj)
 	{
