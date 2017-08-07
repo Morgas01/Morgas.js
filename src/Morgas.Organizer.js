@@ -35,7 +35,7 @@
 		},
 		getSort:SA.prototype.get,
 		getIndexSort:SA.prototype.getIndexes,
-		filter:function(filterName,filterFn)
+		filter:function(filterName,filterFn,createFn)
 		{
 			switch(typeof filterFn)
 			{
@@ -51,6 +51,9 @@
 			child._filterFn=filterFn;
 			if(this.hasFilter(filterName))this.removeFilter(filterName);
 			this.filters.set(filterName,child);
+
+			if(createFn) createFn(child);
+
 			for(var i=0;i<this.values.length;i++)
 			{
 				this._filter(child,i);
