@@ -250,6 +250,7 @@
 		},
 		clear:function()
 		{
+			this.mega();
 			SC.it(this.filters,(i,child)=>child.clear());
 			SC.it(this.maps,(i,map)=>map.values={});
 			SC.it(this.groups,(i,group)=>{
@@ -258,7 +259,6 @@
 					group.values[g].clear();
 				}
 			});
-			this.values.length=0;
 			return this;
 		},
 		/**
