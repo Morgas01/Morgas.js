@@ -243,9 +243,13 @@
 	var BASE=µ.BaseClass=CLASS(
 	{
 		init:function baseInit(){},
+		/**
+		 * calls same function of super class
+		 */
 		mega:function mega()
 		{
 			var isFirstCall=false,rtn;
+			//TODO use symbols, use array for mega call of different function (fixes a'' -> a' -> b' -> a)
 			if(this.__magaKey===undefined)
 			{
 				isFirstCall=true;
