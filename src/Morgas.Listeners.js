@@ -327,7 +327,6 @@
 		fire:function fire(name,event)
 		{
 			event=event||{};
-			event.type=name;
 			event.source=this;
 			if(this.listeners[name])
 			{
