@@ -15,12 +15,9 @@ var SC=µ.shortcut({
 var rootDir=new SC.File(".");
 var outputDir=rootDir.clone().changePath("build");
 
-outputDir.remove().then(function()
-{
-	return new dependencyParser()
-	.addSources(["src","src/DB"])
-	.parse("src");
-})
+new dependencyParser()
+.addSources(["src","src/DB"])
+.parse("src")
 .then(function(result)
 {
 	rootDir.clone().changePath("src/Morgas.ModuleRegister.json").write(JSON.stringify(result.moduleRegister,null,"\t")).then(null,function(err)
@@ -35,14 +32,18 @@ outputDir.remove().then(function()
 	{
 		µ.logger.error("could not save Dependencies",err);
 	});
+/*
+	outputDir.remove().then(function()
+	{
+		var resolver=new SC.DepRes(result.fileDependencies,"src/");
 
-	var resolver=new SC.DepRes(result.fileDependencies,"src/");
+		files=Object.keys(resolver.config);
 
-	files=Object.keys(resolver.config);
-	
-	return SC.itAs(files,(i,f)=>minify(f.slice(4),[f],"build"))
+		return SC.itAs(files,(i,f)=>minify(f.slice(4),[f],"build"))
+	})
 	.then(()=>minify("Morgas_DB.js",resolver.resolve(["src/DB/Morgas.DB.js","src/DB/Morgas.DB.ObjectConnector.js","src/DB/Morgas.DB.IndexedDBConnector.js"]),"build"))
 	.then(()=>minify("Morgas_FULL.js",resolver.resolve(Object.keys(resolver.config)),"build"));
+*/
 })
 .then(function()
 {

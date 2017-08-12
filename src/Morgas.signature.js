@@ -12,6 +12,6 @@
 |_|    |__/ https://github.com/Morgas01/Morgas.js
 `;
 
-	GMOD("signature",µ.signature);
+	SMOD("signature",µ.signature);
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

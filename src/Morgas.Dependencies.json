@@ -53,11 +53,19 @@
 			"Morgas.util.function.rescope.js"
 		]
 	},
+	"Morgas.signature.js": {
+		"deps": [],
+		"uses": []
+	},
 	"Morgas.SortedArray.js": {
 		"deps": [],
 		"uses": [
 			"Morgas.util.object.iterate.js"
 		]
+	},
+	"Morgas.util.array.remove.js": {
+		"deps": [],
+		"uses": []
 	},
 	"Morgas.util.converter.csv.js": {
 		"deps": [],
