@@ -36,7 +36,7 @@
     };
     dependencyParser.prototype.addModuleRegister=function(moduleRegister,relativeTarget)
     {
-		if(relativeTarget) relativeTarget=new SC.File(relativeTarget);
+		if(relativeTarget) relativeTarget=SC.File.stringToFile(relativeTarget);
     	for(var module in moduleRegister)
     	{
     		var file=moduleRegister[module];
