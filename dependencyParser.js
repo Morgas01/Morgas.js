@@ -193,7 +193,7 @@
 		.then(files=>SC.uniquify(files,f=>f.getAbsolutePath()));
 	};
 
-	var scRegex=/SC=SC\(((?:[^\)]||\);)+)\);/m;
+	var scRegex=/SC=SC\(((?:[^\)]+||\);))\);/m;
 	var usesRegex=/"[^"]+"/g;
 	var depRegex=/GMOD\("[^"]+"\)/g;
 	var smodRegex=/SMOD\("[^"]+"/g;
