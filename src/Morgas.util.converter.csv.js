@@ -1,7 +1,8 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
     var util=µ.util=µ.util||{};
-    var uCon=util.converter||{};
+    var uCon=util.converter=util.converter||{};
+
 	uCon.csv={
 		to:function(){
 			//TODO
