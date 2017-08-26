@@ -9,9 +9,9 @@
 	uFn.rescope=function(fn,scope)
 	{
 		if(fn==null||fn.apply==null)µ.logger.warn(new µ.Warning("function is not defined"));
-		else return function()
+		else return function(...args)
 		{
-			return fn.apply(scope,arguments);
+			return fn.call(scope,...args);
 		}
 	};
 	uFn.rescope.all=function(scope,keys)

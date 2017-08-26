@@ -7,17 +7,20 @@
 		if(addedGlobals.length>0) alert(`⚠ added globals: ${addedGlobals}`);
 	});
 
-	var WR=function(path){
-		document.write('<script type="application/javascript" charset="utf-8" src="'+path+'"></script>');
-	};
-
 	var srcDir="../src/",
 	testDir="tests/";
 
+	var WR=function(filenName){
+		document.write('<script type="application/javascript" charset="utf-8" src="'+srcDir+filenName+'"></script>');
+		document.write('<script type="application/javascript" charset="utf-8" src="'+testDir+filenName+'"></script>');
+	};
 
-	WR(srcDir+"Morgas.js");
-	WR(testDir+"test.Morgas.js");
 
+	WR("Morgas.js");
+	WR("Morgas.util.array.remove.js");
+	WR("Morgas.util.function.rescope.js");
+	WR("Morgas.Patch.js");
+/*
 	WR(srcDir+"Morgas.Config.js");
 	WR(testDir+"test.Morgas.Config.js");
 
@@ -107,5 +110,6 @@
 
 	WR(srcDir+"DB/Morgas.DB.IndexedDBConnector.js");
 	WR(testDir+"test.Morgas.DB.IndexedDBConnector.js");
+	*/
 
 })();

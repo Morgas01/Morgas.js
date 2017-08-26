@@ -11,7 +11,7 @@
 	};
 	SMOD("array.remove",utilArray.remove);
 
-	utilArray.removeIf=function(array,predicate,scope=null,all=false)
+	utilArray.removeIf=function(array,predicate,all=false,scope=null)
 	{
 		if(all)
 		{

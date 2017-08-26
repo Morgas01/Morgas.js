@@ -1,119 +1,100 @@
-(function(µ,SMOD,GMOD,HMOD,SC){
+(function(µ,SMOD,GMOD,HMOD,SC)
+{
+
+	SC=SC({
+		remove:"array.remove",
+		rescope:"rescope"
+	});
 
 	/**Patch Class
 	 * Adds functionality to an instance
 	 * 
-	 * Patches add themself in a the "patches" map of the instance with their patchID
-	 * The core patch adds the "patches" map and the functions "hasPatch" and "getPatch"
-	 * 
-	 * Normaly a Patch does not add functions direct to the instance but uses listeners
-	 * 
-	 * 
-	 * To create a new patch do sth. like this
-	 * 
-	 * var myPatch=µ.Class(µ.patch,
-	 * {
-	 * 		patchID:"myPatchID",
-	 * 		patch:function(param,noListeners)
-	 * 		{
-	 * 			this.mega();// in case of µ.Patch its not necessary 
-	 * 			//your constructor after instance is created
-	 * 		}
-	 * }
-	 * 
-	 * The "patch" function is called on the create event (when the constructor of the instance is finished)
-	 * If the instance has no listeners, "noListeners" is true and "patch" was called immediately
-	 * 
-	 * If you want to override the init function do it like this:
-	 * 
-	 * var myPatch=µ.Class(mySuperPatch,
-	 * {
-	 * 		patchID:"myPatchID",
-	 * 		init:function(instance,param)
-	 * 		{
-	 * 			//call constructor of superclass
-	 * 			this.mega(instance,param);
-	 * 
-	 * 			if(this.instance!=null)
-	 * 			{
-	 * 				//your constructor
-	 * 				//post patch:  this.instance.addListener(".created",function(param,noListeners){}) 
-	 * 			}
-	 * 		},
-	 * 		patch:function(param,noListeners)
-	 * 		{
-	 * 			this.mega(param,noListeners);// in case of µ.Patch its not necessary 
-	 * 			//post constructor
-	 * 		}
-	 * }  
+	 * Patches should not interfere with instances attributes unless specified.
+	 * To set attributes on an instance a Patch should use the .proxyToInstance() method.
+	 *
+	 * A Patch must define a .patch() that doubles as a constructor.
+	 *
 	 */
-	var _hasPatch=function hasPatch(patch)
-	{
-		return this.getPatch(patch)!==undefined;
-	};
-	var _getPatch=function getPatch(patch)
-	{
-		return this.patches[patch.patchID||patch.prototype.patchID];
-	};
-	var _callPatch=function()
-	{
-		this.patch(this._patchParam,false);
-		delete this._patchParam;
-	};
-	
-	var PATCH=µ.Patch=µ.Class(
-	{
-		//patchID:"myID",		//abstract core patch
-		init:function Patchinit(instance,param,doPatchNow)
+
+	var patchMap=new WeakMap();
+	var instanceMap=new WeakMap();
+
+	var Patch=µ.Patch=µ.Class({
+		[µ.Class.symbols.onExtend](sub)
 		{
-			if(instance.patches==null)
+			//force .patch() method
+			if (!("patch" in sub.prototype )) throw new SyntaxError(`Patch ${(n=>n?n+" ":"")(sub.constructor.name)}has no patch method`);
+		},
+		constructor:function(instance,...param)
+		{
+			this.composedInstanceKeys=[];
+			if(!patchMap.has(instance))
 			{
-				instance.patches={};
-				instance.hasPatch=_hasPatch;
-				instance.getPatch=_getPatch;
+				patchMap.set(instance,[]);
 			}
-			if(!instance.hasPatch(this))
+			else if(!this[Patch.symbols.multiple]&&Patch.getPatches(instance,this.constructor).length>0)
 			{
-				this.instance=instance;
-				instance.patches[this.patchID]=this;
-				if(typeof this.instance.addListener==="function")//instanceof Listeners or has Listeners attached
+				throw "instance has already this Patch";
+			}
+			patchMap.get(instance).push(this);
+			instanceMap.set(this,instance);
+
+			Object.defineProperty(this,"instance",{get:()=>instanceMap.get(this)});
+
+			this.patch(...param);
+		},
+		composeKeys:[],
+		composeInstance(keys)
+		{
+			let instance=this.instance;
+			if(!Array.isArray(keys)) keys=Object.entries(keys);
+
+			keys.forEach(entry=>
+			{
+				let key,targetKey;
+
+				if(Array.isArray(entry)) ([key,targetKey]=entry);
+				else key=targetKey=entry;
+
+				if(this.composeKeys.indexOf(key)==-1) return; //continue
+
+				if(typeof this[key]==="function")
 				{
-					this._patchParam=param;
-					this.instance.addListener(".created:once",this,_callPatch);
-					if(doPatchNow) this.patchNow();
+					instance[targetKey]=SC.rescope(this[key],this);
 				}
 				else
 				{
-					this.patch(param,true);
+					Object.defineProperty(instance,targetKey,{
+						configurable:true,
+						enumerable:true,
+						get:()=>this[key],
+						set:value=>{this[key]=value}
+					});
 				}
-			}
+				this.composedInstanceKeys.push(targetKey);
+			});
 		},
-		patchNow:function()
+		destroy()
 		{
-			if(this.instance.patches[this.patchID]===this&&typeof this.instance.removeListener==="function"&&this.instance.removeListener(".created",this))
-			{
-				this.patch(this._patchParam,false);
-			}
-		},
-		patch:function patch(param,noListeners){},
-		destroy:function()
-		{
-			if(this.instance.patches[this.patchID]==this) delete this.instance.patches[this.patchID];
-			this.mega();
+			let instance=this.instance;
+			this.composedInstanceKeys
+			.forEach(key=>delete instance[key]);
+
+			instanceMap.delete(this);
+			SC.remove(patchMap.get(instance),this);
 		}
 	});
-	SMOD("Patch",PATCH);
-	PATCH.hasPatch=function(instance, patch)
+	Patch.getPatches=function(instance,clazz)
 	{
-		if(instance.hasPatch)
-			return instance.hasPatch(patch);
-		return false;
+		if(!patchMap.has(instance)) return [];
+		let patches=patchMap.get(instance);
+		if(clazz) return patches.filter(p=>p instanceof clazz);
+		return patches.slice();
 	};
-	PATCH.getPatch=function(instance, patch)
-	{
-		if(instance&&instance.getPatch)
-			return instance.getPatch(patch);
-		return null;
+	Patch.symbols={
+		"multiple":Symbol("multiple")
 	};
+
+	SMOD("Patch",Patch);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

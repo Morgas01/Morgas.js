@@ -106,7 +106,7 @@
 		}
 	};
 	//create methods for each level (e.g. µ.logger.warn)
-	for(var level in µ.logger.LEVEL)(function(level)
+	Object.keys(µ.logger.LEVEL).forEach(function(level)
 	{
 		µ.logger[level]=function()
 		{
@@ -114,7 +114,7 @@
 			args.unshift(µ.logger.LEVEL[level]);
 			µ.logger.log.apply(null,args);
 		}
-	})(level);
+	});
 
 	/** shortcut
 	 * creates an object that will evaluate its values defined in {map} on its first call.
@@ -134,175 +134,186 @@
 		{
 			target={};
 		}
-		for(var m in map){(function(path,key)
+		Object.entries(map).forEach(([key,path])=>
 		{
-			var value=undefined;
+			let value=undefined;
 			Object.defineProperty(target,key,{
-				configurable:false,
+				configurable:true,
 				enumerable:true,
 				get:function()
 				{
 					if(value==null||dynamic)
 					{
 						if(typeof path=="function")
+						{
 							value=path(context);
+						}
 						else if(context&&µ.hasModule("goPath"))
+						{
 							value=µ.getModule("goPath")(context,path);
+						}
 						else if (µ.hasModule(path))
+						{
 							value=µ.getModule(path);
+						}
 						else
+						{
 							µ.logger.error(new ReferenceError("shortcut: could not evaluate "+path))
+						}
+					}
+					if(value!=null&&!dynamic)
+					{//replace getter with actual value
+						delete target[key];
+						target[key]=value;
 					}
 					return value;
 				}
 			});
-		})(map[m],m)}
+		});
 		return target;
 	};
+	let CLASS_PROXY={
+		construct:function(target,argumentList)
+		{
+			let instance=new target(...argumentList);
+			if(µ.Class.symbols.afterConstruct in target.prototype)
+			{
+				target.prototype[µ.Class.symbols.afterConstruct].call(instance,...argumentList)
+			}
+			return instance;
+		}
+	};
+
 
 	/** Class function
 	 * Designed to create JavaScript Classes
 	 *
-	 *  It does the inheritance, checks for arguments,
-	 *  adds the core patch to it and calls the init() method.
+	 * It does the inheritance, and wires some hooks and defreezes the constructor method.
+	 * If only 1 argument is passed it will be handled as the newClass.
 	 *
-	 *
-	 *  To create a class do this:
-	 *
-	 *  myClass=µ.Class(mySuperClass,myPrototype)
-	 *
-	 *  OR
-	 *
-	 *  myClass=µ.Class(mySuperClass)
-	 *  myClass.protoype.init=function()
-	 *  {
-	 *  	//call constructor of superclass
-	 *  	mySuperClass.prototype.init.call(this,arg1,arg2...);
-	 *  	//or this.mega();
-	 *
-	 *  	//your constructor
-	 *  }
-	 *
-	 *  You also can derive this classes with "ordinary" classes like this:
-	 *
-	 *  myClass=µ.Class(mySuperClass,myPrototype)
-	 *  mySubClass=function()
-	 *  {
-	 *  	//whatever you like
-	 *  }
-	 *  mySubClass.protoytpe=new myClass(µ._EXTEND);
-	 *  mySubClass.prototype.constructor=mySubClass;
-	 *
-	 *  @param	superClass	(optional)	default: µ.BaseClass
-	 *  @param	prototype	(optional)
+	 * @param {Function} (superClass)
+	 * @param {Function|Object} newClass
+	 * @return {Function}
 	 */
-	var CLASS=µ.Class=function ClassFunc(superClass,prot)
+	µ.Class=function ClassFunc(superClass,newClass)
 	{
-		var newClass = function ClassConstructor()
+		if(arguments.length==1)
 		{
-			this.init.apply(this,arguments);
-			if(µ.hasModule("Listeners")&&this instanceof µ.getModule("Listeners"))
-			{
-				this.setState(".created");
-			}
-		};
-
-		if(typeof superClass !== "function")
-		{
-			prot=superClass;
+			newClass=superClass;
 			superClass=BASE;
 		}
+
+		if(typeof newClass=="object")
+		{
+			if(!newClass.hasOwnProperty("constructor"))
+			{
+				if(!superClass) newClass.constructor=function(){};
+				else newClass.constructor=function(...args){superClass.call(this,...args)};
+			}
+			newClass.constructor.prototype=newClass;
+			newClass=newClass.constructor;
+		}
+		else if (!newClass)
+		{
+			newClass=function(){};
+		}
+
 		if(superClass) //only undefined when creating BaseClass
 		{
-			newClass.prototype=Object.create(superClass.prototype);
-			newClass.prototype.constructor=newClass;
-		}
+			let prot=Object.create(superClass.prototype);
+			Object.assign(prot,newClass.prototype);
+			prot.constructor=newClass;
+			newClass.prototype=prot;
 
-		for(var i in prot)
-		{
-			newClass.prototype[i]=prot[i];
+			if(µ.Class.symbols.onExtend in superClass.prototype) superClass.prototype[µ.Class.symbols.onExtend](newClass);
 		}
-		return newClass;
+		let classProxy=new Proxy(newClass,CLASS_PROXY)
+		return classProxy;
+	};
+	µ.Class.symbols={
+		"onExtend":Symbol("onExtend"),
+		"afterConstruct":Symbol("afterConstruct")
 	};
 
-	µ.Warning=µ.Class(Error,{
-		init:function(msg,data,error)
-		{
-			this.name = 'warning';
-			this.message = msg || 'Default Message';
-			this.data=data;
-			this.error=error;
-			this.stack = (new Error()).stack;
-		}
-	});
 
+	let megaSymbol=Symbol("mega");
 	/** Base Class
 	 *	allows to check of being a class ( foo instanceof µ.BaseClass )
 	 *	provides mega and basic destroy method
 	 */
-	var BASE=µ.BaseClass=CLASS(
-	{
-		init:function baseInit(){},
-		/**
-		 * calls same function of super class
-		 */
+	var BASE=µ.BaseClass=µ.Class({
 		mega:function mega()
 		{
-			var isFirstCall=false,rtn;
-			//TODO use symbols, use array for mega call of different function (fixes a'' -> a' -> b' -> a)
-			if(this.__magaKey===undefined)
+			let isFirstCall=false,rtn;
+			// check if it is the same as the las one
+			if(this[megaSymbol]!==undefined&&this.mega.caller!==this[megaSymbol].prot[this[megaSymbol].key])
+			{
+				delete this[megaSymbol];
+			}
+			//search for key and prototype of the caller
+			if(this[megaSymbol]===undefined)
 			{
 				isFirstCall=true;
-				searchPrototype:for(var prot=Object.getPrototypeOf(this);prot!==null;prot=Object.getPrototypeOf(prot))
+				searchPrototype:for(let prot=Object.getPrototypeOf(this);prot!==null;prot=Object.getPrototypeOf(prot))
 				{
-					for(var i=0,names=Object.getOwnPropertyNames(prot);i<names.length;i++)
+					for(let i=0,names=Object.getOwnPropertyNames(prot);i<names.length;i++)
 					{
 						if(this.mega.caller===prot[names[i]])
 						{
-							Object.defineProperties(this,{
-								__megaKey:{configurable:true,writable:true,value:names[i]},
-								__megaProt:{configurable:true,writable:true,value:prot}
-							});
+							this[megaSymbol]={
+								key:names[i],
+								prot:prot
+							};
 							break searchPrototype;
 						}
 					}
 				}
-				if(this.__megaKey===undefined)
+				if(this[megaSymbol]===undefined)
 				{
 					µ.logger.error(new ReferenceError("caller was not a member"));
 					return;
 				}
 			}
-			while((this.__megaProt=Object.getPrototypeOf(this.__megaProt))!==null&&!this.__megaProt.hasOwnProperty(this.__megaKey));
+			let nextPrototype=Object.getPrototypeOf(this[megaSymbol].prot);
+			let functionName=this[megaSymbol].key
+			//go to next prototype with functionName defined
+			while(nextPrototype!==null&&!nextPrototype.hasOwnProperty(functionName))
+			{
+				nextPrototype=Object.getPrototypeOf(nextPrototype);
+			};
 			var error=null;
 			try
 			{
-				if(this.__megaProt===null)
+				if(nextPrototype===null)
 				{
 					µ.logger.error(new ReferenceError("no mega found for "+this.__megaKey));
 				}
 				else
 				{
-					rtn=this.__megaProt[this.__megaKey].apply(this,arguments);
+					this[megaSymbol].prot=nextPrototype;
+					rtn=nextPrototype[functionName].apply(this,arguments);
 				}
 			}
 			catch (e){error=e;}
 			if(isFirstCall)
 			{
-				delete this.__megaKey;
-				delete this.__megaProt;
+				delete this[megaSymbol];
 				if(error)µ.logger.error(error);
 			}
 			if(error) throw error;
 			return rtn;
 		},
-		destroy:function()
+		destroy()
 		{
-			if(this.patches)for(var p in this.patches)this.patches[p].destroy();
+			if(µ.hasModule("Patch"))
+			{
+				µ.getModule("Patch").getPatches(this).forEach(p=>p.destroy());
+			}
 			for(var i in this)
 			{
 				delete this[i];
 			}
+			Object.setPrototypeOf(this,null);
 		}
 	});
 })(this.µ);
