@@ -1,22 +1,22 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var uObj=util.object=util.object||{};
+	let util=µ.util=µ.util||{};
+	let uObj=util.object=util.object||{};
 
 	/**
 	 *
-	 * @param {Number} (stageCount=2)
+	 * @param {Number} (stageCount=1) - count of generated stages
 	 * @param {Function} (lastType=Object())
 	 */
-	var register=uObj.register=function(stageCount,lastType=Object)
+	let register=uObj.register=function(stageCount,lastType=Object)
 	{
 		stageCount=stageCount>1?stageCount:1;
-		var createProxy=function(stageCount)
+		let createProxy=function(stageCount)
 		{
 			return new Proxy({},{
 				get:function(storage,key,receiver)
 				{
-					if(key==="toJSON") return undefined;
+					if(key==="toJSON") return undefined; // called by JSON.stringify
 					if(!(key in storage))
 					{
 						if (stageCount<=1)

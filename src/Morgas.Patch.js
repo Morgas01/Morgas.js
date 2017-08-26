@@ -23,9 +23,9 @@
 		[µ.Class.symbols.onExtend](sub)
 		{
 			//force .patch() method
-			if (!("patch" in sub.prototype )) throw new SyntaxError(`Patch ${(n=>n?n+" ":"")(sub.constructor.name)}has no patch method`);
+			if (!("patch" in sub.prototype )) throw new SyntaxError(`#Patch:001 ${(n=>n?n+" ":"")(sub.constructor.name)}has no patch method`);
 		},
-		constructor:function(instance,...param)
+		constructor:function Patch(instance,...param)
 		{
 			this.composedInstanceKeys=[];
 			if(!patchMap.has(instance))
@@ -34,7 +34,7 @@
 			}
 			else if(!this[Patch.symbols.multiple]&&Patch.getPatches(instance,this.constructor).length>0)
 			{
-				throw "instance has already this Patch";
+				throw new Error("#Patch:002 instance has already this Patch");
 			}
 			patchMap.get(instance).push(this);
 			instanceMap.set(this,instance);

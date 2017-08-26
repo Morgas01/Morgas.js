@@ -175,6 +175,8 @@
 	let CLASS_PROXY={
 		construct:function(target,argumentList)
 		{
+			if(target.prototype.hasOwnProperty(µ.Class.symbols.abstract)) throw new Error("#Class:001 can not instantiate abstract class");
+
 			let instance=new target(...argumentList);
 			if(µ.Class.symbols.afterConstruct in target.prototype)
 			{
@@ -227,11 +229,21 @@
 
 			if(µ.Class.symbols.onExtend in superClass.prototype) superClass.prototype[µ.Class.symbols.onExtend](newClass);
 		}
+
+		if(newClass.prototype.hasOwnProperty(µ.Class.symbols.abstract) && typeof newClass.prototype[µ.Class.symbols.abstract]==="function")
+		{
+			newClass.implement=function(...args)
+			{
+				return µ.Class(newClass,newClass.prototype[µ.Class.symbols.abstract](...args));
+			};
+		}
+
 		let classProxy=new Proxy(newClass,CLASS_PROXY)
 		return classProxy;
 	};
 	µ.Class.symbols={
 		"onExtend":Symbol("onExtend"),
+		"abstract":Symbol("abstract"),
 		"afterConstruct":Symbol("afterConstruct")
 	};
 

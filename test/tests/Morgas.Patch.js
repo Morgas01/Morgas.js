@@ -2,18 +2,18 @@
 
 	QUnit.module("Patch",function()
 	{
-		this.Patch=GMOD("Patch");
-
 		QUnit.test("onExtend hook",function(assert)
 		{
-			assert.throws(()=>{µ.Class(this.Patch,{})},SyntaxError,"missing patch function")
-			µ.Class(this.Patch,{patch(){}});
+			assert.throws(()=>{µ.Class(µ.Patch,{})},
+			error=>(error instanceof SyntaxError)&&error.message.startsWith("#Patch:001 "),
+			"missing patch function")
+			µ.Class(µ.Patch,{patch(){}});
 			assert.ok(true,"existing patch function");
 		});
 
 		QUnit.test("create",function(assert)
 		{
-			let testPatch=µ.Class(this.Patch,{
+			let testPatch=µ.Class(µ.Patch,{
 				patch()
 				{
 					this.patchVar=1;
@@ -24,11 +24,11 @@
 
 			assert.equal(patch.patchVar,1,"patch variable");
 			assert.equal(patch.instance,inst,"patch instance");
-			assert.deepEqual(this.Patch.getPatches(inst),[patch],"Patch.getPatches()");
+			assert.deepEqual(µ.Patch.getPatches(inst),[patch],"Patch.getPatches()");
 		});
 		QUnit.test("composeInstance",function(assert)
 		{
-			let proxyPatch=µ.Class(this.Patch,{
+			let proxyPatch=µ.Class(µ.Patch,{
 				patch(param)
 				{
 					this.bar="bar";
