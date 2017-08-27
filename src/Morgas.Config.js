@@ -1,12 +1,9 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	SC=SC({
-
-	});
-
+	//SC=SC({});
 
 	var CONFIG=µ.Config=µ.Class({
-		init:null,
+		[µ.Class.symbols.abstract]:true,
 		get:null,
 		set:null,// (key,value)=>{} // (value)=>{}
 		setDefault:function(def)
@@ -45,7 +42,7 @@
 	SMOD("Config",CONFIG);
 
 	var FIELD=CONFIG.Field=µ.Class(CONFIG,{
-		init:function(param,value)
+		constructor:function(param,value)
 		{
 			this.type=param.type;
 			this.setDefault(param.default);
@@ -152,10 +149,12 @@
 	FIELD.TYPES=["string","boolean","number","select"];
 
 	var CONTAINER=CONFIG.Container=µ.Class(CONFIG,{
-		init:null,
+		[µ.Class.symbols.abstract]:true,
 		setAll:null,
-		[Symbol.iterator]:null,
-		get:function(key)
+		[Symbol.iterator]:null, //[key,value] - must be set in constructor in order to work
+		get:null,
+		/* unused
+		function(key)
 		{
 			if(key!=null)
 			{
@@ -172,6 +171,7 @@
 			}
 			return this.toJSON();
 		},
+		*/
 		set:function(key,value)
 		{
 			if(arguments.length==1&&typeof key=="object")
@@ -189,7 +189,7 @@
 	});
 
 	var OBJECT=CONTAINER.Object=µ.Class(CONTAINER,{
-		init:function(configs,defaults,value)
+		constructor:function(configs,defaults,value)
 		{
 			this.configs=new Map();
 			this.setDefault(defaults);
@@ -197,7 +197,8 @@
 			{
 				this.addAll(configs);
 			}
-			this[Symbol.iterator]=this.configs.entries.bind(this.configs);
+
+			this[Symbol.iterator]=this.configs[Symbol.iterator].bind(this.configs);
 
 			if(value!==undefined) this.setAll(value,true);
 		},
@@ -227,6 +228,17 @@
 				return config;
 			}
 			return false;
+		},
+		get:function(key)
+		{
+			if(key!=null)
+			{
+				if(!Array.isArray(key)) return this.configs.get(key);
+				let config=this.configs.get(key[0])
+				if(config) return config.get(key.slice(1));
+				return undefined;
+			}
+			return this.toJSON();
 		},
 		remove:function(key)
 		{
@@ -291,17 +303,18 @@
 	});
 
 	var ARRAY=CONTAINER.Array=µ.Class(CONTAINER,{
-		init:function(param,value)
+		constructor:function(param,value)
 		{
 			this.model=param.model;
 			this.setDefault(param.default);
 			this.configs=[];
-			this[Symbol.iterator]=this.configs.entries.bind(this.configs);
 			Object.defineProperty(this,"length",{
 				configurable:false,
 				enumerable:true,
 				get:()=>this.configs.length
 			});
+
+			this[Symbol.iterator]=this.configs.entries.bind(this.configs);
 
 			if(value!==undefined) this.setAll(value,true);
 			else this.reset();
@@ -327,6 +340,22 @@
 				return value;
 			}
 			return false;
+		},
+		get:function(key)
+		{
+			if(key==null) return this.toJSON();
+			if(!Array.isArray(key))
+			{
+				if(key>=0&&key<this.configs.length) return this.configs[key];
+				return undefined;
+			}
+			if(key[0]>=0&&key[0]<this.configs.length)
+			{
+				let config=this.configs[key[0]];
+				if(key.length==1) return config;
+				return config.get(key.slice(1));
+			}
+			return undefined;
 		},
 		splice:function(index)
 		{
@@ -383,12 +412,13 @@
 	});
 
 	var MAP=CONTAINER.Map=µ.Class(CONTAINER,{
-		init:function(param,value)
+		constructor:function(param,value)
 		{
 			this.model=param.model;
 			this.setDefault(param.default);
 			this.configs=new Map();
-			this[Symbol.iterator]=this.configs.entries.bind(this.configs);
+
+			this[Symbol.iterator]=this.configs[Symbol.iterator].bind(this.configs);
 
 			if(value!==undefined) this.setAll(value,true);
 			else this.reset();
@@ -418,6 +448,17 @@
 				return value;
 			}
 			return false;
+		},
+		get:function(key)
+		{
+			if(key!=null)
+			{
+				if(!Array.isArray(key)) return this.configs.get(key);
+				let config=this.configs.get(key[0])
+				if(config) return config.get(key.slice(1));
+				return undefined;
+			}
+			return this.toJSON();
 		},
 		remove:function(key)
 		{

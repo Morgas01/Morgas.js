@@ -22,8 +22,8 @@
 	WR("Morgas.Patch.js");
 	WR("Morgas.global.js");
 	WR("Morgas.Event.js");
+	WR("Morgas.Config.js");
 /*
-	WR(srcDir+"Morgas.Config.js");
 	WR(testDir+"test.Morgas.Config.js");
 
 	WR(srcDir+"Morgas.util.fuzzySearch.js");

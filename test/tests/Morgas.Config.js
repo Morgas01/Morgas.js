@@ -1,18 +1,13 @@
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	QUnit.module("Config");
-
-	SC=SC({
-		Config:"Config"
-	});
+QUnit.module("Config",function()
+{
 
 	QUnit.test("field",function(assert)
 	{
-		var stringField=new SC.Config.Field({type:"string",pattern:/^[A-Z]+$/});
-		var numberField=new SC.Config.Field({type:"number",default:3,validate:n=>n>0});
-		var selectField=new SC.Config.Field({type:"select",values:["s1","s2","s3"],default:"s4"});
-		var booleanField=new SC.Config.Field({type:"boolean"});
-		var rangeField=new SC.Config.Field({type:"number",min:2,step:2,max:4});
+		var stringField=new µ.Config.Field({type:"string",pattern:/^[A-Z]+$/});
+		var numberField=new µ.Config.Field({type:"number",default:3,validate:n=>n>0});
+		var selectField=new µ.Config.Field({type:"select",values:["s1","s2","s3"],default:"s4"});
+		var booleanField=new µ.Config.Field({type:"boolean"});
+		var rangeField=new µ.Config.Field({type:"number",min:2,step:2,max:4});
 
 
 		assert.strictEqual(stringField.get(),null,"initial null value");
@@ -59,7 +54,7 @@
 
 	QUnit.test("object",function(assert)
 	{
-		var obj=new SC.Config.Container.Object({
+		var obj=new µ.Config.Container.Object({
 			value:{
 				type:"boolean",
 				default:false
@@ -73,7 +68,7 @@
 		assert.notOk(obj.set("foo","bar"),"reject invalid field");
 		assert.ok(obj.set("value",true),"set value");
 
-		obj.add("foo",new SC.Config.Field({
+		obj.add("foo",new µ.Config.Field({
 			type:"string",
 			default:"bar"
 		}));
@@ -85,7 +80,7 @@
 
 	QUnit.test("array",function(assert)
 	{
-		var arr=new SC.Config.Container.Array({
+		var arr=new µ.Config.Container.Array({
 			model:{
 				type:"number",
 				default:1
@@ -103,7 +98,7 @@
 
 	QUnit.test("map",function(assert)
 	{
-		var map=new SC.Config.Container.Map({
+		var map=new µ.Config.Container.Map({
 			model:{
 				type:"number",
 				default:1
@@ -157,7 +152,7 @@
 			}
 		};
 
-		var parsed=SC.Config.parse(desc);
+		var parsed=µ.Config.parse(desc);
 		var map=parsed.get("map");
 		var array=map.add("bar");
 		var parsedField=parsed.get(["map","foo",0]);
@@ -173,8 +168,7 @@
 		assert.deepEqual(array.get(),[7],"setAll (overwrite)")
 		parsed.set(values);
 		assert.deepEqual(parsed.get(),values,"set container (overwrite)");
-		parsed=SC.Config.parse(desc,values);
+		parsed=µ.Config.parse(desc,values);
 		assert.deepEqual(parsed.get(),values,"parse with values");
-	})
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+	});
+});
