@@ -1,12 +1,12 @@
 (function(){
-
+/*
 	var globals=Object.keys(window);
 	QUnit.done(function()
 	{
 		var addedGlobals=Object.keys(window).filter(e=>globals.indexOf(e)==-1&&e!="Morgas"&&e!="µ"&&e!="DBTest")
 		if(addedGlobals.length>0) alert(`⚠ added globals: ${addedGlobals}`);
 	});
-
+*/
 	var srcDir="../src/",
 	testDir="tests/";
 
@@ -20,6 +20,8 @@
 	WR("Morgas.util.array.remove.js");
 	WR("Morgas.util.function.rescope.js");
 	WR("Morgas.Patch.js");
+	WR("Morgas.global.js");
+	WR("Morgas.Event.js");
 /*
 	WR(srcDir+"Morgas.Config.js");
 	WR(testDir+"test.Morgas.Config.js");

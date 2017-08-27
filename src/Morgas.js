@@ -1,5 +1,5 @@
 ﻿(function MorgasInit(oldµ){
-	Morgas={version:"0.5.0"};
+	Morgas={version:"0.8.0"};
 	µ=Morgas;
 	/**
 	 * revert "µ" to its old value
@@ -26,13 +26,14 @@
 	 *	be replaced by any other function or class that has similar structure.
 	 *
 	 */
-	(function(){
-		var modules={};
+
+	{
+		let modules={};
 		µ.setModule=function(key,value)
 		{
 			if(modules[key])
 			{
-				µ.logger.warn(new µ.Warning("module "+key+" is overwritten"));
+				µ.logger.warn("@setModule:001 "+key+" is overwritten");
 			}
 			return modules[key]=value;
 		};
@@ -43,10 +44,10 @@
 		µ.getModule=function(key)
 		{
 			if(!modules[key])
-				µ.logger.info(new µ.Warning("module "+key+" is not defined\n use µ.hasModule to check for existence"));
+				µ.logger.info("@getModule:001 "+key+" is not defined\n use µ.hasModule to check for existence");
 			return modules[key];
 		};
-	})();
+	};
 
 	/**
 	 * log message if it's verbose is >= the current verbose.
@@ -58,9 +59,9 @@
 	µ.logger={
 		log:function(verbose,msg/*,msg...*/)
 		{
-			if(!verbose)
+			if(!verbose||verbose<=0)
 			{
-				verbose=0;
+				return;
 			}
 			if(µ.logger.verbose>=verbose)
 			{
@@ -148,17 +149,13 @@
 						{
 							value=path(context);
 						}
-						else if(context&&µ.hasModule("goPath"))
-						{
-							value=µ.getModule("goPath")(context,path);
-						}
 						else if (µ.hasModule(path))
 						{
 							value=µ.getModule(path);
 						}
 						else
 						{
-							µ.logger.error(new ReferenceError("shortcut: could not evaluate "+path))
+							µ.logger.error(new ReferenceError("@shortcut:001 could not evaluate "+path))
 						}
 					}
 					if(value!=null&&!dynamic)
@@ -226,8 +223,6 @@
 			Object.assign(prot,newClass.prototype);
 			prot.constructor=newClass;
 			newClass.prototype=prot;
-
-			if(µ.Class.symbols.onExtend in superClass.prototype) superClass.prototype[µ.Class.symbols.onExtend](newClass);
 		}
 
 		if(newClass.prototype.hasOwnProperty(µ.Class.symbols.abstract) && typeof newClass.prototype[µ.Class.symbols.abstract]==="function")
@@ -239,6 +234,11 @@
 		}
 
 		let classProxy=new Proxy(newClass,CLASS_PROXY)
+
+		if(superClass&&µ.Class.symbols.onExtend in superClass.prototype&&!newClass.prototype.hasOwnProperty(µ.Class.symbols.abstract))
+		{
+			superClass.prototype[µ.Class.symbols.onExtend](classProxy);
+		}
 		return classProxy;
 	};
 	µ.Class.symbols={

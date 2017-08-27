@@ -5,7 +5,7 @@
 		QUnit.test("onExtend hook",function(assert)
 		{
 			assert.throws(()=>{µ.Class(µ.Patch,{})},
-			error=>(error instanceof SyntaxError)&&error.message.startsWith("#Patch:001 "),
+			function(error){return (error instanceof SyntaxError)&&error.message.startsWith("#Patch:001 ")},
 			"missing patch function")
 			µ.Class(µ.Patch,{patch(){}});
 			assert.ok(true,"existing patch function");

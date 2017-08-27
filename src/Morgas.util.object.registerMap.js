@@ -10,7 +10,7 @@
 	 * @param {Number} (stageCount=1) - count of generated stages
 	 * @param {Function} (lastType=Object())
 	 */
-	let registerMap=uObj.registerMap=function(stageCount,lastType=Object)
+	let registerMap=uObj.registerMap=function(stageCount,lastType=Map)
 	{
 		stageCount=stageCount>1?stageCount:1;
 		let createMap=function(stageCount)
