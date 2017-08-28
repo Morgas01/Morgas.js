@@ -1,26 +1,25 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var obj=util.object=util.object||{};
+	let util=µ.util=µ.util||{};
+	let obj=util.object=util.object||{};
 	
 	/**
 	 * adopt attributes defined in [target] from [provider].
 	 * when [extend] is set to true all attributes from [provider] are adopted
-	 * @param {object} target
-	 * @param {object} [provider=undefined]
-	 * @param {boolean} [extend=false]
+	 * @param {Object} target
+	 * @param {Object|Object[]} [provider=undefined]
+	 * @param {Boolean} [extend=false]
 	 */
 	obj.adopt=function(target,provider,extend)
 	{
 		if(provider)
 		{
-			var keys=Object.keys(extend ? provider : target);
-			var k=0;
-			for(var i=keys[k];k<keys.length;i=keys[++k])
+			let keys=Object.keys(extend ? provider : target);
+			for(let key of keys)
 			{
-				if(extend||i in provider)
+				if(extend||key in provider)
 				{
-					target[i]=provider[i];
+					target[key]=provider[key];
 				}
 			}
 		}

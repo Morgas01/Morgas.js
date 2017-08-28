@@ -1,12 +1,8 @@
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	QUnit.module("util.fuzzySearch");
-	
-	var search=GMOD("fuzzySearch");
-
+QUnit.module("util.fuzzySearch",function()
+{
 	QUnit.test("search",function(assert)
 	{
-		assert.deepEqual(search("fo FB",
+		assert.deepEqual(µ.util.fuzzySearch("fo FB",
 			["Foo bar FooBar","food","food at the foodbar","FaBo"]),
 			[
 				{
@@ -30,7 +26,6 @@
 					"score": [0,0,0,0,1]
 				}
 			]);
-
 	});
 	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+});

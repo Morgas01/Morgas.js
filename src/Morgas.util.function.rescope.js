@@ -1,14 +1,14 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
-	var util=µ.util=µ.util||{};
-	var uFn=util.function=util.function||{};
+	let util=µ.util=µ.util||{};
+	let uFn=util.function=util.function||{};
 	
 	/** rescope
 	 * faster than bind but only changes the scope.
 	 */
 	uFn.rescope=function(fn,scope)
 	{
-		if(fn==null||fn.apply==null)µ.logger.warn(new µ.Warning("function is not defined"));
+		if(fn==null||fn.apply==null) throw new TypeError("#rescope:001 function is not defined");
 		else return function(...args)
 		{
 			return fn.call(scope,...args);
@@ -17,9 +17,9 @@
 	uFn.rescope.all=function(scope,keys)
 	{
 		keys=keys||Object.keys(scope);
-		for(var i=0;i<keys.length;i++)
+		for(let key of keys)
 		{
-			if(typeof scope[keys[i]]==="function")scope[keys[i]]=uFn.rescope(scope[keys[i]],scope);
+			if(typeof scope[key]==="function") scope[key]=uFn.rescope(scope[key],scope);
 		}
 	};
 	SMOD("rescope",uFn.rescope);

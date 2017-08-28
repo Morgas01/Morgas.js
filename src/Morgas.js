@@ -33,7 +33,7 @@
 		{
 			if(modules[key])
 			{
-				µ.logger.warn("@setModule:001 "+key+" is overwritten");
+				µ.logger.warn("#setModule:001 "+key+" is overwritten");
 			}
 			return modules[key]=value;
 		};
@@ -44,7 +44,7 @@
 		µ.getModule=function(key)
 		{
 			if(!modules[key])
-				µ.logger.info("@getModule:001 "+key+" is not defined\n use µ.hasModule to check for existence");
+				µ.logger.info("#getModule:001 "+key+" is not defined\n use µ.hasModule to check for existence");
 			return modules[key];
 		};
 	};
@@ -155,7 +155,7 @@
 						}
 						else
 						{
-							µ.logger.error(new ReferenceError("@shortcut:001 could not evaluate "+path))
+							µ.logger.error(new ReferenceError("#shortcut:001 could not evaluate "+path))
 						}
 					}
 					if(value!=null&&!dynamic)

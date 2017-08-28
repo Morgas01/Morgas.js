@@ -1,12 +1,8 @@
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	QUnit.module("util.object.register");
-
-	var register=GMOD("register");
-
+QUnit.module("util.object.register",function()
+{
 	QUnit.test("simple",function(assert)
 	{
-		var r=register();
+		let r=µ.util.object.register();
 		assert.deepEqual(Object.keys(r),[]);
 		r.foo.bar="foobar";
 		assert.deepEqual(Object.keys(r),["foo"]);
@@ -15,7 +11,7 @@
 
 	QUnit.test("stages",function(assert)
 	{
-		var r=register(2);
+		let r=µ.util.object.register(2);
 		r.foo.bar.foobar="bazz";
 		r.first.second.third=3;
 
@@ -35,7 +31,7 @@
 
 	QUnit.test("lastType",function(assert)
 	{
-		var r=register(1,Array);
+		let r=µ.util.object.register(1,Array);
 		r.foo.push("bar");
 
 		assert.deepEqual(JSON.parse(JSON.stringify(r)),{
@@ -45,7 +41,7 @@
 
 	QUnit.test("delete",function(assert)
 	{
-		var r=register();
+		var r=µ.util.object.register();
 		assert.deepEqual(Object.keys(r),[]);
 		r.foo.bar="foobar";
 		assert.deepEqual(Object.keys(r),["foo"]);
@@ -53,4 +49,4 @@
 		assert.deepEqual(Object.keys(r),[]);
 	});
 
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+});

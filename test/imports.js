@@ -23,28 +23,18 @@
 	WR("Morgas.global.js");
 	WR("Morgas.Event.js");
 	WR("Morgas.Config.js");
+	WR("Morgas.util.fuzzySearch.js");
+	WR("Morgas.util.object.uniquify.js");
+	WR("Morgas.util.object.register.js");
+	WR("Morgas.DependencyResolver.js");
+	WR("Morgas.util.object.adopt.js");
+	WR("Morgas.Promise.js");
 /*
-	WR(testDir+"test.Morgas.Config.js");
-
-	WR(srcDir+"Morgas.util.fuzzySearch.js");
-	WR(testDir+"test.Morgas.util.fuzzySearch.js");
-
-	WR(srcDir+"Morgas.DependencyResolver.js");
-	WR(testDir+"test.Morgas.DependencyResolver.js");
-
-	WR(srcDir+"Morgas.Listeners.js");
-	WR(testDir+"test.Morgas.Listeners.js");
-
-	WR(srcDir+"Morgas.Patch.js");
-	WR(testDir+"test.Morgas.Patch.js");
-
-	WR(srcDir+"Morgas.Promise.js");
 	WR(testDir+"test.Morgas.Promise.js");
 
 	WR(srcDir+"Morgas.util.crc32.js");
 	WR(testDir+"test.Morgas.util.crc32.js");
 
-	WR(srcDir+"Morgas.util.function.rescope.js");
 	WR(testDir+"test.Morgas.util.function.rescope.js");
 
 	WR(srcDir+"Morgas.util.function.bind.js");
@@ -56,7 +46,6 @@
 	WR(srcDir+"Morgas.util.object.goPath.js");
 	WR(testDir+"test.Morgas.util.object.goPath.js");
 
-	WR(srcDir+"Morgas.util.object.adopt.js");
 	WR(testDir+"test.Morgas.util.object.adopt.js");
 
 	WR(srcDir+"Morgas.util.Progress.js");
@@ -79,12 +68,6 @@
 
 	WR(srcDir+"Morgas.util.Request.js");
 	WR(testDir+"test.Morgas.util.request.js");
-
-	WR(srcDir+"Morgas.util.object.register.js");
-	WR(testDir+"test.Morgas.util.object.register.js");
-
-	WR(srcDir+"Morgas.util.object.uniquify.js");
-	WR(testDir+"test.Morgas.util.object.uniquify.js");
 
 	WR(srcDir+"Morgas.util.converter.csv.js");
 	WR(testDir+"test.Morgas.util.converter.csv.js");

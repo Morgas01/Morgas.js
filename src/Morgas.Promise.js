@@ -5,73 +5,100 @@
 		rs:"rescope"
 	});
 	
-	var rescopeApply=function rescopeApply(fn,scope)
+	let rescopeApply=function rescopeApply(fn,scope)
 	{
 		if(fn)return function(arr)
 		{
-			arr=[].concat(arr);
 			return fn.apply(scope,arr);
+		};
+	};
+
+	let AbortHandle=function(reject)
+	{
+		let callbacks=new Set();
+
+		return {
+			add:SC.rs(callbacks.add,callbacks),
+			remove:SC.rs(callbacks.delete,callbacks),
+			trigger:function()
+			{
+				let calls=[];
+				for(let callback of callbacks)
+				{
+					try
+					{
+						calls.push(callback());
+					}
+					catch (e)
+					{
+						calls.push(e);
+					}
+				}
+				callbacks.clear();
+				reject("abort");
+				return Promise.all(calls);
+			}
 		};
 	};
 	/**
 	 * Promise wrapper to provide arguments,scope and abort().
-	 * scope is also provided to all "child" promises.
+	 * scope is also provided to all chained methods.
 	 */
-	var PROM=µ.Promise=µ.Class({
+	let PROM=µ.Promise=µ.Class({
 		/**
 		 * 
-		 * @param {any|any[]} fns
-		 * @param {object} (opts)
+		 * @param {Function|Promise|Array<Function|Promise>} fns
+		 * @param {object} (opts={})
+		 * @param {object} (opts.scope=null)
+		 * @param {object} (opts.args=[])
+		 * @param {object} (opts.simple=false)
 		 */
-		init:function(fns,opts)
+		constructor:function(fns,{scope=null,args=[],simple=false}={})
 		{
 			SC.rs.all(this,"abort");
+
+			this.scope=scope;
 			
-			opts=SC.adopt({
-				scope:null,
-				args:[],
-				simple:false // set to true to omit the signal in call
-			},opts);
-			this.scope=opts.scope;
-			
-			var _rs,abortEvent;
+			let resolve;
+			let reject;
+
 			this.original=new Promise(function(rs,rj)
 			{
-				_rs=rs;
-				abortEvent=new PROM.AbortEvent(rj);
+				resolve=rs;
+				reject=rj;
 			});
-			this._abort=function()
-			{
-				abortEvent.trigger();
-			};
+
+			let abortHandle=AbortHandle(reject);
+			this.abort=abortHandle.trigger;
 			
 			// prepare functions
-			opts.args=[].concat(opts.args);
+			args=[].concat(args);
 			fns=[].concat(fns).map((fn)=>
 			{
 				if(typeof fn==="function")return new Promise((rs,rj)=>
 				{
-					var sArgs=opts.args.slice();
-					if(!opts.simple)
+					let fnArgs=args.slice();
+					if(!simple)
 					{
-						var signal={
+						let signal={
 							resolve:rs,
 							reject:rj,
-							scope:opts.scope,
-							onAbort:abortEvent.add
+							scope:scope,
+							addAbort:abortHandle.add,
+							removeAbort:abortHandle.remove
 						};
-						sArgs.unshift(signal);
+						fnArgs.unshift(signal);
 					}
 					try
 					{
-						var result=fn.apply(opts.scope,sArgs);
-						if(opts.simple)
+						let result=fn.apply(scope,fnArgs);
+						if(simple)
 						{
 							rs(result);
 						}
 						else if (result)
 						{
-							µ.logger.warn(new µ.Warning("function has a result but isn't called in simple mode"));
+							µ.logger.warn("#Promise:001 function has a result but isn't called in simple mode");
 						}
 					}
 					catch (e)
@@ -83,42 +110,30 @@
 				});
 				return fn;
 			});
-			Promise.all(fns).then(_rs,reason=>
-			{
-				if (reason==="abort")
-				{
-					abortEvent.trigger();
-				}
-				else abortEvent.destroy(reason);
-			});
+			Promise.all(fns).then(resolve,reject);
 		},
-		rescopeFn:rescopeApply,// first: apply result of Promise.all | then: only rescope
-		_wrapNext:function(next)
+		_rescopeFn:rescopeApply,// first: apply result of Promise.all | then: only rescope
+		_wrapNext:function _wrapNext(next)
 		{
 			return {
 				original:next,
 				scope:this.scope,
 				then:PROM.prototype.then,
-				rescopeFn:SC.rs,
-				complete:PROM.prototype.complete,
-				error:PROM.prototype.error,
-				catch:PROM.prototype.error,
+				catch:PROM.prototype.catch,
+				_rescopeFn:SC.rs,
 				always:PROM.prototype.always,
 				reverse:PROM.prototype.reverse,
-				_wrapNext:PROM.prototype._wrapNext
+				_wrapNext:_wrapNext
 			};
 		},
-		complete:function(fn)
+		"catch":function(efn)
 		{
-			return this.then(fn);
-		},
-		error:function(efn)
-		{
+			// use pass function to unwrap results on first call
 			return this.then(µ.constantFunctions.pass,efn);
 		},
 		then:function(fn,efn)
 		{
-			if(fn)fn=this.rescopeFn(fn,this.scope);
+			if(fn)fn=this._rescopeFn(fn,this.scope);
 			if(efn)efn=SC.rs(efn,this.scope);
 			return this._wrapNext(this.original.then(fn,efn));
 		},
@@ -131,36 +146,30 @@
 			if(fn)fn=SC.rs(fn,this.scope);
 			return PROM.reverse(this,rejectValue,fn);
 		},
-		abort:function()
-		{
-			this._abort();
-		},
+		// abort:function(){} set in constructor
 		destroy:function()
 		{
 			this.abort();
 			this.mega();
 		}
 	});
-	PROM.prototype.catch=PROM.prototype.error;
 	PROM.isThenable=function(thenable)
 	{
 		return thenable&&typeof thenable.then==="function";
 	};
-	PROM.pledge=function(fn,scope,args)
+	PROM.pledge=function(fn,scope,args=[])
 	{
-		if(args===undefined)args=[];
-		else args=[].concat(args);
+		args=[].concat(args);
 		return function vow()
 		{
-			// TODO replace with Array.slice
-			var vArgs=args.concat(Array.prototype.slice.call(arguments));
+			let vArgs=args.concat(Array.prototype.slice.call(arguments));
 			return new PROM(fn,{args:vArgs,scope:scope});
 		}
 	};
 	PROM.pledgeAll=function(scope,keys)
 	{
 		keys=keys||Object.keys(scope);
-		for(var i=0;i<keys.length;i++)
+		for(let i=0;i<keys.length;i++)
 		{
 			if(typeof scope[keys[i]]==="function")scope[keys[i]]=PROM.pledge(scope[keys[i]],scope);
 		}
@@ -169,15 +178,15 @@
 	{
 		fns=fns.map(fn=>
 		{
-			if(fn instanceof PROM) return fn.always(µ.constantFunctions.pass);
-			else if (PROM.isThenable(fn))return fn.then(µ.constantFunctions.pass,µ.constantFunctions.pass);
+			if (PROM.isThenable(fn))return fn.then(µ.constantFunctions.pass,µ.constantFunctions.pass);
 			else return new PROM(fn,opts).always(µ.constantFunctions.pass);
 		});
 		return new PROM(fns,opts);
 	};
+	/* creates a pending Promise and attaches its resolve and reject to it */
 	PROM.open=function(scope)
 	{
-		var rtn=PROM.prototype._wrapNext.call({
+		let rtn=PROM.prototype._wrapNext.call({
 			scope:scope
 		});
 		rtn.original=new Promise((rs,rj)=>{rtn.resolve=rs;rtn.reject=rj});
@@ -185,7 +194,7 @@
 	};
 	PROM.resolve=function(value,scope)
 	{
-		var rtn=PROM.prototype._wrapNext.call({
+		let rtn=PROM.prototype._wrapNext.call({
 			scope:scope
 		});
 		rtn.original=Promise.resolve(value);
@@ -193,55 +202,20 @@
 	};
 	PROM.reject=function(value,scope)
 	{
-		var rtn=PROM.prototype._wrapNext.call({
+		let rtn=PROM.prototype._wrapNext.call({
 			scope:scope
 		});
 		rtn.original=Promise.reject(value);
 		return rtn;
 	};
-	PROM.reverse=function(promise,rejectValue,fn)
+	/** reverses the outcome of a thenable */
+	PROM.reverse=function(thenable,rejectValue,fn)
 	{
 		if(!fn) fn=µ.constantFunctions.pass;
-		return promise.then(function()
+		return thenable.then(function()
 		{
 			return Promise.reject(rejectValue);
 		},fn);
-	};
-	
-	PROM.AbortEvent=function(reject)
-	{
-		var callbacks=[];
-		
-		this.add= cb=>callbacks.push(cb);
-		this.trigger=function()
-		{
-			delete this.add;
-			delete this.trigger;
-			delete this.destroy;
-			
-			this.reason="abort";
-			this.promise=Promise.all(callbacks.map(fn=>
-			{
-				try
-				{
-					return fn();
-				}
-				catch (e)
-				{
-					return e;
-				}
-			}));
-			callbacks.length=0;
-			reject(this);
-		};
-		this.destroy=function(reason)
-		{
-			delete this.add;
-			delete this.trigger;
-			delete this.destroy;
-			callbacks.length=0;
-			reject(reason);
-		};
 	};
 	
 	SMOD("Promise",PROM);
