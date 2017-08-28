@@ -1,20 +1,22 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var uFn=util["function"]=util["function"]||{};
+	let util=µ.util=µ.util||{};
+	let uFn=util["function"]=util["function"]||{};
 
-	SC=SC({
-		it:"iterate"
-	});
+	//SC=SC({});
 
 	/**
 	 * proxy methods from source to target.
 	 * called methods have scope of its source
+	 *
+	 * @param {Object|Function|String} source - source object, getter for dynamic source, or key in scope
+	 * @param {Iterable<String|String[]>|Object<String,String>} mapping - Iterable with Strings or Array of Strings as [sourcekey,targetKey]. Objects will be converted via Object.entries()
+	 * @param {Object} target
 	 */
-	uFn.proxy=function(source,listOrMapping,target)
+	uFn.proxy=function(source,mapping,target)
 	{
-		var isKey=false,
-		isGetter=false;
+		let isKey=false;
+		let isGetter=false;
 		switch(typeof source)
 		{
 			case "string":
@@ -23,26 +25,33 @@
 			case "function":
 				isGetter=true;
 				break;
+			case "object":
+				if(!(Symbol.iterator in mapping))
+				{
+					mapping=Object.entries(mapping);
+				}
+				break;
 		}
-		SC.it(listOrMapping,function(key,value,index,isObject)
+		for(let entry of mapping)
 		{
-			var sKey=(isObject?key:value),
-			tKey=value,
-			fn=null;
+			let sourcekey;
+			let targetKey;
+
+			if(Array.isArray(entry)) ([sourcekey,targetKey]=entry)
+			else sourcekey=targetKey=entry;
 			if(isKey)
 			{
-				fn=function(){return this[source][sKey].apply(this[source],arguments)};
+				target[targetKey]=function(){return this[source][sourcekey].apply(this[source],arguments)};
 			}
 			else if (isGetter)
 			{
-				fn=function(){var scope=source.call(this,sKey);return scope[sKey].apply(scope,arguments);};
+				target[targetKey]=function(){var scope=source.call(this,sourcekey);return scope[sourcekey].apply(scope,arguments);};
 			}
 			else
 			{
-				fn=source[sKey].bind(source);
+				target[targetKey]=source[sourcekey].bind(source);
 			}
-			target[tKey]=fn;
-		});
+		}
 	};
 	SMOD("proxy",uFn.proxy);
 
