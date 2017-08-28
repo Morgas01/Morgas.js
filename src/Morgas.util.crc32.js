@@ -1,32 +1,38 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
-	var util=µ.util=µ.util||{};
-	
-	// found somewhere on the internet
+	let util=µ.util=µ.util||{};
 
-	var CRC32=util.crc32=function(data,crcPart)
+	//SC=SC({});
+
+	let table=new Map();
+	let getPolynomial=function(n)
 	{
-		var isString=typeof data==="string";
-		var crc= crcPart!=null ? ((crcPart^-1)<<0) : 0^(-1);
-		for (var i=0;i<data.length;i++)
+	   if(!table.hasOwnProperty(n))
+	   {
+		   let c=n;
+		   for(let k=0;k<8;k++)
+		   {
+			   c=((c&1)?(0xEDB88320^(c>>>1)):(c>>>1));
+		   }
+		   return table[n]=c;
+	   }
+	   return table[n];
+	};
+
+	let CRC32=util.crc32=function(data,crcPart)
+	{
+		let isString=typeof data==="string";
+		let crc=crcPart!=null ? ((crcPart^-1)<<0) : 0^(-1);
+		for (let i=0,l=data.length;i<l;i++)
 		{
-			var b=isString ? data.charCodeAt(i) : data[i];
-			crc=(crc>>>8)^CRC32.get((crc^b)&0xFF);
+			let b=isString ? data.charCodeAt(i) : data[i];
+			crc=(crc>>>8)^getPolynomial((crc^b)&0xFF);
 		}
 		return (crc^(-1))>>>0;
 	};
-	CRC32.table={};
-	CRC32.get=function(n)
+	CRC32.format=function(crc)
 	{
-	   if(CRC32.table.n==null)
-	   {
-		   var c=n;
-		   for(var k=0;k<8;k++){
-			   c=((c&1)?(0xEDB88320^(c>>>1)):(c>>>1));
-		   }
-		   CRC32.table[n]=c;
-	   }
-	   return CRC32.table[n];
+		return "00000000"+crc.toString(16).toUpperCase().slice(-8);
 	};
 
 	CRC32.Builder=function(crcPart)
@@ -39,7 +45,11 @@
 		return this;
 	};
 	CRC32.Builder.prototype.get=function(){return this.crcPart;};
-	CRC32.Builder.prototype.getFormatted=function(){return ("00000000"+this.crcPart.toString(16).toUpperCase()).slice(-8);};
+	CRC32.Builder.prototype.getFormatted=function()
+	{
+		return CRC32.format(this.crcPart);
+	};
 
 	SMOD("util.crc32",CRC32);
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

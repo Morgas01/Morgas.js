@@ -29,24 +29,14 @@
 	WR("Morgas.DependencyResolver.js");
 	WR("Morgas.util.object.adopt.js");
 	WR("Morgas.Promise.js");
+	WR("Morgas.util.crc32.js");
 /*
-	WR(testDir+"test.Morgas.Promise.js");
-
-	WR(srcDir+"Morgas.util.crc32.js");
-	WR(testDir+"test.Morgas.util.crc32.js");
-
-	WR(testDir+"test.Morgas.util.function.rescope.js");
-
-	WR(srcDir+"Morgas.util.function.bind.js");
-	WR(testDir+"test.Morgas.util.function.bind.js");
 
 	WR(srcDir+"Morgas.util.function.proxy.js");
 	WR(testDir+"test.Morgas.util.function.proxy.js");
 
 	WR(srcDir+"Morgas.util.object.goPath.js");
 	WR(testDir+"test.Morgas.util.object.goPath.js");
-
-	WR(testDir+"test.Morgas.util.object.adopt.js");
 
 	WR(srcDir+"Morgas.util.Progress.js");
 	WR(testDir+"test.Morgas.util.Progress.js");
