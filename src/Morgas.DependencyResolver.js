@@ -1,26 +1,32 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	var applyPrefix=function(arr,prefix)
+
+	SC=SC({
+		remove:"array.remove",
+		uniquify:"uniquify",
+		register:"register"
+	});
+
+	let applyPrefix=function(arr,prefix)
 	{
 		return (arr||[]).map(function(a){return prefix+a});
 	};
 	µ.DependencyResolver=µ.Class({
-		init:function(config,prefix)
+		constructor:function(config,prefix)
 		{
 			this.config={};
 			if(config)this.addConfig(config,prefix);
 		},
-		addConfig:function(obj,prefix,overwrite)
+		addConfig:function(obj,prefix="",overwrite)
 		{
-			prefix=prefix||"";
 			if(typeof obj==="object")
 			{
-				var keys=Object.keys(obj);
-				for(var l=keys.length,i=0;i<l;i++)
+				let keys=Object.keys(obj);
+				for(let l=keys.length,i=0;i<l;i++)
 				{
-					var k=keys[i];
-					if(this.config[prefix+k]===undefined||overwrite)
+					let k=keys[i];
+					if(this.config[prefix+k]===undefined||overwrite)//TODO overwrite message
 					{
-						var v=null;
+						let v=null;
                         if(typeof obj[k]==="string")
                         {
                             v={deps:[prefix+obj[k]],uses:[]};
@@ -35,68 +41,105 @@
                         }
                         else
                         {
-                            v=true;
+                            v={deps:[],uses:[]};
                         }
 						this.config[prefix+k]=v;
 					}
 				}
 				return true;
 			}
-			µ.logger.error(new TypeError("DependencyResolver.addConfig: obj is not an object"));
+			µ.logger.error(new TypeError("#DependencyResolver:001 DependencyResolver.addConfig: obj is not an object"));
 			return false;
 		},
-		resolve:function(items)
+		getConfig:function(item)
 		{
-			var rtn=[], list=[].concat(items);
-			items=[].concat(items);
-			while(list.length>0)
+			let config=this.config[item];
+			if(!config) throw new ReferenceError("#DependencyResolver:002 "+item+" is not in config");
+			return config;
+		},
+		_getList:function(items)
+		{
+			let deps=[...items];
+			let uses=[];
+			for(let item of items)
 			{
-				var resolved=true,conf=this.config[list[0]];
-				if(conf===undefined)
+				let config = this.getConfig(item)
+				deps.push(...config.deps);
+				uses.push(...config.uses);
+			}
+			deps.push(...uses);
+			return SC.uniquify(deps);
+		},
+		resolve:function(keys,strict)
+		{
+			let list=this._getList([].concat(keys));
+			let cycleRegister=SC.register(1,Set);
+			let cursor=0;
+
+			let checkDependencies=function(item)
+			{
+				let index=list.indexOf(item);
+				if(index==-1)
 				{
-					µ.logger.info(new µ.Warning("DependencyResolver.resolve: "+list[0]+" is undefined"));
+					list.splice(cursor,0,item);
+					return false;
 				}
-				else if(conf!==true)
+				if(index>cursor)
 				{
-					var deps=conf.deps;
-                    for(var i=0;i<conf.uses.length;i++)
-                    {
-                        if(list.indexOf(conf.uses[i])===-1&&rtn.indexOf(conf.uses[i])===-1)
-                        {
-                            list.splice(1,0,conf.uses[i]);
-                            items.push(conf.uses[i]);
-                        }
-                    }
-					for(var i=0;i<deps.length;i++)
+					SC.remove(list,item);
+					list.splice(cursor,0,item);
+					return false;
+				}
+				return true;
+			};
+			let checkCycle=function(parent,child,noThrow)
+			{
+				let childSet=cycleRegister[child];
+				for(let ancestor of cycleRegister[parent])
+				{
+					if(ancestor===child)
 					{
-						var dep=deps[i];
-						if(rtn.indexOf(dep)===-1)
-						{//not yet depending
-							var listIndex=list.indexOf(dep);
-							if(listIndex!==-1)
-							{//as remaining item
-								
-								if(items.indexOf(dep)===-1)
-								{//not as item
-									throw new TypeError("cyclic object Dependencies ["+list[0]+","+deps[i]+"]");
-								}
-								else
-								{
-									list.splice(listIndex, 1);
-								}
-							}
-							list=[].concat(dep,list);
-							resolved=false;
-							break;
+						let cycle=Array.from(cycleRegister[parent]).slice(childSet.size);
+						cycle.push(parent);
+						let error=new Error("#DependencyResolver:003 cyclic dependency ["+cycle.join(" <-> ")+"]");
+						if(!noThrow||strict) throw error;
+						µ.logger.error(error);
+						return false;
+					}
+					childSet.add(ancestor);
+				}
+				childSet.add(parent);
+				return true;
+			};
+			let counter=0;
+			resolveLoop: while(cursor<list.length)
+			{
+				if(counter++>100) throw "cycle guard";
+				let item=list[cursor];
+				for(let depItem of this.getConfig(item).deps)
+				{
+					checkCycle(item,depItem);
+
+					if(!checkDependencies(depItem))
+					{
+						continue resolveLoop;
+					}
+
+					for(let useItem of this.getConfig(depItem).uses)
+					{
+						if(checkCycle(depItem,useItem,true)&&!checkDependencies(useItem))
+						{
+							continue resolveLoop;
 						}
 					}
 				}
-				if(resolved)
+				for (let useItem of this.getConfig(item).uses)
 				{
-					rtn.push(list.shift());
+					if(list.indexOf(useItem)==-1) list.push(useItem);
 				}
+				cursor++;
 			}
-			return rtn;
+			return list;
 		},
         clone:function(prefix)
         {
