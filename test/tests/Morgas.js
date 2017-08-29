@@ -70,6 +70,32 @@ QUnit.module("core",function()
 			let instance=new hookedClass("arg1","arg2");
 			assert.deepEqual(instanceArr,[instance]);
 		});
+		QUnit.test("abstract hook",function(assert)
+		{
+			let abstractClass=µ.Class({
+				foo()
+				{
+					return this.bar;
+				},
+				[µ.Class.symbols.abstract]:function(bar)
+				{
+					return {bar:bar};
+				}
+			});
+
+			assert.throws(function()
+			{
+				new abstractClass();
+			},
+			function(error)
+			{
+				return error.message.startsWith("#Class:001 ");
+			},"prevent abstract instances");
+
+			let impl=abstractClass.implement("foobar");
+			let inst=new impl();
+			assert.strictEqual(inst.foo(),"foobar","implemantation via helper function");
+		})
 	});
 
 	QUnit.test("shortcut",function(assert)

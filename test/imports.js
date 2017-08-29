@@ -32,15 +32,8 @@
 	WR("Morgas.util.crc32.js");
 	WR("Morgas.util.function.proxy.js");
 	WR("Morgas.util.object.goPath.js");
+	WR("Morgas.util.object.equals.js");
 /*
-
-	WR(testDir+"test.Morgas.util.object.goPath.js");
-
-	WR(srcDir+"Morgas.util.Progress.js");
-	WR(testDir+"test.Morgas.util.Progress.js");
-
-	WR(srcDir+"Morgas.util.object.equals.js");
-	WR(testDir+"test.Morgas.util.object.equals.js");
 
 	WR(srcDir+"Morgas.util.object.find.js");
 	WR(testDir+"test.Morgas.util.object.find.js");

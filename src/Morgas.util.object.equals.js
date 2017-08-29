@@ -1,42 +1,52 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var uObj=util.object=util.object||{};
+	let util=µ.util=µ.util||{};
+	let uObj=util.object=util.object||{};
 
-	/** equals
-	 * Matches {obj} against {pattern}.
-	 * Returns: Boolean
+	/**
+	 * @param {Any} obj
+	 * @param {Any} pattern
+	 * @Returns {Boolean}
 	 *
-	 * Matches strictly (===) and RegExp, function, Array, and Object.
-	 * 
-	 * RegExp: try to match strictly match and
-	 * then return pattern.test(obj)
-	 * 
-	 * function: try to match strictly match and
-	 * then if obj is not a function test it with
-	 * the pattern function and return its result
+	 * @summary Matches {obj} against {pattern}.
+	 * @description
+	 *	check order:
 	 *
-	 * Array: try to match strictly match and
-	 * then return pattern.indexOf(obj)!==-1
-	 *
-	 * Object: recurse.
+	 * 1. match strictly (===) and check NaN
+	 * 2 of pattern is null (or undefined): false
+	 * 3. if Pattern is a RegExp: pattern.test(obj)
+	 * 3.1 if object is instance of RegExp match string representation
+	 * 4. if Pattern is a Function and obj isn't: pattern(obj)
+	 * 5. if pattern is an Array: check if it includes obj then check every sub pattern
+	 * 6. if obj is null: false
+	 * 7. if obj has a .equals Function: obj.equals(pattern)
+	 * 8. if pattern is an Object: recurse for every key in pattern
 	 *
 	 */
 	uObj.equals=function(obj,pattern)
 	{
 		if(obj===pattern||(Number.isNaN(obj)&&Number.isNaN(pattern)))
+		{
 			return true;
+		}
+		if(pattern==null) return false;
 		if(pattern instanceof RegExp)
 		{
 			if( typeof obj==="string") return pattern.test(obj);
-			else if(pattern instanceof RegExp) return obj.toString()==pattern.toString();
+			else if(obj instanceof RegExp) return obj.toString()==pattern.toString();
 		}
 		if(typeof pattern==="function")
 		{
-			if(typeof obj==="function")
-				return false;
-			else
-				return pattern(obj);
+			if(typeof obj==="function") return false;
+			else return pattern(obj);
+		}
+		if(Array.isArray(pattern))
+		{
+			if(pattern.includes(obj))
+			{
+				return true;
+			}
+			return pattern.findIndex(p=>uObj.equals(obj,p))!=-1;
 		}
 		if(obj==null) return false;
 		if(typeof obj.equals==="function")
@@ -45,12 +55,7 @@
         }
 		if(typeof pattern==="object")
 		{
-			if(pattern==null) return false;
-            if(typeof obj!=="object"&&Array.isArray(pattern))
-            {
-				return pattern.indexOf(obj)!==-1;
-            }
-			for(var i in pattern)
+			for(let i in pattern)
 			{
 				if(!uObj.equals(obj[i],pattern[i]))
 					return false;
@@ -78,7 +83,7 @@
 	uObj.equals["Number.POSITIVE_INFINITY"]=()=>Number.POSITIVE_INFINITY;
 	uObj.equals.unset=function()
 	{
-		var unset=function unset(value)
+		let unset=function unset(value)
 		{
 			return value==null;
 		};
@@ -87,7 +92,7 @@
 	};
 	uObj.equals.not=function(pattern)
 	{
-		var not=function not(value)
+		let not=function not(value)
 		{
 			return !uObj.equals(value,pattern);
 		};
@@ -96,7 +101,7 @@
 	};
 	uObj.equals.greater=function(pattern)
 	{
-		var greater=function greater(value)
+		let greater=function greater(value)
 		{
 			return value>pattern;
 		};
@@ -105,7 +110,7 @@
 	};
 	uObj.equals.greaterEqual=function(pattern)
 	{
-		var greaterEqual=function greaterEqual(value)
+		let greaterEqual=function greaterEqual(value)
 		{
 			return value>=pattern;
 		};
@@ -114,7 +119,7 @@
 	};
 	uObj.equals.less=function(pattern)
 	{
-		var less=function less(value)
+		let less=function less(value)
 		{
 			return value<pattern;
 		};
@@ -123,7 +128,7 @@
 	};
 	uObj.equals.lessEqual=function(pattern)
 	{
-		var lessEqual=function lessEqual(value)
+		let lessEqual=function lessEqual(value)
 		{
 			return value<=pattern;
 		};
@@ -132,7 +137,7 @@
 	};
 	uObj.equals.between=function(min,max)
 	{
-		var pattern;
+		let pattern;
 		if(Array.isArray(min))
 		{
 			pattern=min;
@@ -140,7 +145,7 @@
 			max=pattern[1];
 		}
 		else pattern=[min,max];
-		var between=function between(value)
+		let between=function between(value)
 		{
 			return min<value&&value<max;
 		};
@@ -149,7 +154,7 @@
 	};
 	uObj.equals.betweenInclude=function(min,max)
 	{
-		var pattern;
+		let pattern;
 		if(Array.isArray(min))
 		{
 			pattern=min;
@@ -157,7 +162,7 @@
 			max=pattern[1];
 		}
 		else pattern=[min,max];
-		var betweenInclude=function betweenInclude(value)
+		let betweenInclude=function betweenInclude(value)
 		{
 			return min<=value&&value<=max;
 		};
@@ -165,7 +170,7 @@
 		return betweenInclude;
 	};
 
-	var patternToJSON=function(pattern)
+	let patternToJSON=function(pattern)
 	{
 		if (pattern==null) return pattern;
 		else if(Number.isNaN(pattern)) return "[Number.NaN]";
@@ -179,8 +184,8 @@
 				case "function":
 					return pattern.toString();
 				case "object":
-					var rtn={};
-					for(var key in pattern) rtn[key]=patternToJSON(pattern[key]);
+					let rtn={};
+					for(let key in pattern) rtn[key]=patternToJSON(pattern[key]);
 					return rtn;
 				default:
 					return pattern;
@@ -190,17 +195,21 @@
 
 	uObj.equals.patternToString=function(pattern)
 	{
-		return JSON.stringify(patternToJSON(pattern));
+		return JSON.stringify(patternToJSON(pattern,function(key,value)
+		{
+			if(value instanceof RegExp) return value.toString();
+			return value;
+		}));
 	}
-	var parseRegex=/^\[([^\]]+)\](.*)/;
-	var patternFromJSON=function(pattern)
+	let parseRegex=/^\[([^\]]+)\](.*)/;
+	let patternFromJSON=function(pattern)
 	{
 		if(typeof pattern==="string")
 		{
-			var match=pattern.match(parseRegex);
+			let match=pattern.match(parseRegex);
 			if(match)
 			{
-				var fn=match[1],value=match[2];
+				let fn=match[1],value=match[2];
 				if(value!=="")
 				{
 					value=JSON.parse(value);
@@ -216,8 +225,8 @@
 			else if (Array.isArray(pattern)) return pattern.map(patternFromJSON);
 			else
 			{
-				var rtn={};
-				for(var key in pattern) rtn[key]=patternFromJSON(pattern[key]);
+				let rtn={};
+				for(let key in pattern) rtn[key]=patternFromJSON(pattern[key]);
 				return rtn;
 			}
 		}
