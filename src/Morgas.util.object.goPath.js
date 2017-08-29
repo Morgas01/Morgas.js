@@ -1,9 +1,11 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var uObj=util.object=util.object||{};
-	
-	var arrayNotation=/(.+)\[(\d*)\]/;
+	let util=µ.util=µ.util||{};
+	let uObj=util.object=util.object||{};
+
+	let pathRegEx=/\[[^\]]+\]|\.?[^.\[]+/g;
+	let arrayRegEx=/^\[(\d+)\]$/;
+	let trimRegEx=/^\.|^\["?|"?]$/g;
 
 	/** goPath
 	 * Goes the {path} from {obj} checking all but last step for existance.
@@ -18,28 +20,25 @@
 	 */
 	uObj.goPath=function(obj,path,create)
 	{
-		var todo=path;
-		if(typeof todo=="string")todo=todo.split(".");
-		else todo=todo.slice();
-		
-		while(todo.length>0&&obj)
+		if(typeof path=="string")path=path.match(pathRegEx);
+
+		for(let index=0; index<path.length;index++)
 		{
-			if(create&&!(todo[0] in obj))
+			let key=path[index].replace(trimRegEx,"");
+			if(!(key in obj))
 			{
-				var match=todo[0].match(arrayNotation);
-				if(match)
+				if(create&&index+1<path.length)
 				{
-					todo[0]=match[1];
-					if(match[2]!=="") todo.splice(1,0,match[2]);
-					obj[todo[0]]=[];
+					let value;
+					if(arrayRegEx.test(path[index+1])) value=[];
+					else value={};
+
+					obj=obj[key]=value;
+					continue;
 				}
-				else obj[todo[0]]={};
+				return undefined;
 			}
-			obj=obj[todo.shift()];
-		}
-		if(todo.length>0)
-		{
-			return undefined
+			obj=obj[key];
 		}
 		return obj;
 	};
