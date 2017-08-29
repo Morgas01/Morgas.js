@@ -52,14 +52,17 @@
 		assert.notOk(EQ(1,null),"pattern null");
 	});
 
-	QUnit.test("logic",function(assert)
+	QUnit.module("logic",function()
 	{
 		var testlogic=function(key,pattern,value)
 		{
-			var fn=EQ[key](pattern);
-			assert.ok(EQ(value,fn),key);
-			var clone=EQ.stringToPattern(EQ.patternToString(fn));
-			assert.ok(EQ.patternToString(fn)===EQ.patternToString(clone),key+" string");
+			QUnit.test(key,function(assert)
+			{
+				var fn=EQ[key](pattern);
+				assert.ok(EQ(value,fn),key);
+				var clone=EQ.stringToPattern(EQ.patternToString(fn));
+				assert.ok(EQ.patternToString(fn)===EQ.patternToString(clone),key+" string");
+			})
 		};
 
 		testlogic("Number.NaN",Number.NaN,Number.NaN);
