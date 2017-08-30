@@ -3,16 +3,16 @@
 	µ.util=µ.util||{};
 
 	SC=SC({
-		prom:"Promise"
+		Promise:"Promise"
 	});
 	
-	var doRequest=function(signal,param)
+	let doRequest=function(signal,param)
 	{
 		if(param.urls.length==0) signal.reject(new µ.Warning("no Url"));
 		else
 		{
-			var url=param.urls.shift();
-			var req=new XMLHttpRequest();
+			let url=param.urls.shift();
+			let req=new XMLHttpRequest();
 			req.open(param.method,url,true,param.user,param.password);
 			req.responseType=param.responseType;
 			req.onload=function()
@@ -36,17 +36,17 @@
 			{
 				req.onprogress=param.progress;
 			}
-			signal.onAbort(function(){
+			signal.addAbort(function(){
 				param.urls.length=0;
 				req.abort();
 			});
 			req.send(param.data);
 		}
 	};
-	var parseParam=function(param)
+	let parseParam=function(param)
 	{
 
-		var urls;
+		let urls;
 		if(typeof param ==="string")
 		{
 			urls=[param];
@@ -78,10 +78,10 @@
 	 * @param {any} scope
 	 * @returns {Morgas.Promise}
 	 */
-	var REQ=µ.util.Request=function Request_init(param,scope)
+	let REQ=µ.util.request=function Request_init(param,scope)
 	{
 		param=parseParam(param);
-		return new SC.prom(doRequest,{args:param,scope:scope});
+		return new SC.Promise(doRequest,{args:param,scope:scope});
 	};
 	SMOD("request",REQ);
 

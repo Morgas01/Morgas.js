@@ -34,23 +34,10 @@
 	WR("Morgas.util.object.goPath.js");
 	WR("Morgas.util.object.equals.js");
 	WR("Morgas.util.object.inputValues.js");
+	WR("Morgas.util.request.js");
+	WR("Morgas.util.converter.csv.js");
+	WR("Morgas.SortedArray.js");
 /*
-
-	WR(srcDir+"Morgas.util.object.iterate.js");
-	WR(testDir+"test.Morgas.util.object.iterate.js");
-
-	WR(srcDir+"Morgas.util.object.iterateAsync.js");
-	WR(testDir+"test.Morgas.util.object.iterateAsync.js");
-
-	WR(srcDir+"Morgas.util.Request.js");
-	WR(testDir+"test.Morgas.util.request.js");
-
-	WR(srcDir+"Morgas.util.converter.csv.js");
-	WR(testDir+"test.Morgas.util.converter.csv.js");
-
-	WR(srcDir+"Morgas.SortedArray.js");
-	WR(testDir+"test.Morgas.SortedArray.js");
-
 	WR(srcDir+"Morgas.Organizer.js");
 	WR(testDir+"test.Morgas.Organizer.js");
 
@@ -71,6 +58,12 @@
 
 	WR(srcDir+"DB/Morgas.DB.IndexedDBConnector.js");
 	WR(testDir+"test.Morgas.DB.IndexedDBConnector.js");
+
+	WR(srcDir+"Morgas.util.object.iterate.js");
+	WR(testDir+"test.Morgas.util.object.iterate.js");
+
+	WR(srcDir+"Morgas.util.object.iterateAsync.js");
+	WR(testDir+"test.Morgas.util.object.iterateAsync.js");
 	*/
 
 })();

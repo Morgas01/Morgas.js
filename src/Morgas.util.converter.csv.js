@@ -1,11 +1,16 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-    var util=µ.util=µ.util||{};
-    var uCon=util.converter=util.converter||{};
+    let util=µ.util=µ.util||{};
+    let uCon=util.converter=util.converter||{};
 
 	uCon.csv={
+		symbols:{
+			line:Symbol("csv.line"),
+			overflowCells:Symbol("csv.overflowCells")
+		},
 		to:function(){
 			//TODO
+			throw "todo";
 		},
 		defaultSeperator:",",
 		from:function(csvData,columnNames,seperator)
@@ -13,15 +18,18 @@
 			csvData+="";
 			
 			seperator=seperator||uCon.csv.defaultSeperator;
-			var cellEXP=new RegExp('(?:"((?:[^"]|"")*)"|([^"\r\n'+seperator+']*))'+seperator+'?','g'), cleanUpEXP=/"(")/g;
+			let cellEXP=new RegExp('(?:"((?:[^"]|"")*)"|([^"\r\n'+seperator+']*))'+seperator+'?','g'), cleanUpEXP=/"(")/g;
 
-			var rtn={
+			let rtn={
 				data:[],
 				columns:columnNames||[]
 			};
 			
-			var item={_line:"",_overflowCells:[]};
-			var cellIndex=0,isFirstLine=!columnNames,match=null;
+			let item={
+				[uCon.csv.symbols.line]:"",
+				[uCon.csv.symbols.overflowCells]:[]
+			};
+			let cellIndex=0,isFirstLine=!columnNames,match=null;
 			while((match=cellEXP.exec(csvData))!==null)
 			{
 				if(match[0]==="")
@@ -32,14 +40,18 @@
 					{
 						for(;cellIndex<rtn.columns.length;cellIndex++)item[rtn.columns[cellIndex]]=null;
 						rtn.data.push(item);
-						item={_line:"",_overflowCells:[]};
+						//item for next line
+						item={
+							[uCon.csv.symbols.line]:"",
+							[uCon.csv.symbols.overflowCells]:[]
+						}
 						cellIndex=0;
 					}
 					if(cellEXP.lastIndex>=csvData.length) break;
 				}
 				else
 				{//next cell
-					var value=null;
+					let value=null;
 					if(match[1]) value=match[1].replace(cleanUpEXP,"$1");
 					else value=match[2];
 					if(isFirstLine)
@@ -48,12 +60,12 @@
 					}
 					else
 					{
-						item._line+=match[0];
+						item[uCon.csv.symbols.line]+=match[0];
 						if(cellIndex<rtn.columns.length)
 						{
 							item[rtn.columns[cellIndex]]=value;
 						}
-						else item._overflowCells.push(value);
+						else item[uCon.csv.symbols.overflowCells].push(value);
 
 						cellIndex++;
 					}
