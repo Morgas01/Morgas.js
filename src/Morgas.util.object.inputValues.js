@@ -1,11 +1,26 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var obj=util.object=util.object||{};
+	let util=µ.util=µ.util||{};
+	let obj=util.object=util.object||{};
 	
 	SC=SC({
 		goPath:"goPath"
 	});
+
+	let getPath=function(input)
+	{
+		let path="";
+		if(input.dataset.path)
+		{
+			path=input.dataset.path;
+			if(!input.name.startsWith("["))
+			{
+				path+=".";
+			}
+		}
+		path+=input.name;
+		return path;
+	}
 	
 	/**
 	 * set input values from object
@@ -16,19 +31,26 @@
 	 */
 	obj.setInputValues=function(inputs,source)
 	{
-		for(var i=0;i<inputs.length;i++)
+		for(let input of inputs)
 		{
-			var path=(inputs[i].dataset.path ? inputs[i].dataset.path+"." : "")+inputs[i].name;
-			var value=SC.goPath(source, path);
+			let path=getPath(input);
+			let value=SC.goPath(source, path);
 			if(value!==undefined)
 			{
-				if(inputs[i].type==="checkbox")
+				if(input.type==="checkbox")
 				{
-					inputs[i].checked=!!value;
+					input.checked=!!value;
+				}
+				if(input.tagName==="SELECT"&&input.multiple&&Array.isArray(value))
+				{
+					for(let option of input.options)
+					{
+						option.selected=value.includes(option.value)
+					}
 				}
 				else
 				{
-					inputs[i].value=value;
+					input.value=value;
 				}
 			}
 		}
@@ -43,27 +65,41 @@
 	 */
 	obj.getInputValues=function(inputs,target,create)
 	{
-		var rtn=target||{};
-		for(var i=0;i<inputs.length;i++)
+		if(!target)
 		{
-			var t=rtn;
-			if(inputs[i].dataset.path)
+			target={};
+			create=true;
+		}
+		for(let input of inputs)
+		{
+			let t=target;
+			if(input.dataset.path)
 			{
-				t=SC.goPath(t, inputs[i].dataset.path,!target||create);
+				t=SC.goPath(t, input.dataset.path,create,(create?{}:undefined));
 			}
-			if(t!==undefined&&(inputs[i].name in t||!target||create))
+			if(t&&(input.name in t||create))
 			{
-				if(inputs[i].type==="checkbox")
+				let value;
+				if(input.type==="checkbox")
 				{
-					t[inputs[i].name]=inputs[i].checked;
+					value=input.checked;
+				}
+				else if(input.tagName==="SELECT"&&input.multiple)
+				{
+					value=[];
+					for(let option of input.selectedOptions)
+					{
+						value.push(option.value);
+					}
 				}
 				else
 				{
-					t[inputs[i].name]=inputs[i].valueAsDate||inputs[i].valueAsNumber||inputs[i].value;
+					value=input.valueAsDate||input.valueAsNumber||input.value;
 				}
+				t[input.name]=value;
 			}
 		}
-		return rtn;
+		return target;
 	};
 	
 	SMOD("setInputValues",obj.setInputValues);

@@ -30,5 +30,14 @@ QUnit.module("util.object.goPath",function()
 		assert.strictEqual(µ.util.object.goPath.guide("path.to.no.value")(obj),undefined,"nonvalid path");
 		assert.strictEqual(µ.util.object.goPath.guide(["path","to","other value"])(obj),obj.path.to["other value"],"valid path as array");
 	});
+
+	QUnit.test("default value",function(assert)
+	{
+		var obj={};
+		assert.strictEqual(µ.util.object.goPath(obj,"value"),undefined,"not exists");
+		assert.notOk("value" in obj,"still not exists");
+		assert.strictEqual(µ.util.object.goPath(obj,"value",false,2),2,"default");
+		assert.ok("value" in obj,"exists");
+	});
 	
 });

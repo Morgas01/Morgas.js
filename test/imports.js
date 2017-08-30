@@ -33,13 +33,8 @@
 	WR("Morgas.util.function.proxy.js");
 	WR("Morgas.util.object.goPath.js");
 	WR("Morgas.util.object.equals.js");
+	WR("Morgas.util.object.inputValues.js");
 /*
-
-	WR(srcDir+"Morgas.util.object.find.js");
-	WR(testDir+"test.Morgas.util.object.find.js");
-
-	WR(srcDir+"Morgas.util.object.inputValues.js");
-	WR(testDir+"test.Morgas.util.object.inputValues.js");
 
 	WR(srcDir+"Morgas.util.object.iterate.js");
 	WR(testDir+"test.Morgas.util.object.iterate.js");

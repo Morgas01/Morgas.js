@@ -14,11 +14,12 @@
 	 * 
 	 * when creating is enabled use "foo[]" or "foo[2]" instead of "foo.2" to create an array 
 	 * 
-	 * @param {any} obj
-	 * @param {string|string[]} path
-	 * @param {boolean} (create=false) create missing structures
+	 * @param {Any} obj
+	 * @param {String|string[]} path
+	 * @param {Boolean} (create=false) create missing structures
+	 * @param {Any} (defaultValue) set missing value
 	 */
-	uObj.goPath=function(obj,path,create)
+	uObj.goPath=function(obj,path,create,defaultValue)
 	{
 		if(typeof path=="string")path=path.match(pathRegEx);
 
@@ -36,20 +37,19 @@
 					obj=obj[key]=value;
 					continue;
 				}
+				if(index+1==path.length&&defaultValue!==undefined)
+				{
+					return obj[key]=defaultValue;
+				}
 				return undefined;
 			}
 			obj=obj[key];
 		}
 		return obj;
 	};
-	/**
-	 * 
-	 * @param {string|string[]} path
-	 * @returns function 
-	 */
-	uObj.goPath.guide=function(path)
+	uObj.goPath.guide=function(...args)
 	{
-		return function(obj){return uObj.goPath(obj,path)};
+		return function(obj){return uObj.goPath(obj,...args)};
 	};
 	SMOD("goPath",uObj.goPath);
 	
