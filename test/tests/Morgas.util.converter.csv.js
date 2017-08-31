@@ -89,7 +89,7 @@ QUnit.module("util.converter.csv",function()
 					},
 				]
 			};
-			result=µ.util.converter.csv.from(this.data,expected.columns,"\t");
+			let result=µ.util.converter.csv.from(this.data,expected.columns,"\t");
 			assert.deepEqual(result,expected,"tsv");
 			for(let i=0;i<expected.data.length;i++)
 			{
