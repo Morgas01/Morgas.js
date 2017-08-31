@@ -21,6 +21,7 @@
 	 */
 	uObj.goPath=function(obj,path,create,defaultValue)
 	{
+		if(obj==null) return undefined;
 		if(typeof path=="string")path=path.match(pathRegEx);
 
 		for(let index=0; index<path.length;index++)

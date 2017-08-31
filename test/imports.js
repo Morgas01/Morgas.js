@@ -37,10 +37,8 @@
 	WR("Morgas.util.request.js");
 	WR("Morgas.util.converter.csv.js");
 	WR("Morgas.SortedArray.js");
+	WR("Morgas.Organizer.js");
 /*
-	WR(srcDir+"Morgas.Organizer.js");
-	WR(testDir+"test.Morgas.Organizer.js");
-
 	WR(srcDir+"Morgas.NodePatch.js");
 	WR(testDir+"test.Morgas.NodePatch.js");
 

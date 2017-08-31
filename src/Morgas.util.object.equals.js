@@ -34,6 +34,7 @@
 		{
 			if( typeof obj==="string") return pattern.test(obj);
 			else if(obj instanceof RegExp) return obj.toString()==pattern.toString();
+			return false;
 		}
 		if(typeof pattern==="function")
 		{

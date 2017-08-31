@@ -1,14 +1,13 @@
 QUnit.module("SortedArray",function()
 {
-	
 	QUnit.test("numbers",function(assert)
 	{
 		var sArr=new µ.SortedArray()
 		.sort("ASC",µ.SortedArray.naturalOrder(false))
 		.sort("DESC",µ.SortedArray.naturalOrder(true));
 
-		sArr.add([6,2,9,3,1]);
-		sArr.add(new Set([7,5,4,0,8]));
+		sArr.addAll([6,2,9,3,1]);
+		sArr.addAll(new Set([7,5,4,0,8]));
 
 		assert.deepEqual(sArr.get("ASC"),[0,1,2,3,4,5,6,7,8,9],"asc");
 		assert.deepEqual(sArr.get("DESC"),[9,8,7,6,5,4,3,2,1,0],"desc");
@@ -25,8 +24,8 @@ QUnit.module("SortedArray",function()
 		.sort("ASC",µ.SortedArray.naturalOrder(false))
 		.sort("DESC",µ.SortedArray.naturalOrder(true));
 
-		sArr.add(["s","o","r","t","e","d"]);
-		sArr.add(new Map([
+		sArr.addAll(["s","o","r","t","e","d"]);
+		sArr.addAll(new Map([
 			["a","a"],
 			["f","r"],
 			["h","r"],
@@ -78,7 +77,7 @@ QUnit.module("SortedArray",function()
 			}
 		 ];
 		
-		sArr.add(data);
+		sArr.addAll(data);
 
 		assert.deepEqual(sArr.get("ASC"),[data[4],data[2],data[3],data[0],data[1]],"asc");
 		assert.deepEqual(sArr.get("DESC"),[data[1],data[0],data[3],data[2],data[4]],"desc");
@@ -115,4 +114,11 @@ QUnit.module("SortedArray",function()
 		assert.deepEqual(sArr.get("ASC"),[2,3,5,6,7],"asc");
 		assert.deepEqual(sArr.get("DESC"),[7,6,5,3,2],"desc");
 	});
+
+	QUnit.test("clean getValues",function(assert)
+	{
+		var sArr=new µ.SortedArray([1,2,3,undefined,5,6]);
+		sArr.remove([2]);
+		assert.deepEqual(sArr.getValues(),[1,3,undefined,5,6]);
+	})
 });

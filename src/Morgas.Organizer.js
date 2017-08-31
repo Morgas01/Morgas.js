@@ -1,22 +1,20 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var SA=GMOD("SortedArray");
+	let SortedArray=GMOD("SortedArray");
 
 	SC=SC({
-		it:"iterate",
 		eq:"equals",
 		goPath:"goPath",
 		proxy:"proxy"
 	});
 	 
-	var ORG=µ.Organizer=µ.Class(SA,{
-		init:function(values)
+	let ORG=µ.Organizer=µ.Class(SortedArray,{
+		constructor:function(values)
 		{
 
 			this.filters=new Map();
 			SC.proxy(this.filters,{
 				"has":"hasFilter",
-				"get":"getFilter"
 			},this);
 
 			this.maps=new Map();
@@ -33,8 +31,8 @@
 			this.mega(values);
 			
 		},
-		getSort:SA.prototype.get,
-		getIndexSort:SA.prototype.getIndexes,
+		getSort:SortedArray.prototype.get,
+		getIndexSort:SortedArray.prototype.getIndexes,
 		filter:function(filterName,filterFn,createFn)
 		{
 			switch(typeof filterFn)
@@ -46,119 +44,132 @@
 					filterFn=SC.eq.test(filterFn);
 					break;
 			}
-			var child=new ORG();
-			child.library=this.library||this.values;
-			child._filterFn=filterFn;
-			if(this.hasFilter(filterName))this.removeFilter(filterName);
-			this.filters.set(filterName,child);
-
-			if(createFn) createFn(child);
-
-			for(var i=0;i<this.values.length;i++)
+			let filter=this.filters.get(filterName);
+			if(!filter)
 			{
-				this._filter(child,i);
+				let child=new ORG();
+				child.library=this.library||this.values;
+				filter={
+					child:child,
+					fn:filterFn
+				};
+			}
+			else
+			{
+				filter.fn=filterFn;
+				filter.child.clear();
+			}
+			this.filters.set(filterName,filter);
+
+			if(createFn) createFn(filter.child);
+
+			for(let i=0;i<this.values.length;i++)
+			{
+				this._filter(filter,this.values[i],i);
 			}
 			return this;
 		},
-		_filter:function(child,index)
+		_filter:function(filter,value,index)
 		{
-			var item=this.values[index];
-			if(this.library){
-				index=item;
-				item=this.library[index];
+			if(this.library)
+			{
+				index=value;
+				value=this.library[index];
 			}
-			if(child._filterFn(item)) child.add([index]);
+			if(filter.fn(value)) filter.child.add(index);
+		},
+		getFilter:function(filterName)
+		{
+			if(this.hasFilter(filterName))
+			{
+				return this.filters.get(filterName).child;
+			}
+			return null;
 		},
 		removeFilter:function(filterName)
 		{
 			if(this.hasFilter(filterName))
 			{
-				this.filters.get(filterName).destroy();
+				this.filters.get(filterName).child.destroy();
 				this.filters.delete(filterName);
 			}
 		},
-
 		map:function(mapName,mapFn)
 		{
-			if(typeof mapFn==="string")
-				mapFn=SC.goPath.guide(mapFn);
-			var map={mapFn:mapFn,values:{}};
-			if(this.hasMap(mapName))this.removeMap(mapName);
+			if(typeof mapFn==="string") mapFn=SC.goPath.guide(mapFn);
+			let map={mapFn:mapFn,values:{}};
+			if(this.hasMap(mapName)) this.removeMap(mapName);
 			this.maps.set(mapName,map);
-			for(var i=0;i<this.values.length;i++)
+			for(let i=0;i<this.values.length;i++)
 			{
-				this._map(map,i);
+				this._map(map,this.values[i],i);
 			}
 			return this;
 		},
-		_map:function(map,index)
+		_map:function(map,value,index)
 		{
-			var item=this.values[index];
 			if(this.library){
-				index=item;
-				item=this.library[index];
+				index=value;
+				value=this.library[index];
 			}
-			var key=""+map.mapFn(item);
+			let key=""+map.mapFn(value);
 			map.values[key]=index;
 		},
 		getIndexMap:function(mapName)
 		{
-			if(this.hasMap(mapName))return this.maps.get(mapName).values;
+			if(this.hasMap(mapName))return Object.assign({},this.maps.get(mapName).values);
 			return null;
 		},
 		getMap:function(mapName)
 		{
 			if(this.hasMap(mapName))
 			{
-				var rtn={};
-				SC.it(this.getIndexMap(mapName),(gIndex,index)=>
+				let rtn={};
+				for(let [key,index] of Object.entries(this.maps.get(mapName).values))
 				{
-					if(this.library) rtn[gIndex]=this.library[index];
-					else rtn[gIndex]=this.values[index];
-				},true,this);
+					if(this.library) rtn[key]=this.library[index];
+					else rtn[key]=this.values[index];
+				}
 				return rtn;
 			}
 			else return null;
 		},
-		
 		group:function(groupName,groupFn,createFn)
 		{
-			if(typeof groupFn==="string")
-				groupFn=SC.goPath.guide(groupFn);
-			var group={values:{},groupFn:groupFn,createFn:createFn};
+			if(typeof groupFn==="string") groupFn=SC.goPath.guide(groupFn);
+			let group={children:{},groupFn:groupFn,createFn:createFn};
 			if(this.hasGroup(groupName))this.removeGroup(groupName);
 			this.groups.set(groupName,group);
-			for(var i=0;i<this.values.length;i++)
+			for(let i=0;i<this.values.length;i++)
 			{
-				this._group(group,i);
+				this._group(group,this.values[i],i);
 			}
 			return this;
 		},
-		_group:function(group,index)
+		_group:function(group,value,index)
 		{
-			var item=this.values[index];
 			if(this.library){
-				index=item;
-				item=this.library[index];
+				index=value;
+				value=this.library[index];
 			}
-			var gKeys=[].concat(group.groupFn(item));
-			for(var gKey of gKeys)
+			let gKeys=[].concat(group.groupFn(value));
+			for(let gKey of gKeys)
 			{
-				if(!(gKey in group.values))
+				if(!(gKey in group.children))
 				{
-					var child=new ORG();
-					if(group.createFn)group.createFn(child,gKey);
+					let child=new ORG();
 					child.library=this.library||this.values;
-					group.values[gKey]=child;
+					if(group.createFn)group.createFn(child,gKey);
+					group.children[gKey]=child;
 				}
-				group.values[gKey].add([index]);
+				group.children[gKey].add(index);
 			}
 		},
 		getGroup:function(groupName)
 		{
 			if(this.hasGroup(groupName))
 			{
-				return this.groups.get(groupName).values;
+				return Object.assign({},this.groups.get(groupName).children);
 			}
 			else return undefined;
 		},
@@ -166,7 +177,7 @@
 		{
 			if(this.hasGroup(groupName))
 			{
-				return this.getGroup(groupName)[partName];
+				return this.groups.get(groupName).children[partName];
 			}
 			else return undefined;
 		},
@@ -174,9 +185,9 @@
 		{
 			if(this.hasGroup(groupName))
 			{
-				var _g=this.getGroup(groupName);
-				var rtn={};
-				for(var i in _g)rtn[i]=_g[i].getValues();
+				let _g=this.getGroup(groupName);
+				let rtn={};
+				for(let i in _g)rtn[i]=_g[i].getValues();
 				return rtn;
 			}
 			else return undefined;
@@ -185,8 +196,8 @@
 		{
 			if(this.hasGroup(groupName))
 			{
-				var gs=this.getGroup(groupName);
-				for(var g in gs)
+				let gs=this.getGroup(groupName);
+				for(let g in gs)
 				{
 					gs[g].destroy();
 				}
@@ -194,28 +205,22 @@
 			}
 			return this;
 		},
-		add:function(values)
+		add:function(value)
 		{
-			var indexes=this.mega(values);
-			if(indexes)
-			{
-				this._add(indexes);
-				return indexes;
-			}
-			return null;
+			let index=this.mega(value);
+			this._add(index);
+			return index;
 		},
-		_add:function(indexes)
+		_add:function(index)
 		{
-			SC.it(indexes,(i,index)=>
-			{
-				SC.it(this.filters,(i,child)=>this._filter(child,index));
-				SC.it(this.maps,(i,map)=>this._map(map,index));
-				SC.it(this.groups,(i,group)=>this._group(group,index));
-			});
+			let value=this.values[index];
+			for(let filter of this.filters.values()) this._filter(filter,value,index);
+			for(let map of this.maps.values()) this._map(map,value,index);
+			for(let group of this.groups.values()) this._group(group,value,index);
 		},
 		remove:function(values)
 		{
-			var indexes=this.mega(values);
+			let indexes=this.mega(values);
 			if(indexes)
 			{
 				this._remove(indexes);
@@ -225,40 +230,43 @@
 		},
 		_remove:function(indexes)
 		{
-			SC.it(this.filters,(i,child)=>child.remove(indexes));
-			SC.it(this.maps,(i,map)=>{
-				for(var m in map.values)
+			for(let filter of this.filters.values()) filter.child.remove(indexes);
+			for(let map of this.maps.values())
+			{
+				for(let m in map.values)
 				{
 					if(indexes.indexOf(map.values[m])!==-1) delete map.values[m];
 				}
-			});
-			SC.it(this.groups,(i,group)=>{
-				for(var g in group.values)
+			}
+			for(let group of this.groups.values())
+			{
+				for(let child of Object.values(group.children))
 				{
-					group.values[g].remove(indexes);
+					child.remove(indexes);
 				}
-			});
+			}
 		},
 		update:function(values)
 		{
-			var indexes=this.mega(values);
+			let indexes=this.mega(values);
 			if(indexes)
 			{
 				this._remove(indexes);
-				this._add(indexes);
+				for(let index of indexes) this._add(index);
 			}
 		},
 		clear:function()
 		{
 			this.mega();
-			SC.it(this.filters,(i,child)=>child.clear());
-			SC.it(this.maps,(i,map)=>map.values={});
-			SC.it(this.groups,(i,group)=>{
-				for(var g in group.values)
+			for(let filter of this.filters.values()) filter.child.clear();
+			for(let map of this.maps.values()) map.values={};
+			for(let group of this.groups)
+			{
+				for(let child in Object.values(group.children))
 				{
-					group.values[g].clear();
+					child.clear();
 				}
-			});
+			}
 			return this;
 		},
 		/**
@@ -268,24 +276,24 @@
 		combine:function(some,sort)
 		{
 			some=!!some;
-			var indexes=this.hasSort(sort)?this.getIndexSort(sort):(this.library ? this.values.slice() : this.values.map((a,i)=>i)),
-				inside=some?[]:indexes,
-				outside=some?indexes:[],
-				_doCombine=list=>
+			let indexes=this.hasSort(sort)?this.getIndexSort(sort):(this.library ? this.values.slice() : this.values.map((a,i)=>i));
+			let inside=some?[]:indexes;
+			let outside=some?indexes:[];
+			let _doCombine=list=>
+			{
+				let i=inside,o=outside;
+				if(some)i=outside,o=inside;
+
+				i.forEach((value,index)=>
 				{
-					var i=inside,o=outside;
-					if(some)i=outside,o=inside;
-					
-					i.forEach((value,index)=>
+					if((list.indexOf(value)!==-1)==some)// in list XOR collecting those in some lists
 					{
-						if((list.indexOf(value)!==-1)==some)// in list XOR collecting those in some lists
-						{
-							o[index]=value;
-							delete i[index];
-						}
-					});
-				};
-			var rtn={
+						o[index]=value;
+						delete i[index];
+					}
+				});
+			};
+			let rtn={
 				getIndexes:outer=>(outer?outside:inside).filter(i=>i!=undefined),
 				get:outer=>rtn.getIndexes(outer).map(i=>(this.library?this.library:this.values)[i]),
 				filter:name=>
@@ -295,30 +303,31 @@
 				},
 				group:(name,part)=>
 				{
-					var part=this.getGroupPart(name,part);
+					part=this.getGroupPart(name,part);
 					if(part)_doCombine(part.values);
 					return rtn;
 				},
 				combine:c=>
 				{
 					if(c._getOrigin()===this||c._getOrigin().library===this.library)
+					{
 						_doCombine(c.getIndexes());
+					}
 					return rtn;
 				},
 				_getOrigin:()=>this
 			};
 			return rtn;
 		},
-		
 		destroy:function()
 		{
 			SC.it(this.filters,(i,child)=>child.destroy());
 			this.filters.clear();
 			this.maps.clear();
 			SC.it(this.groups,(i,group)=>{
-				for(var g in group.values)
+				for(let child of Object.values(group.children))
 				{
-					group.values[g].destroy();
+					child.destroy();
 				}
 			});
 			this.groups.clear();
@@ -326,8 +335,8 @@
 			this.mega();
 		}
 	});
-	ORG.sortSimple=SA.simple;
-	ORG.sortGetter=SA.simpleGetter;
+	ORG.naturalOrder=SortedArray.naturalOrder;
+	ORG.orderBy=SortedArray.orderBy;
 	
 	/**
 	 * sort by multiple attributes
@@ -339,8 +348,8 @@
 	{
 		return function(obj,obj2)
 		{
-			var rtn=0,a,b;
-			for(var i=0;i<paths.length&&rtn===0;i++)
+			let rtn=0,a,b;
+			for(let i=0;i<paths.length&&rtn===0;i++)
 			{
 				a=SC.goPath(obj,paths[i]);
 				b=SC.goPath(obj2,paths[i]);

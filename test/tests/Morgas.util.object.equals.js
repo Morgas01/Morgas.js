@@ -77,4 +77,12 @@
 		testlogic("between",["apple","coconut"],"banana");
 		testlogic("betweenInclude",[1,1],1);
 	});
+
+	QUnit.module("bugs",function()
+	{
+		QUnit.test("RegEx pattern on object",function(assert)
+		{
+			assert.notOk(µ.util.object.equals({},/./g));
+		});
+	});
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

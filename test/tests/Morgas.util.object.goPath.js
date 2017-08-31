@@ -7,6 +7,7 @@ QUnit.module("util.object.goPath",function()
 			"other value":"something else",
 			arr:["something1","something2"]
 		}}};
+		assert.strictEqual(µ.util.object.goPath(null,"path.to.value"),undefined,"do not break on undefined");
 		assert.strictEqual(µ.util.object.goPath(obj,"path.to.value"),obj.path.to.value,"valid path");
 		assert.strictEqual(µ.util.object.goPath(obj,"path.to.no.value"),undefined,"nonvalid path");
 		assert.strictEqual(µ.util.object.goPath(obj,["path","to","other value"]),obj.path.to["other value"],"valid path as array");

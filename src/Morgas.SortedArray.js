@@ -3,11 +3,11 @@
 	//SC=SC({});
 
 	/**
-	 * holds values an sorted arrays of their indexes.
-	 * If values are already indexes use libary
+	 * Holds values and sorted arrays of their indexes.
+	 * If values are already indexes use library.
 	 *
-	 * @param {any} (values=null)
-	 * @param {object} (library=null}
+	 * @param {any} (values=null) - values or indexes of library
+	 * @param {Object} (library=null} - map of index to real values
 	 */
 	let SA=µ.SortedArray=µ.Class({
 		constructor:function(values,library)
@@ -16,49 +16,55 @@
 			this.values=[];
 			this.values.freeIndexes=[];
 			this.library=library;
-			this.add(values);
+
+			if(values)this.addAll(values);
+		},
+		add:function(value)
+		{
+			let index=this.values.freeIndexes.shift();
+			if(index===undefined)index=this.values.length;
+			this.values[index]=value;
+			for (let sort of this.sorts.values())
+			{
+				this._addToSort(sort,value,index);
+			};
+			return index;
+		},
+		addAll(values)
+		{
+			let indexes=[];
+			for(let value of values) indexes.push(this.add(value));
+			return indexes;
 		},
 		hasSort:function(sortName){return this.sorts.has(sortName)},
 		sort:function(sortName,sortFn)
 		{
-			let sort=[];
-			this.sorts.set(sortName,sort);
-			sort.sortFn=sortFn;
-			this.values.forEach((item,index)=>this._addToSort(sort,item,index));
-			return this;
-		},
-		add:function(values)
-		{
-			if(values!=null)
+			let sort=this.sorts.get(sortName);
+			if(sort)
 			{
-				let indexes=[];
-				for(let item of values)
-				{
-					let index=this.values.freeIndexes.shift();
-					if(index===undefined)index=this.values.length;
-					this.values[index]=item;
-					indexes.push(index);
-					for (let sort of this.sorts.values())
-					{
-						this._addToSort(sort,item,index);
-					};
-				};
-				return indexes;
-			}
-			return null;
-		},
-		_addToSort:function(sort,item,index)
-		{
-			if(!this.library)
-			{
-				let orderIndex=SA.getOrderIndex(item,this.values,sort.sortFn,sort);
-				sort.splice(orderIndex,0,index);
+				sort.indexes.length=0;
+				sort.fn=sortFn;
 			}
 			else
 			{
-				let orderIndex=SA.getOrderIndex(this.library[item],this.library,sort.sortFn,sort);
-				sort.splice(orderIndex,0,item);
+				sort={indexes:[],fn:sortFn};
 			}
+			this.sorts.set(sortName,sort);
+			this.values.forEach((item,index)=>this._addToSort(sort,item,index));
+			return this;
+		},
+		_addToSort:function(sort,value,index)
+		{
+			let orderIndex;
+			let source=this.values;
+			if(this.library)
+			{
+				index=value;
+				value=this.library[value];
+				source=this.library;
+			}
+			orderIndex=SA.getOrderIndex(value,source,sort.fn,sort.indexes);
+			sort.indexes.splice(orderIndex,0,index);
 		},
 		remove:function(values)
 		{
@@ -74,8 +80,8 @@
 					{
 						for(let sort of this.sorts.values())
 						{
-							let orderIndex=sort.indexOf(index);
-							if (orderIndex!==-1) sort.splice(orderIndex,1);
+							let orderIndex=sort.indexes.indexOf(index);
+							if (orderIndex!==-1) sort.indexes.splice(orderIndex,1);
 						}
 						if(valueIndex===this.values.length-1)this.values.length--;
 						else
@@ -97,44 +103,43 @@
 				this.clear();
 				return this.add(values);
 			}
-			else
+
+			let indexes=[];
+			for(let value of values)
 			{
-				let indexes=[];
-				for(let item of this.values)
-				{
-					let index=this.values.indexOf(item);
-					if(index!==-1)indexes.push(index);
-				}
-				for(let sort of this.sorts.values())
-				{
-					for(let index of indexes)
-					{
-						if(this.library)index=this.values[index];
-						let orderIndex=sort.indexOf(index);
-						if(orderIndex!==-1)
-						{
-							sort.splice(orderIndex,1);
-						}
-					}
-					for(let index of indexes)
-					{
-						this._addToSort(sort,this.values[index],index);
-					}
-				}
-				return indexes;
+				let index=this.values.indexOf(value);
+				if(index!==-1) indexes.push(index);
 			}
+			for(let sort of this.sorts.values())
+			{
+				for(let index of indexes)
+				{
+					if(this.library)index=this.values[index];
+					let orderIndex=sort.indexes.indexOf(index);
+					if(orderIndex!==-1)
+					{
+						sort.indexes.splice(orderIndex,1);
+					}
+				}
+				for(let index of indexes)
+				{
+					this._addToSort(sort,this.values[index],index);
+				}
+			}
+			return indexes;
 
 		},
 		getIndexes:function(sortName)
 		{
 			if (!this.sorts.has(sortName))return null;
-			else return this.sorts.get(sortName).slice();
+			else return this.sorts.get(sortName).indexes.slice();
 		},
 		get:function(sortName)
 		{
-			if (!this.sorts.has(sortName))return null;
-			else if (this.library) return this.sorts.get(sortName).map(i=>this.library[i]);
-			else return this.sorts.get(sortName).map(i=>this.values[i]);
+			let sort=this.sorts.get(sortName)
+			if (!sort)return null;
+			else if (this.library) return sort.indexes.map(i=>this.library[i]);
+			else return sort.indexes.map(i=>this.values[i]);
 		},
 		/**
 		 * returns an Array of values without empty entries.
@@ -143,8 +148,16 @@
 		 */
 		getValues:function()
 		{
-			if(this.library) return this.values.map(i=>this.library[i]);
-			return this.values.slice();
+			let rtn=[];
+			for(let index in this.values)
+			{
+				if(index!=="freeIndexes")
+				{
+					if(this.library) rtn.push(this.library[this.values[index]]);
+					else rtn.push(this.values[index]);
+				}
+			}
+			return rtn;
 		},
 		/**
 		 * returns value for the library index.
@@ -160,7 +173,7 @@
 		clear:function()
 		{
 			this.values.length=this.values.freeIndexes.length=0;
-			for(let sort of this.sorts.values()) sort.length=0;
+			for(let sort of this.sorts.values()) sort.indexes.length=0;
 			return this;
 		},
 		destroy:function()
