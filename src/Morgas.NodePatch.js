@@ -1,263 +1,123 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-    var Patch=GMOD("Patch");
-	SC=SC({
-		p:"proxy"
-	});
+    let Patch=GMOD("Patch");
 
-	var NODE=µ.NodePatch=µ.Class(Patch,{
-		patchID:"NodePatch",
-		patch:function(aliasMap)
+	//SC=SC({});
+
+	let NODE=µ.NodePatch=µ.Class(Patch,{
+		[Patch.symbols.multiple]:true,
+		composeKeys:["parent","children","addChild","removeChild","setParent","remove","isChildOf","hasChild"],
+		patch:function(name,composeKeys=NODE.prototype.composeKeys)
 		{
-
+			this.name=name;
 			this.parent=null;
-			this.children=[];
+			this.children=new Set();
 
-			aliasMap=aliasMap||{};
-            this.aliasMap={};
-            var proxyMap={};
-			for (var i=0;i<NODE.Aliases.length;i++)
-			{
-                var target=NODE.Aliases[i];
-                if(target in aliasMap)
-                {
-                    this.aliasMap[target]=aliasMap[target];
-                    if(this.instance[this.aliasMap[target]]===undefined)
-                    {
-                        proxyMap[target]=this.aliasMap[target];
-                    }
-                }
-			}
-            SC.p(getNode,proxyMap,this.instance);
-
-			for (var i=0;i<NODE.Symbols.length;i++)
-			{
-                var symbol=NODE.Symbols[i];
-                if(symbol in aliasMap)
-                {
-                    setSymbol(this,symbol,aliasMap[symbol])
-                }
-			}
+            this.composeInstance(composeKeys);
 		},
-		addChild:function(child,index)
+		_getNode:function(obj)
 		{
-			var childPatch=getNode(child),alias;
-            var childIndex=this.children.indexOf(child);
-            if(!childPatch)
-            {//is not a Node
-            	µ.logger.error(new TypeError(child+" is not a Node"));
-            	return false;
-            }
-            else if(childIndex===-1)
-			{//has not that child jet
-				if(index!==undefined)
-				{
-					this.children.splice(index,0,child);
-				}
-				else
-				{
-                    index=this.children.length;
-					this.children.push(child);
-				}
-				if(childPatch.parent!==null&&childPatch.parent!==this.instance)
-				{//has other parent
-					//remove other parent
-                    alias=childPatch.aliasMap.remove;
-                    if(alias)
-                    {
-                        if(!child[alias]())
-                        {//won't let go of parent
-                            µ.logger.info(new µ.Warning("rejected remove child from old parent",{child:child,parent:childPatch.parent}));
-                            this.children.splice(index,1);
-                            return false;
-                        }
-                    }
-                    else
-                    {
-					    childPatch.remove();
-                    }
-				}
-				//add to parent
-				alias=childPatch.aliasMap.setParent;
-                if(alias)
-                {
-                    if(!child[alias](this.instance))
-                    {//won't attach to me
-                        µ.logger.info(new µ.Warning("rejected to set parent of child",{child:child,parent:this.instance}));
-                        this.children.splice(index,1);
-                        return false;
-                    }
-                }
-                else
-                {
-                    childPatch.setParent(this.instance);
-                }
+			let nodes=Patch.getPatches(obj,NODE);
+			for(let node of nodes)
+			{
+				if(node.name===this.name) return node;
+			}
+			throw new Error("#NodePatch:001 target has no NodePatch"+(this.name?` (${this.name}})`:""));
+		},
+		check:function(key,target,args)
+		{
+			let checkFn=this.composedInstanceKeys[key];
+			if(checkFn)
+			{
+				return checkFn.call(this.instance,target,...args);
 			}
 			return true;
 		},
-		removeChild:function(child)
+		addChild:function(child,...args)
 		{
-			var index=this.children.indexOf(child);
-			if(index!==-1)
-			{//has child
-				this.children.splice(index, 1);
-				var childPatch=getNode(child);
-				if(childPatch&&childPatch.parent===this.instance)
-				{//is still parent of child
-					var alias=childPatch.aliasMap.remove;
-	                if(alias)
-	                {
-	                    if(!child[alias]())
-	                    {//won't let go of me
-                            µ.logger.info(new µ.Warning("rejected remove child from parent",{child:child,parent:this.instance}));
-	                        this.children.splice(index,0,child);
-	                        return false;
-	                    }
-	                }
-	                else
-	                {
-					    childPatch.remove();
-	                }
-                }
-			}
-			return true;
-		},
-		setParent:function(parent)
-		{
-			var parentPatch=getNode(parent),alias;
-			if(!parentPatch)
-			{//is not a Node
-            	µ.logger.error(new TypeError("parent is not a Node"));
-            	return false;
-			}
-			if(parent&&this.parent!==parent)
+			if(this.children.has(child)) return true;
+			let childNode=this._getNode(child);
+            if(this.check("addChild",child,args))
 			{
-				if(this.parent!==null)
-				{//has other parent
-					//remove other parent
-                    alias=childPatch.aliasMap.remove;
-                    if(alias)
-                    {
-                        if(!child[alias]())
-                        {//won't let go of parent
-                            µ.logger.info(new µ.Warning("rejected remove child from old parent",{child:child,parent:childPatch.parent}));
-                            this.children.splice(index,1);
-                            return false;
-                        }
-                    }
-                    else
-                    {
-					    childPatch.remove();
-                    }
+				this.children.add(child);
+				if(!childNode.setParent(this.instance,...args))
+				{
+					this.children.delete(child);
+					return false;
 				}
+				return true;
+			}
+			return false;
+		},
+		removeChild:function(child,...args)
+		{
+			if(!this.children.has(child)) return true;
+			let childNode=this._getNode(child);
+            if(this.check("removeChild",child,args))
+			{
+				this.children.delete(child);
+				if(!childNode.setParent(null,...args))
+				{
+					this.children.add(child);
+					return false;
+				}
+				return true;
+			}
+			return false;
+		},
+		setParent:function(parent,...args)
+		{
+			if(this.parent===parent) return true;
+			if(this.check("setParent",parent,args))
+			{
+				let oldParent=this.parent;
 				this.parent=parent;
-				alias=parentPatch.aliasMap.addChild;
-				if(parentPatch.children.indexOf(this.instance)===-1)
-				{//not already called from addChild
-					if(alias)
-					{
-						if(!this.parent[alias](this.instance))
-						{//won't accept me
-							µ.logger.info(new µ.Warning("rejected to add child to parent",{child:this.instance,parent:parent}));
-							this.parent=null;
-							return false;
-						}
-					}
-					else
-					{
-						parentPatch.addChild(this.instance);
-					}
+				let oldRemoved=true;
+				if(oldParent)
+				{
+					let oldParentNode=this._getNode(oldParent);
+					oldParentNode.removeChild(this.instance,...args);
 				}
-			}
-            return true;
-
-		},
-		remove:function()
-		{
-			if(this.parent!==null)
-			{
-				var oldParent=this.parent;
-				var oldParentPatch=getNode(oldParent);
-				this.parent=null;
-				if(oldParentPatch.children.indexOf(this.instance)!==-1)
-				{//is still old parents child
-					var alias=oldParentPatch.aliasMap.removeChild;
-					if(alias)
-					{
-						if(!oldParent[alias](this.instance))
-						{//I won't var go of parent
-							this.parent=oldParent;
-							µ.logger.info(new µ.Warning("rejected to remove child from parent",{child:this.instance,parent:this.parent}));
-							return false;
-						}
-					}
-					else
-					{
-						oldParentPatch.removeChild(this.instance);
-					}
+				let newAdded=true;
+				if(oldRemoved&&parent)
+				{
+					let parentNode=this._getNode(parent);
+					newAdded=parentNode.addChild(this.instance,...args);
 				}
+				if(!oldRemoved||!newAdded)
+				{
+					this.parent=oldParent;
+					return false;
+				}
+				return true;
 			}
-			return true;
+			return false;
 		},
-		hasChild:function(child)
+		remove:function(...args)
 		{
-			return this.children.indexOf(child)!==-1;
+			return this.setParent(null,...args);
 		},
-        isChildOf:function(parent)
-        {
-            var parentPatch=getNode(parent);
-            return parent&&parent.hasChild(this.instance);
-        },
 		destroy:function()
 		{
 			this.remove();
-			for(var c of this.children.slice())
+			for(let child of this.children)
 			{
-				this.removeChild(c);
-			}
-			for( var a in this.aliasMap)
-			{
-				delete this.instance[this.aliasMap[a]];
+				this.removeChild(child);
 			}
 			this.mega();
 		}
 	});
-	NODE.Aliases=["addChild","removeChild","remove","setParent","hasChild"];
-    NODE.Symbols=["parent","children"];
-    NODE.BasicAliases={
-        parent:"parent",
-        children:"children",
-        addChild:"addChild",
-        removeChild:"removeChild",
-        remove:"remove",
-        setParent:"setParent",
-        hasChild:"hasChild"
-    };
+
 	NODE.Basic=µ.Class({
-		init:function(aliasMap)
+		constructor:function(name,aliasMap)
 		{
-			aliasMap=aliasMap||{};
-			var map={};
-            for(var i=0,targets=Object.keys(NODE.BasicAliases);i<targets.length;i++)
-			{
-            	var target=targets[i];
-				var alias=aliasMap[target];
-				if(alias===undefined)
-				{
-					alias=NODE.BasicAliases[target];
-				}
-				if(alias!==null)
-				{
-					map[target]=""+alias;
-				}
-			}
-			new NODE(this,map);
+			new NODE(this,name,aliasMap);
 		},
-		destroy:function()
+		destroy()
 		{
-			for(var c of this.children.slice())
+			for(let child of this.children)
 			{
-				if(typeof c.destroy==="function")c.destroy();
+				if(typeof child.destroy==="function")child.destroy();
 			}
 			this.mega();
 		}
@@ -265,15 +125,15 @@
 
 	NODE.normalizeChildrenGetter=function(childrenGetter)
 	{
-		if(!childrenGetter) childrenGetter=NODE.BasicAliases.children;
+		if(!childrenGetter) childrenGetter="children";
 		if(typeof childrenGetter == "string") return c=>c[childrenGetter];
 		return childrenGetter;
-	}
+	};
 
 	NODE.traverse=function(root,func,childrenGetter)
 	{
 		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
-		var todo=[{
+		let todo=[{
 			node:root,
 			parent:null,
 			parentResult:null,
@@ -281,23 +141,15 @@
 			index:null,
 			depth:0
 		}];
-		for(var entry of todo)
+		for(let entry of todo)
 		{
 			entry.siblingResults.push(func(entry.node,entry.parent,entry.parentResult,entry));
-			var children=[];
-			var nodePatch=getNode(entry.node);
-			if(nodePatch)
-			{
-				children.nodePatch.getChildren();
-			}
-			else
-			{
-				children=childrenGetter(entry.node);
-			}
+			let children=[];
+			children=childrenGetter(entry.node);
 			if(children)
 			{
-				var childSiblings=[];
-				for(var i=0;i<children.length;i++)
+				let childSiblings=[];
+				for(let i=0;i<children.length;i++)
 				{
 					todo.push({
 						node:children[i],
@@ -317,70 +169,13 @@
 	{
 		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
 		if(typeof path=="string") path=path.split(".");
-		for(var key of path)
+		for(let key of path)
 		{
 			root=childrenGetter(root)[key];
 			if(!root) return null;
 		}
 		return root;
 	};
-
-	NODE.patchTree=function(root,childrenGetter,aliasMap)
-	{
-		return NODE.traverse(root,function(node,parent,parentNode)
-		{
-			var child=new NODE(node,aliasMap);
-			if(parentNode)
-			{
-				parentNode.addChild(child);
-			}
-			return child;
-		},childrenGetter);
-	};
-
-	var getNode=function(obj)
-	{
-        if(typeof obj==="string")
-        {//used as proxy getter
-            obj=this
-        }
-        if(obj instanceof NODE)
-        {
-            return obj;
-        }
-        else
-        {
-        	return Patch.getPatch(obj,NODE);
-        }
-	};
-	//TODO replace with GMOD("shortcut") dynamic
-    var setSymbol=function(node,symbol,alias)
-    {
-        if(typeof node[symbol]!=="function")
-        {
-            Object.defineProperty(node.instance,alias,{
-            	configurable:true,
-            	enumerable:true,
-                get:function()
-                {
-                    return node[symbol];
-                },
-                set:function(arg)
-                {
-                    node[symbol]=arg;
-                }
-            });
-        }
-        else
-        {
-            node.instance[alias]=node[symbol];
-        }
-    };
-
-    var getChildren=function(node,key)
-	{
-		if(node instanceof NODE) return getP
-	}
 
 	SMOD("NodePatch",NODE);
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

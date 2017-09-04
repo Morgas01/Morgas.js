@@ -27,7 +27,7 @@
 		},
 		constructor:function Patch(instance,...param)
 		{
-			this.composedInstanceKeys=[];
+			this.composedInstanceKeys={};
 			if(!patchMap.has(instance))
 			{
 				patchMap.set(instance,[]);
@@ -46,7 +46,6 @@
 		composeKeys:[],
 		composeInstance(keys)
 		{
-			let instance=this.instance;
 			if(!Array.isArray(keys)) keys=Object.entries(keys);
 
 			keys.forEach(entry=>
@@ -58,30 +57,33 @@
 
 				if(this.composeKeys.indexOf(key)==-1) return; //continue
 
+				this.composedInstanceKeys[targetKey]=this.instance[targetKey];
+
 				if(typeof this[key]==="function")
 				{
-					instance[targetKey]=SC.rescope(this[key],this);
+					this.instance[targetKey]=SC.rescope(this[key],this);
 				}
 				else
 				{
-					Object.defineProperty(instance,targetKey,{
+					Object.defineProperty(this.instance,targetKey,{
 						configurable:true,
 						enumerable:true,
 						get:()=>this[key],
 						set:value=>{this[key]=value}
 					});
 				}
-				this.composedInstanceKeys.push(targetKey);
 			});
 		},
 		destroy()
 		{
-			let instance=this.instance;
-			this.composedInstanceKeys
-			.forEach(key=>delete instance[key]);
+			for(let key in this.composedInstanceKeys)
+			{
+				this.instance.key=this.composedInstanceKeys[key];
+			}
 
+			SC.remove(patchMap.get(this.instance),this);
 			instanceMap.delete(this);
-			SC.remove(patchMap.get(instance),this);
+			this.mega();
 		}
 	});
 	Patch.getPatches=function(instance,clazz)
