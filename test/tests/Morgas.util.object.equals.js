@@ -1,9 +1,5 @@
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	QUnit.module("util.object.equals");
-	
-	var EQ=GMOD("equals");
-
+QUnit.module("util.object.equals",function()
+{
 	QUnit.test("equals",function(assert)
 	{
 		var pattern={
@@ -85,4 +81,4 @@
 			assert.notOk(µ.util.object.equals({},/./g));
 		});
 	});
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+});
