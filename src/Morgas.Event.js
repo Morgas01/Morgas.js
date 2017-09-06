@@ -63,6 +63,27 @@
 		DONE:"done"
 	};
 	SMOD("CancelEvent",µ.Event.CancelEvent);
+
+
+
+	µ.Event.ErrorEvent=µ.Class(µ.Event,{
+		name:"error",
+		constructor:function(reason,cause)
+		{
+			if(reason instanceof Error||reason instanceof ErrorEvent)
+			{
+				cause=reason;
+				reason=reason.message;
+			}
+			this.reason=reason;
+			this.cause=cause;
+		},
+		toString()
+		{
+			return this.reason+"\n"+this.cause;
+		}
+	});
+	SMOD("ErrorEvent",µ.Event.ErrorEvent);
 	
 
 
@@ -273,6 +294,9 @@
 		remove:"removeEventListener",
 		report:"reportEvent"
 	};
+	SMOD("EventReporterPatch",ReporterPatch);
+
+
 
 	let ListenerPatch=µ.Event.ListenerPatch=µ.Class(Patch,{
 		patch()
@@ -293,6 +317,7 @@
 			this.reporters.clear();
 			this.mega();
 		}
-	})
+	});
+	SMOD("EventListenerPatch",ListenerPatch);
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

@@ -1,86 +1,109 @@
+self.worker={};
 self.onmessage=function init(initEvent)
 {
-	var [initRequest,config]=initEvent.data.args;
+	let config=initEvent.data;
 	//load Morgas.js
 	importScripts(config.basePath+config.morgasPath);
 
-	if(config.logger&&config.logger.send)
-	{
-		µ.logger.out=function(msg,verbose)
-		{
-			self.send("log",{msg:msg,verbose:verbose});
-		}
-	}
-	µ.logger.verbose=config.logger&&config.logger.verbose||µ.logger.verbose;
+	let FEEDBACK_COUNTER=0;
+	let FEEDBACK_MAP=new Map();
 
 	self.onmessage=function(event)
 	{
-		if(event.data.method&&event.data.method in self)
+		if("feedback" in event.data)
 		{
-			var rtn=self[event.data.method].apply(self,event.data.args);
-
-			if(rtn!==undefined&&event.data.isRequest) self.respond(event.data.args[0],true,rtn);
+			if(!FEEDBACK_MAP.has(event.data.feedback))
+			{
+				worker.error({message:"no such feedback",feedback:event.data.feedback,data:event.data.data});
+			}
+			else
+			{
+				if(event.data.error) FEEDBACK_MAP.get(event.data.feedback).reject(event.data.error);
+				else FEEDBACK_MAP.get(event.data.feedback).resolve(event.data.data);
+			}
+			return;
+		}
+		let callPromise;
+		if(event.data.method in worker)
+		{
+			try
+			{
+				callPromise=Promise.resolve(worker[event.data.method](...event.data.args));
+			}
+			catch(e)
+			{
+				callPromise=Promise.reject(e);
+			}
 		}
 		else
 		{
-			µ.logger.warn(event.type+" is not defined in worker "+config.workerID);
+			callPromise=Promise.reject(event.data.method+" is not defined in worker "+config.id);
 		}
-	};
-	/**
-	 * send Event to main thread
-	 * @param {string} type
-	 * @param {any} data
-	 */
-	self.send=function(type,data)
-	{
-		self.postMessage({type:type,data:data});
-	};
-	/**
-	 * respond a request
-	 * @param {number} requestID
-	 * @param {boolean} success
-	 * @param {any} data
-	 */
-	self.respond=function(requestID,success,data)
-	{
-		self.postMessage({
-			request:requestID,
-			success:!!success,
-			data:data
-		});
-	};
-
-	//-------- METHODS --------//
-
-	self.loadScripts=function(_request)
-	{
-		var i=0;
-		if(typeof _request==="number")
+		if("request" in event.data)
 		{
-			i=1;
+			callPromise.then(result=>self.postMessage({request:event.data.request,data:result}))
+			.catch(error=>
+			{
+				if(error instanceof Error) error=error.message+"\n"+error.stack;
+				self.postMessage({request:event.data.request,error:error})
+			});
 		}
-		self.importScripts.apply(self,Array.slice(arguments,i).map(s=>config.basePath+s));
-
-		if(i===1) self.respond(_request,true);
+		else callPromise.catch(error=>worker.error(error));
 	};
-	/**
-	 * execute utils
-	 * @param {number} request
-	 * @param {string} module
-	 * @param {any} ...args
-	 */
-	self.util=function(request,module,...args)
+	worker.id=config.id;
+	worker.message=function(data)
+	{
+		self.postMessage({data:data});
+	};
+	worker.error=function(error)
+	{
+		if(error instanceof Error) error=error.message+"\n"+error.stack;
+		self.postMessage({error:error});
+	};
+	worker.feedback=function(data,timeout=60000)
+	{
+		let payload={
+			feedback:FEEDBACK_COUNTER++,
+			data:data
+		};
+		let timer;
+		let feedbackPromise=new Promise(function(resolve,reject)
+		{
+			let signal={resolve:resolve,reject:reject};
+			FEEDBACK_MAP.set(payload.feedback,signal);
+			timer=setTimeout(function()
+			{
+				reject("timeout");
+			},timeout);
+			self.postMessage(payload);
+		});
+		feedbackPromise.catch(a=>a).then(function()
+		{
+			FEEDBACK_MAP.delete(payload.feedback);
+			clearTimeout(timer);
+		});
+		return feedbackPromise;
+	};
+	worker.loadScript=function(script,path=config.basePath)
+	{
+		self.importScripts(path+script);
+	};
+	worker.util=function(module,...args)
 	{
 		if(µ.hasModule(module))
 		{
-			self.respond(request,true,µ.getModule(module)(...args));
+			return µ.getModule(module)(...args);
 		}
 		else
 		{
-			self.respond(request,false,"module not loaded");
+			return Promise.reject("module not loaded");
 		}
 	};
+	worker.stop=function()
+	{
+		self.close();
+	}
 
 	//respond the init request
-	self.respond(initRequest,true);
+	self.postMessage({request:"init"});
 };

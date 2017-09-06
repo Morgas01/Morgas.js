@@ -39,12 +39,9 @@
 	WR("Morgas.SortedArray.js");
 	WR("Morgas.Organizer.js");
 	WR("Morgas.NodePatch.js");
+	WR("Morgas.AbstractWorker.js");
+	WR("Morgas.Worker.js");
 /*
-
-	WR(srcDir+"Morgas.NodePatch.treeCompare.js");
-	WR(testDir+"test.Morgas.NodePatch.treeCompare.js");
-
-	WR(srcDir+"Morgas.Worker.js");
 	WR(testDir+"test.Morgas.Worker.js");
 
 	WR(srcDir+"DB/Morgas.DB.js");

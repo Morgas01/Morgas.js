@@ -72,7 +72,7 @@
 			}
 		},
 		LEVEL:{
-				//OFF:0,
+				//off:0,
 				error:10,
 				warn:20,
 				info:30,
@@ -109,11 +109,10 @@
 	//create methods for each level (e.g. µ.logger.warn)
 	Object.keys(µ.logger.LEVEL).forEach(function(level)
 	{
-		µ.logger[level]=function()
+		µ.logger[level]=function(...args)
 		{
-			var args=Array.prototype.slice.call(arguments);
-			args.unshift(µ.logger.LEVEL[level]);
-			µ.logger.log.apply(null,args);
+			args.unshift();
+			µ.logger.log.call(null,µ.logger.LEVEL[level],...args);
 		}
 	});
 
