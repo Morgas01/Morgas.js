@@ -15,8 +15,8 @@
 		[µ.Class.symbols.abstract]:true,
 		[µ.Class.symbols.onExtend]:function(sub)
 		{
-			if(typeof sub.prototype._send!="function") throw new SyntaxError("#AbstractWorker:001 _send is not defined");
-			if(typeof sub.prototype._start!="function") throw new SyntaxError("#AbstractWorker:002 _start is not defined");
+			if(typeof sub.prototype._send!="function") throw new SyntaxError("#AbstractWorker:001 _send() is not defined");
+			if(typeof sub.prototype._start!="function") throw new SyntaxError("#AbstractWorker:002 _start() is not defined");
 		},
 		constructor:function(startTimeout)
 		{

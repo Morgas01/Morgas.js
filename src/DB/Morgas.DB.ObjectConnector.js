@@ -1,20 +1,13 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	/**
-	 * Depends on	: Morgas DB 
-	 * Uses			: 
-	 *
-	 * DB.Connector for simple Javascript object
-	 *
-	 */
-	var DBC		=GMOD("DBConn");
-	var ORG		=GMOD("Organizer");
+
+	let DBC=GMOD("DBConn");
+	let ORG=GMOD("Organizer");
 	
 	SC=SC({
 		eq:"equals",
-		find:"find"
 	});
 	
-	var getDb=function()
+	let getDb=function()
 	{
 		return new ORG().group("objectType","objectType",function(tDb)
 		{
@@ -22,9 +15,9 @@
 		});
 	};
 	
-	var OCON=DBC.ObjectConnector=µ.Class(DBC,
+	let OCON=DBC.ObjectConnector=µ.Class(DBC,
 	{
-		init:function(global)
+		constructor:function(global)
 		{
 			this.mega();
 			this.db=getDb();
@@ -32,28 +25,28 @@
 		save:function(signal,objs)
 		{
 			objs=[].concat(objs);
-			var sortedObjs=DBC.sortObjs(objs);
+			let sortedObjs=DBC.sortObjs(objs);
 			
-			for(var objectType in sortedObjs.fresh)
+			for(let objectType in sortedObjs.fresh)
 			{
-				var objs=sortedObjs.fresh[objectType],
+				let objs=sortedObjs.fresh[objectType],
 				ids=this._getNextID(objectType);
-				for(var i=0;i<objs.length;i++)
+				for(let i=0;i<objs.length;i++)
 				{
-					var id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
+					let id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
 					objs[i].ID=id;
-					this.db.add([{objectType:objs[i].objectType,fields:objs[i].toJSON()}]);
+					this.db.add({objectType:objs[i].objectType,fields:objs[i].toJSON()});
 				}
 			}
 			
-			var updates=[];
-			for(var objectType in sortedObjs.preserved)
+			let updates=[];
+			for(let objectType in sortedObjs.preserved)
 			{
-				var objs=sortedObjs.preserved[objectType],
+				let objs=sortedObjs.preserved[objectType],
 				ids=this.db.getGroupPart("objectType",objectType).getMap("ID");
-				for(var i=0;i<objs.length;i++)
+				for(let i=0;i<objs.length;i++)
 				{
-					var found=ids[objs[i].ID];
+					let found=ids[objs[i].ID];
 					if(found)
 					{
 						found.fields=objs[i].toJSON();
@@ -63,45 +56,45 @@
 			}
 			this.db.update(updates);
 
-			for(var objectType in sortedObjs.friend)
+			for(let objectType in sortedObjs.friend)
 			{
-				var objs=sortedObjs.friend[objectType],
+				let objs=sortedObjs.friend[objectType],
 					tDb=this.db.getGroupPart("objectType",objectType),
 					tDbValues=tDb ? tDb.getValues():null,
 					newFriends=[];
 
-				for(var i=0;i<objs.length;i++)
+				for(let i=0;i<objs.length;i++)
 				{
-					var json={fields:objs[i].toJSON()};
-					if(!tDbValues||SC.find(tDbValues,json))
+					let json={fields:objs[i].toJSON()};
+					if(!tDbValues||tDbValues.findIndex(SC.eq.test(json))==-1)
 					{
 						json.objectType=objs[i].objectType;
 						newFriends.push(json);
 					}
 				}
-				this.db.add(newFriends);
+				this.db.addAll(newFriends);
 			}
 			signal.resolve();
 		},
 		load:function(signal,objClass,pattern,sort)
 		{
-			var tDb=this.db.getGroupPart("objectType",objClass.prototype.objectType);
+			let tDb=this.db.getGroupPart("objectType",objClass.prototype.objectType);
 			if(!tDb) return signal.resolve([]);
 
-			var pDb;
+			let pDb;
 			if(pattern!=null)
 			{
 				pattern={fields:pattern};
-				var patternKey=SC.eq.patternToString(pattern);
+				let patternKey=SC.eq.patternToString(pattern);
 				if(!tDb.hasFilter(patternKey)) tDb.filter(patternKey,pattern);
 				pDb=tDb.getFilter(patternKey);
 			}
 			else pDb=tDb;
-			var rtn;
+			let rtn;
 			if(sort)
 			{
 				sort=[].concat(sort).map(s=>"fields."+s);
-				var sortKey=JSON.stringify(sort);
+				let sortKey=JSON.stringify(sort);
 				if(!pDb.hasSort(sortKey)) pDb.sort(sortKey,ORG.attributeSort(sort));
 				rtn=pDb.getSort(sortKey);
 			}
@@ -111,7 +104,7 @@
 		},
 		"delete":function(signal,objClass,toDelete)
 		{
-			toDelete=SC.find(this.db.values,{objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)},true);
+			toDelete=this.db.values.filter(SC.eq.test({objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)}));
 			this.db.remove(toDelete);
 			signal.resolve(toDelete.map(d=>d.fields.ID));
 		},
@@ -126,14 +119,14 @@
 		},
 		_getNextID:function(objectType)
 		{
-			var rtn=[],
+			let rtn=[],
 			tDb=this.db.getGroupPart("objectType",objectType);
 			if(!tDb)return [0];
-			var ids=Object.keys(tDb.getIndexMap("ID"));
-			var i=0;
+			let ids=Object.keys(tDb.getIndexMap("ID"));
+			let i=0;
 			for(;ids.length>0;i++)
 			{
-				var index=ids.indexOf(""+i);
+				let index=ids.indexOf(""+i);
 				if(index===-1) rtn.push(i);
 				else ids.splice(index,1);
 			}

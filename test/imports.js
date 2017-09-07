@@ -41,23 +41,8 @@
 	WR("Morgas.NodePatch.js");
 	WR("Morgas.AbstractWorker.js");
 	WR("Morgas.Worker.js");
-/*
-	WR(testDir+"test.Morgas.Worker.js");
-
-	WR(srcDir+"DB/Morgas.DB.js");
-	WR(testDir+"test.Morgas.DB.js");
-
-	WR(srcDir+"DB/Morgas.DB.ObjectConnector.js");
-	WR(testDir+"test.Morgas.DB.ObjectConnector.js");
-
-	WR(srcDir+"DB/Morgas.DB.IndexedDBConnector.js");
-	WR(testDir+"test.Morgas.DB.IndexedDBConnector.js");
-
-	WR(srcDir+"Morgas.util.object.iterate.js");
-	WR(testDir+"test.Morgas.util.object.iterate.js");
-
-	WR(srcDir+"Morgas.util.object.iterateAsync.js");
-	WR(testDir+"test.Morgas.util.object.iterateAsync.js");
-	*/
+	WR("DB/Morgas.DB.js");
+	WR("DB/Morgas.DB.ObjectConnector.js");
+	WR("DB/Morgas.DB.IndexedDBConnector.js");
 
 })();
