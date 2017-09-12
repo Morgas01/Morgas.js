@@ -72,16 +72,19 @@ QUnit.module("Promise",function()
 	{
 		return new µ.Promise(function()
 		{
+			µ.logger.setLevel(µ.logger.LEVEL.off);
 			throw("reason");
 		}).catch(function(err)
 		{
 			assert.strictEqual(err,"reason","error thrown");
+			µ.logger.setLevel(µ.logger.LEVEL.trace);
 		});
 	});
 	QUnit.test("on error propagate",function(assert)
 	{
 		var d1=new µ.Promise(function()
 		{
+			µ.logger.setLevel(µ.logger.LEVEL.off);
 			throw("reason");
 		});
 		var d2=d1.then(function()
@@ -91,6 +94,7 @@ QUnit.module("Promise",function()
 		return d2.catch(function(err)
 		{
 			assert.strictEqual(err,"reason","error propagated");
+			µ.logger.setLevel(µ.logger.LEVEL.trace);
 		});
 	});
 	QUnit.test("add abort",function(assert)
@@ -190,7 +194,7 @@ QUnit.module("Promise",function()
 			"!"
 		])
 		.then(function(){
-			assert.strictEqual(Array.slice(arguments).join(" "),"Hello Promise World !");
+			assert.strictEqual(Array.prototype.join.call(arguments," "),"Hello Promise World !");
 		})
 	});
 	

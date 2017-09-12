@@ -1,14 +1,20 @@
 {
-  "name": "Morgas",
-  "version": "0.8.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Morgas01/Morgas.js.git"
-  },
-  "devDependencies": {
-    "qunitjs": "^2.0.1",
-    "uglify-js": "^2.4.24"
-  },
-  "main": "src/NodeJs/Morgas.NodeJs.js",
-  "license": "MIT"
+	"name": "Morgas",
+	"version": "0.8.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Morgas01/Morgas.js.git"
+	},
+	"devDependencies": {
+		"qunit-tap": "^1.5.1",
+		"qunitjs": "^2.0.1",
+		"tap-difflet": "^0.7.0",
+		"uglify-js": "^2.4.24"
+	},
+	"main": "src/NodeJs/Morgas.NodeJs.js",
+	"license": "MIT",
+	"scripts": {
+		"build": "node lib/build",
+		"test": "node test/run | tap-difflet -p"
+	}
 }

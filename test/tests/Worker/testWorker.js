@@ -1,4 +1,3 @@
-worker.init=µ.constantFunctions.pass;
 worker.increment=function(n)
 {
 	return n+1;

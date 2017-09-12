@@ -6,10 +6,10 @@
 		prom:"Promise"
 	});
 	
-	var FS=require("fs");
-	var PATH=require("path");
+	let FS=require("fs");
+	let PATH=require("path");
 	
-	var asyncCallback=function(signal)
+	let asyncCallback=function(signal)
 	{
 		return function(err,result)
 		{
@@ -17,7 +17,7 @@
 			else signal.resolve(result);
 		};
 	};
-	var copyFile=function(source,target)
+	let copyFile=function(source,target)
 	{
 		return source.readStream().then(function(r)
 		{
@@ -37,8 +37,8 @@
 		});
 	};
 	
-	var FILE=µ.NodeJs.File=µ.Class({
-		init:function(filePath)
+	let FILE=µ.NodeJs.File=µ.Class({
+		constructor:function(filePath)
 		{
 			this.filePath=filePath||".";
 			SC.prom.pledgeAll(this,["realPath","stat","lstat","access","listFiles","mkdir","read","readStream","write","writeStream","rename","copy"]);
@@ -128,8 +128,8 @@
 		},
 		rename:function(signal,filename,overwrite)
 		{
-			var filePath=PATH.resolve(PATH.dirname(this.filePath),filename);
-			var doRename=()=>FS.rename(this.filePath,filePath,(err,result)=>
+			let filePath=PATH.resolve(PATH.dirname(this.filePath),filename);
+			let doRename=()=>FS.rename(this.filePath,filePath,(err,result)=>
 			{
 				if(err) signal.reject(err);
 				else
@@ -149,7 +149,7 @@
 		},
 		move:function(dir,overwrite)
 		{
-			var target=PATH.join(FILE.fileToString(dir),PATH.basename(this.filePath));
+			let target=PATH.join(FILE.fileToString(dir),PATH.basename(this.filePath));
 			return this.rename(target,overwrite);
 		},
 		remove:function()
@@ -176,7 +176,7 @@
 		copy:function(signal,filename,overwrite)
 		{
 			filename=FILE.fileToString(filename);
-			var filePath=PATH.resolve(PATH.parse(this.filePath).dir,filename);
+			let filePath=PATH.resolve(PATH.parse(this.filePath).dir,filename);
 			if(overwrite===true) copyFile(this,new FILE(filePath)).then(signal.resolve,signal.reject);
 			else new FILE(filePath).exists().reverse("FILE_EXISTS",function()
 			{

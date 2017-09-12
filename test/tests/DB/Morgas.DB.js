@@ -21,10 +21,8 @@
 			this.addRelation("friendRel",	testObject,	REL.TYPES.FRIEND,	"friendRel"	);
 		}
 	});
-	window.DBTest=function(dbConn,extra)
+	DBTest=function(dbConn,extra)
 	{
-		sessionStorage.clear(); //clear to ensure execution order
-
 		var parent=new testObject({
 			testInt:10,
 			testDouble:1.1,

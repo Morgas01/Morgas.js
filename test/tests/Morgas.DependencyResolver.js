@@ -69,8 +69,12 @@ QUnit.module("DependencyResolver",function()
 			c:{deps:["d"],uses:[]},
 			d:{deps:[],uses:["a"]}
 		});
+
+		µ.logger.setLevel(µ.logger.LEVEL.off);
+
 		assert.deepEqual(dr.resolve("a"),["b","d","c","a"],"single");
 		assert.deepEqual(dr.resolve("c"),["d","b","a","c"],"single 2");
+
 		assert.throws(function()
 		{
 			dr.resolve("c",true);
@@ -78,6 +82,8 @@ QUnit.module("DependencyResolver",function()
 		function(error){return (error instanceof Error)&&error.message.startsWith("#DependencyResolver:003 ")},
 		"strict");
 		assert.deepEqual(dr.resolve(["a","c"]),["b","d","c","a"],"multiple");
+
+		µ.logger.setLevel(µ.logger.LEVEL.trace);
 	});
 
 	QUnit.test("added",function(assert)

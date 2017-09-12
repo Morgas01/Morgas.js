@@ -7,7 +7,7 @@
 	try
 	{
 		indexedDB.deleteDatabase("testDB");
-		window.DBTest(new ICON("testDB"));
+		DBTest(new ICON("testDB"));
 	}
 	catch(error)
 	{

@@ -6,18 +6,19 @@
 	
 	let WORKER=µ.Worker=µ.Class(AbstractWorker,{
 		constructor:function({
-			basePath=WORKER.defaults.BASEPATH,
+			basePath=WORKER.defaults.BASE_PATH,
 			workerScript=WORKER.defaults.SCRIPT,
-			workerBasePath="../", //relative from basePath
-			morgasPath="Morgas.js",
-			startTimeout
+			workerBasePath=WORKER.defaults.WORKER_BASE_PATH, //relative from path of loaded script
+			morgasPath=WORKER.defaults.MORGAS_PATH, // relative from workerBasePath
+			startTimeout,
+			loadScripts
 		}={})
 		{
 			this.basePath=basePath;
 			this.morgasPath=morgasPath;
 			this.workerBasePath=workerBasePath;
 			this.workerScript=workerScript;
-			this.mega(startTimeout);
+			this.mega(startTimeout,loadScripts);
 		},
 		_start:function()
 		{
@@ -35,15 +36,23 @@
 		{
 			this.worker.postMessage(payload);
 		},
+		stop:function()
+		{
+			this.mega();
+			this.state=AbstractWorker.states.CLOSE;
+		},
 		destroy:function()
 		{
 			this.worker.terminate();
+			this.state=AbstractWorker.states.CLOSE;
 			this.mega();
 		}
 	});
 	WORKER.defaults={
-		BASEPATH:"js/",
-		SCRIPT:"Worker/Morgas.BaseWorker.js",
+		BASE_PATH:"js/",
+		SCRIPT:"Worker/BaseWorker.js",
+		WORKER_BASE_PATH:"../", //relative from path of loaded script
+		MORGAS_PATH:"Morgas.js", // relative from WORKER_BASE_PATH
 	};
 	
 	SMOD("Worker",WORKER);

@@ -104,7 +104,13 @@ QUnit.module("core",function()
 		var context={path:{to:{value:2}}};
 		var SC=µ.shortcut({s1:function(){return s1;},s2:"s2"});
 		assert.strictEqual(SC.s1,null,"function before set");
-		assert.strictEqual(SC.s2,undefined,"module before set");
+		assert.throws(function()
+		{
+			SC.s2
+		},function(error)
+		{
+			return error instanceof (ReferenceError)&&error.message.startsWith("#shortcut:001")
+		},"module before set");
 
 		s1={};
 		µ.setModule("s2",{});

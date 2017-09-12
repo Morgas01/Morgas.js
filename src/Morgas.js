@@ -43,8 +43,7 @@
 		};
 		µ.getModule=function(key)
 		{
-			if(!modules[key])
-				µ.logger.info("#getModule:001 "+key+" is not defined\n use µ.hasModule to check for existence");
+			if(!modules[key]) throw new Error("#getModule:001 "+key+" is not defined");
 			return modules[key];
 		};
 	};
@@ -115,6 +114,7 @@
 			µ.logger.log.call(null,µ.logger.LEVEL[level],...args);
 		}
 	});
+	µ.logger.LEVEL.off=0;
 
 	/** shortcut
 	 * creates an object that will evaluate its values defined in {map} on its first call.
@@ -154,7 +154,7 @@
 						}
 						else
 						{
-							µ.logger.error(new ReferenceError("#shortcut:001 could not evaluate "+path))
+							throw new ReferenceError("#shortcut:001 could not evaluate "+path);
 						}
 					}
 					if(value!=null&&!dynamic)

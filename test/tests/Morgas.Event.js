@@ -65,15 +65,26 @@ QUnit.module("Event",function()
 		{
 			reporter.add("unknownEvent");
 		},
-		function(error){return error.message.startsWith("#ReporterPatch:001 ")});
+		function(error){return error.message.startsWith("#ReporterPatch:001 ")},
+		"unknown event");
 
 		assert.throws(function()
 		{
 			reporter.add("testEvent")
-		},function(error){return error.message.startsWith("#ReporterPatch:002 ")});
+		},
+		function(error){return error.message.startsWith("#ReporterPatch:002 ")},
+		"unintroduced event");
 
 		reporter.introduce(TestEvent);
-		reporter.add("testEvent");
+
+		assert.throws(function()
+		{
+			reporter.add("testEvent")
+		},
+		function(error){return error.message.startsWith("#ReporterPatch:003 ")},
+		"no function");
+
+		reporter.add("testEvent",null,µ.constantFunctions.n);
 		assert.ok(true);
 	});
 
@@ -88,18 +99,25 @@ QUnit.module("Event",function()
 		assert.throws(function()
 		{
 			reporter.report(event)
-		},function(error){return error.message.startsWith("#ReporterPatch:003 ")});
+		},
+		function(error)
+		{
+			return error.message.startsWith("#ReporterPatch:004 ")
+		},
+		"report unintroduced event");
+
 		reporter.introduce(TestEvent);
+
 		reporter.add("testEvent",null,function(e)
 		{
-			assert.equal(e,event);
-			assert.equal(this,window);
+			assert.equal(e,event,"event object");
+			assert.equal(this,(function(){return this})(),"global scope");
 		});
 
 		let listener={};
 		reporter.add("testEvent",listener,function()
 		{
-			assert.equal(this,listener);
+			assert.equal(this,listener,"scope");
 		});
 
 		instance.report(event);
@@ -182,7 +200,7 @@ QUnit.module("Event",function()
 
 		instance={};
 		new µ.Event.ListenerPatch(instance);
-		reporter.add("testEvent",instance);
+		reporter.add("testEvent",instance,µ.constantFunctions.n);
 		assert.equal(µ.Patch.getPatches(instance).length,1);
 		assert.equal(µ.Patch.getPatches(instance)[0].reporters.values().next().value,reporter);
 	});

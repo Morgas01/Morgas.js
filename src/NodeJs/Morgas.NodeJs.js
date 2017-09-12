@@ -28,7 +28,7 @@
 		for(var module in register)
 		{
 			var modulePath=path.resolve(dir,register[module]);
-			if(module in moduleRegister) µ.logger.warn(new µ.Warning("module "+key+" is overwritten"),{old:moduleRegister[module],"new":modulePath});
+			if(module in moduleRegister) µ.logger.warn("module "+key+" is overwritten",{old:moduleRegister[module],"new":modulePath});
 			moduleRegister[module]=modulePath;
 		}
 	};
@@ -58,7 +58,7 @@
 				}
 				catch(e)
 				{
-					µ.logger.error(new µ.Warning("could not load js module "+key,{path:path.join("..",moduleRegister[key])},e));
+					µ.logger.error("could not load js module "+key,{path:path.join("..",moduleRegister[key])},e);
 				}
 			}
 			else
@@ -80,7 +80,7 @@
 				}
 				if(!oldhasModule(key))
 				{
-					µ.logger.error(new µ.Warning("could not load nodejs module '"+key+"'",folders));
+					µ.logger.error("could not load nodejs module '"+key+"'",folders);
 				}
 			}
 		}

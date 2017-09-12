@@ -18,7 +18,7 @@
 			if(typeof sub.prototype._send!="function") throw new SyntaxError("#AbstractWorker:001 _send() is not defined");
 			if(typeof sub.prototype._start!="function") throw new SyntaxError("#AbstractWorker:002 _start() is not defined");
 		},
-		constructor:function(startTimeout)
+		constructor:function(startTimeout,loadScripts)
 		{
 			this.requestMap=new Map();
 			this.id=ID_COUNTER++;
@@ -41,12 +41,13 @@
 					if(newState===AbstractWorker.states.CLOSE)
 					{
 						this.ready=new SC.Promise.reject("closed",this);
+						this.ready.catch(µ.constantFunctions.pass); //suppress uncaught promise/exception
 					}
 					reporter.report(new WorkerStateEvent(newState));
 				}
 			});
 
-			this.restart(startTimeout);
+			this.restart(startTimeout,loadScripts);
 		},
 //		_send:function(payload){},
 //		_start:function(){}, // propagate id and other parameters to actual worker
@@ -137,7 +138,7 @@
 		{
 			return this.request("stop",[],timeout);
 		},
-		restart(timeout=AbstractWorker.defaults.TIMEOUT)
+		restart(timeout=AbstractWorker.defaults.TIMEOUT,loadScripts)
 		{
 			if(this.state!==AbstractWorker.states.CLOSE) throw new Error("#AbstractWorker:005 worker is already open");
 			let timer;
@@ -167,7 +168,25 @@
 			{
 				this.state=AbstractWorker.states.CLOSE;
 			});
+
+			if(loadScripts)
+			{
+				this.ready=this.ready.then(initParam=>
+					this.request("loadScripts",[loadScripts])
+					.then(()=>initParam)
+				);
+			}
+
 			return this.ready;
+		},
+		destroy()
+		{
+			if(this.state!==AbstractWorker.states.CLOSE)
+			{
+				this.state=AbstractWorker.states.CLOSE; // trigger workerState Event
+				this.stop();
+			}
+			this.mega();
 		}
 	});
 	AbstractWorker.states={

@@ -3,149 +3,83 @@
 	µ.NodeJs=µ.NodeJs||{};
 
 	var fork=require("child_process").fork;
+	var AbstractWorker=GMOD("AbstractWorker");
 
-	var Listeners=GMOD("Listeners");
 	SC=SC({
-		rs:"rescope",
-		prom:"Promise"
+		Promise:"Promise"
 	});
 
 	var path=require("path");
 
-	var NODEWORKER=µ.NodeJs.Worker=µ.Class(Listeners,{
-		init:function(script,args,cwd)
+	var NODEWORKER=µ.NodeJs.Worker=µ.Class(AbstractWorker,{
+		constructor:function({
+			script=NODEWORKER.defaults.SCRIPT,
+			cwd=path.dirname(script),
+			param,
+			startTimeout,
+			loadScripts
+		}={})
 		{
-			this.mega();
-			this.createListener(".readyState message");
-			SC.prom.pledgeAll(this,["request","close","ready"]);
-			SC.rs.all(this,["_onMessage"]);
+			this.script=script;
+			this.cwd=cwd;
+			this.param=param;
 
-			this.nextRequestId=0;
-			this.requests=new Map();
+			SC.Promise.pledgeAll(this,["stop"]);
 
-			this.worker=fork(path.join(__dirname,"Worker","BaseWorker"),
-			[JSON.stringify({
-				script:script,
-				args:[].concat(args)
-			})],{cwd:cwd});
+			this.mega(startTimeout,loadScripts);
+		},
+		_start:function(script,args,cwd)
+		{
+			this.worker=fork(this.script,{cwd:this.cwd});
 			this.worker.on("error",e=>
 			{
-				this.setState(".readyState",{state:"error",error:e});
+				this._onMessage({error:e});
 			});
-			this.worker.on("close",(code,signal)=>
+			this.worker.on("exit",(code,signal)=>
 			{
-				this.setState(".readyState",{state:"close",code:code,signal:signal});
+				this.state=AbstractWorker.states.CLOSE;
 			});
-			this.worker.on("message",this._onMessage);
-		},
-		/** set a function to react to feedback requests from worker
-		 * @function
-		 * @param {String} type
-		 * @param {*} data
-		 * @returns {*} feedback
-		 */
-		onFeedback:null,
-		_onMessage:function(message)
-		{
-			if(message.request=="init")
-			{
-				if(message.error) this.setState(".readyState",{state:"error",error:message.error});
-				else this.setState(".readyState",{state:"running",data:message.data});
-			}
-			else if (message.feedback!=null)
-			{
-				var result;
-				if(!this.onFeedback)
-				{
-					result=Promise.reject("no feedback");
-					µ.logger.warn("no feedback");
-				}
-				else
-				{
-					try {
-						result=Promise.resolve(this.onFeedback(message.type,message.data));
-					} catch (e) {
-						µ.logger.error(e);
-						result=Promise.reject(e);
-					}
-				}
-				result.then(
-					data=>this.worker.send({feedback:message.feedback,data:data}),
-					error=>this.worker.send({feedback:message.feedback,error:error})
-				);
-			}
-			else if (message.request==null)
-			{
-				this.fire("message",message.data);
-			}
-			else
-			{
-				var timeoutEvent=this.requests.get(message.request);
-				if(timeoutEvent)
-				{
-					if(message.error) timeoutEvent.signal.reject(message.error);
-					else timeoutEvent.signal.resolve(message.data);
-					this.requests.delete(message.request);
-					clearTimeout(timeoutEvent.timeout);
-				}
-				else
-				{
-					µ.logger.warn(new µ.Warning("tried to respond to unknown request",message));
-				}
-			}
-		},
-		ready:function(signal)
-		{
-			this.addListener(".readyState:once",this,function(event)
-			{
-				switch(event.value.state)
-				{
-					case "running":
-						signal.resolve(event.value.data);
-						break;
-					case "error":
-						signal.reject(event.value.error);
-						break;
-				}
+			this.worker.on("message",msg=>this._onMessage(msg));
+
+			this._send({
+				id:this.id,
+				param:this.param
 			});
 		},
-		send:function(method,args)
+		_send:function(payload)
 		{
-			this.worker.send({method:method,args:[].concat(args)});
+			this.worker.send(payload);
 		},
-		request:function(signal,method,args,timeout)
+		stop:function(signal,timeout=AbstractWorker.defaults.TIMEOUT)
 		{
-			var timeoutEvent={
-				request:this.nextRequestId++,
-				timeout:null,
-				error:"timeout",
-				signal:signal
+			this.send("stop");
+			let timer;
+			let onClose=(event)=>
+			{
+				if(event.state===AbstractWorker.states.CLOSE)
+				{
+					clearTimeout(timer);
+					this.removeEventListener(null,onClose);
+					signal.resolve();
+				}
 			};
-			timeoutEvent.timeout=setTimeout(()=>this._onMessage(timeoutEvent),timeout||NODEWORKER.REQUESTTIMEOUT);
-			this.requests.set(timeoutEvent.request,timeoutEvent);
-			this.worker.send({method:method,request:timeoutEvent.request,args:[].concat(args)});
-		},
-		close:function(signal,timeout)
-		{
-			var onClose=function()
+			timer=setTimeout(()=>
 			{
-				clearTimeout(timer);
-				signal.resolve();
-			};
-			var timer=setTimeout(()=>
-			{
-				signal.reject();
-				this.worker.removeListener("close",onClose);
-			},timeout||NODEWORKER.REQUESTTIMEOUT);
-			this.worker.on("close",onClose);
-			this.worker.kill();
+				this.removeEventListener(null,onClose);
+				signal.reject("timeout");
+			},timeout);
+			this.addEventListener("workerState",null,onClose);
 		},
 		destroy:function()
 		{
 			this.worker.kill("SIGKILL");
+			this.state=AbstractWorker.states.CLOSE;
+			this.mega();
 		}
 	});
-	NODEWORKER.REQUESTTIMEOUT=60000;
+	NODEWORKER.defaults={
+		SCRIPT:path.join(__dirname,"Worker","BaseWorker")
+	};
 
 	SMOD("nodeWorker",NODEWORKER);
 

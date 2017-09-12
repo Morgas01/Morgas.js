@@ -3,9 +3,10 @@
 	let Patch=GMOD("Patch");
 
 	SC=SC({
-		removeIf:"array.removeIf",
-		global:"global"
+		removeIf:"array.removeIf"
 	});
+
+	let globalScope=this;
 
 	let cSym=µ.Class.symbols;
 
@@ -70,7 +71,8 @@
 		name:"error",
 		constructor:function(reason,cause)
 		{
-			if(reason instanceof Error||reason instanceof ErrorEvent)
+			//                                  ErrorEvent is undefined in nodeJs
+			if(reason instanceof Error||(typeof ErrorEvent!=="undefined"&&reason instanceof ErrorEvent))
 			{
 				cause=reason;
 				reason=reason.message;
@@ -93,7 +95,7 @@
 	};
 	let checkListenerPatch=function(scope,reporter)
 	{
-		if(scope&&SC.global!==scope)
+		if(scope&&globalScope!==scope)
 		{
 			let listenerPatch=getListenerPatch(scope);
 			if(!listenerPatch)
@@ -246,16 +248,17 @@
 			let eventClass=eventClassesMap.get(eventName);
 			if(!eventClass) throw new ReferenceError(`#ReporterPatch:001 Event class with name ${eventName} does not exist`);
 			if(!this.eventMap.has(eventClass)) throw new ReferenceError(`#ReporterPatch:002 Event ${eventName} is not introduced`);
+			if(typeof fn!=="function") throw new TypeError("#ReporterPatch:003 fn is not a function");
 			this.eventMap.get(eventClass).add(scope,fn,phase);
 
-			if(scope!=null&&scope!=SC.global) checkListenerPatch(scope,this);
+			if(scope!=null&&scope!=globalScope) checkListenerPatch(scope,this);
 		},
 		remove(eventName,scope,fn,phase)
 		{
 			let eventClass=eventClassesMap.get(eventName);
 			if(!eventClass||!this.eventMap.has(eventClass)) return;
 			this.eventMap.get(eventClass).remove(scope,fn,phase);
-			if(scope!=null&&scope!=SC.global)
+			if(scope!=null&&scope!=globalScope)
 			{// removed && not global
 				for(let eventRegister of this.eventMap.values()) if (eventRegister.has(scope)) return ;
 				
@@ -272,7 +275,7 @@
 		},
 		report(event,fn)
 		{
-			if(!this.eventMap.has(event.constructor)) throw new ReferenceError(`#ReporterPatch:003 tried to report unintroduced Event ${event.name}`);
+			if(!this.eventMap.has(event.constructor)) throw new ReferenceError(`#ReporterPatch:004 tried to report unintroduced Event ${event.name}`);
 			this.eventMap.get(event.constructor).report(event,fn);
 		},
 		destroy()
@@ -284,7 +287,7 @@
 				eventRegister.destroy();
 			}
 			scopes.delete(null);
-			scopes.delete(SC.global);
+			scopes.delete(globalScope);
 			scopes.forEach(scope=>getListenerPatch(scope).remove(this));
 			this.mega();
 		}

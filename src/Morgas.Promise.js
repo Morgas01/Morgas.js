@@ -216,7 +216,21 @@
 			return Promise.reject(rejectValue);
 		},fn);
 	};
-	
+	/**
+	 *
+	 * @param {Any[]} arr - array of functions or parameter for mapper
+	 * @param {Function} (mapper) - function to be called for every entry in arr
+	 */
+	PROM.chain=async function(arr,mapper)
+	{
+		let results=[];
+		for(let entry of arr)
+		{
+			if(mapper) results.push(await mapper(entry));
+			else results.push(await entry());
+		}
+		return results;
+	};
 	SMOD("Promise",PROM);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

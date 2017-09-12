@@ -2,15 +2,15 @@
 	
 	µ.NodeJs=µ.NodeJs||{};
 	
-	var PATCH=GMOD("Patch");
-	var readline = require('readline');
+	let PATCH=GMOD("Patch");
+	let readline = require('readline');
 	
 	SC=SC({
 		prom:"Promise"
 	});
 	
-	var COM=µ.NodeJs.Commander=µ.Class({
-		init:function(commandPackages)
+	let COM=µ.NodeJs.Commander=µ.Class({
+		constructor:function(commandPackages)
 		{
 			commandPackages=commandPackages||[];
 			commandPackages.unshift("exit");
@@ -25,8 +25,8 @@
 					if(line.length===0)cb(null,[Object.keys(this.commands).sort(),line]);
 					else
 					{
-						var rtn=[];
-						var match=line.match(/((\S+)\s+)(.*)/);
+						let rtn=[];
+						let match=line.match(/((\S+)\s+)(.*)/);
 						if(!match)
 						{
 							rtn=Object.keys(this.commands).filter(function(a){return a.indexOf(line)==0})
@@ -34,7 +34,7 @@
 						}
 						else if ([match[2]] in this.commands&&"completer" in this.commands[match[2]])
 						{
-							var cmd=this.commands[match[2]];
+							let cmd=this.commands[match[2]];
 							rtn=cmd.completer.call(cmd.scope,match[3])//.map(function(a){return match[1]+a});
 							line=match[3];
 						}
@@ -50,13 +50,13 @@
 					}
 				}
 			});
-			var closed=false;
+			let closed=false;
 			this.rl.on("line",line=>
 			{
-				var match=line.match(/(\S+)\s*(.*)/);
+				let match=line.match(/(\S+)\s*(.*)/);
 				if(match&&match[1] in this.commands)
 				{
-					var cmd=this.commands[match[1]];
+					let cmd=this.commands[match[1]];
 					try
 					{
 						cmd.call(cmd.scope,match[2]);
@@ -71,7 +71,7 @@
 				else
 				{
 					//TODO
-					var cmd=match&&match[1]||line;
+					let cmd=match&&match[1]||line;
 					µ.logger.log("unknown command "+cmd);
 					if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
 				}
@@ -80,11 +80,11 @@
 			.on("pause",function(){closed=true})
 			.on("resume",function(){closed=false});
 			
-			for(var i=0;i<commandPackages.length;i++)
+			for(let i=0;i<commandPackages.length;i++)
 			{
 				if(HMOD("CommandPackage."+commandPackages[i]))
 				{
-					var pack=GMOD("CommandPackage."+commandPackages[i]);
+					let pack=GMOD("CommandPackage."+commandPackages[i]);
 					new pack(this);
 				}
 			}
@@ -103,7 +103,7 @@
 		commands:{},
 		patch:function()
 		{
-			for(var c in this.commands)
+			for(let c in this.commands)
 			{
 				this.commands[c].scope=this;
 				if(c in this.instance.commands) µ.logger.warn("command name "+c+" is already used");
@@ -131,7 +131,7 @@
 	});
 	SMOD("CommandPackage",COM.CommandPackage);
 	
-	var EXIT=µ.Class(COM.CommandPackage,
+	let EXIT=µ.Class(COM.CommandPackage,
 	{
 		patchID:"exit",
 		commands:{
