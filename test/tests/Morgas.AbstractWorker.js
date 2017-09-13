@@ -35,7 +35,6 @@ QUnit.module("AbstractWorker",function()
 	{
 		QUnit.module(name,function()
         {
-
         	QUnit.test("init",function(assert)
         	{
         		assert.expect(1);

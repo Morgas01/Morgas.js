@@ -1,19 +1,19 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	µ.NodeJs=µ.NodeJs||{};
-	var util=µ.NodeJs.util=µ.NodeJs.util||{};
+	let util=µ.NodeJs.util=µ.NodeJs.util||{};
 
 
 	module.exports=function(options,args)
 	{
-		var rtn={};
+		let rtn={};
 		if(!args) args=process.argv.slice();
-		next:for(var o in options)
+		next:for(let o in options)
 		{
-			var names=options[o].names||[o];
-			for(var n=0;n<names.length;n++)
+			let names=options[o].names||[o];
+			for(let n=0;n<names.length;n++)
 			{
-				var index=args.indexOf(names[n]);
+				let index=args.indexOf(names[n]);
 				if(index!==-1)
 				{
 					switch(options[o].type)
