@@ -1,13 +1,13 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	var util=µ.util=µ.util||{};
-	var obj=util.object=util.object||{};
+	var array=util.array=util.array||{};
 
 	var flattenAll=Array.prototype.concat.bind(Array.prototype);
 
-	obj.flatten=flattenAll.apply.bind(flattenAll,null);
-	obj.flatten.all=flattenAll;
+	array.flatten=flattenAll.apply.bind(flattenAll,null);
+	array.flatten.all=flattenAll;
 
-	SMOD("flatten",obj.flatten);
+	SMOD("flatten",array.flatten);
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
