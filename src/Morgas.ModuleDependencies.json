@@ -26,13 +26,8 @@
 			"Patch"
 		],
 		"uses": [
-			"array.removeIf",
-			"global"
+			"array.removeIf"
 		]
-	},
-	"Morgas.global.js": {
-		"deps": [],
-		"uses": []
 	},
 	"Morgas.js": {
 		"deps": [],
@@ -75,6 +70,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"Morgas.util.array.flatten.js": {
+		"deps": [],
+		"uses": []
+	},
 	"Morgas.util.array.remove.js": {
 		"deps": [],
 		"uses": []
@@ -108,10 +107,6 @@
 		"uses": []
 	},
 	"Morgas.util.object.equals.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.object.flatten.js": {
 		"deps": [],
 		"uses": []
 	},
