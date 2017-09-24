@@ -4,8 +4,7 @@
 
 	SC=SC({
 		crc:"util.crc32",
-		prom:"Promise",
-		itAs:"iterateAsync"
+		prom:"Promise"
 	});
 
 	var PATH=require("path");
@@ -75,7 +74,7 @@
 					return a-b;
 				})
 			)
-			.then(files=>SC.itAs(files,function(index,file)
+			.then(files=>SC.prom.chain(files,function(index,file)
 				{
 					return folder.clone().changePath(file)
 					.read()

@@ -22,7 +22,7 @@ worker={
 			worker.config=message;
 			worker.id=message.id;
 
-			setInitialized(message);
+			setInitialized(message.param);
 
 			//respond the init request
 			worker.send({request:"init",data:message});

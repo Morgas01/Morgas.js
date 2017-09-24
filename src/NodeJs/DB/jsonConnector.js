@@ -9,8 +9,7 @@
 		Promise:"Promise",
 		File:"File",
 		FileUtil:"File.util",
-		rs:"rescope",
-		itAs:"iterateAsync"
+		rs:"rescope"
 	});
 
 	module.exports=µ.Class(OCON,{

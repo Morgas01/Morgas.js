@@ -7,7 +7,6 @@
 	
 	SC=SC({
 		prom:"Promise",
-		itAs:"iterateAsync",
 		File:"File",
 		util:"File.util",
 		crc:"util.crc32",
@@ -129,7 +128,7 @@
 		{
 			pattern=convertRegex(pattern)
 			var rtn=[];
-			return new SC.itAs(this.selected,(i,f)=>
+			return new SC.prom.chain(this.selected,(i,f)=>
 			{
 				var r=f.replace(pattern,replacement);
 				return this.file.clone().changePath(f).rename(r)
@@ -143,7 +142,7 @@
 		},
 		calcCRC:function(progress)
 		{
-			return SC.itAs(this.selected,function(index,filename)
+			return SC.prom.chain(this.selected,function(index,filename)
 			{
 				var calcFile=this.file.clone().changePath(filename);
 				return SC.util.calcCRC(calcFile,progress).then(crc=>[filename,crc],e=>[filename,e]);
@@ -151,7 +150,7 @@
 		},
 		checkCRC:function(cb,progress)
 		{
-			return SC.itAs(this.selected,function(index,filename)
+			return SC.prom.chain(this.selected,function(index,filename)
 			{
 				var match=filename.match(extractChecksum);
 				if(!match)
@@ -171,7 +170,7 @@
 		},
 		appendCRC:function(cb,progress)
 		{
-			return SC.itAs(this.selected,function(index,filename)
+			return SC.prom.chain(this.selected,function(index,filename)
 			{
 				var result;
 				var match=filename.match(extractChecksum);
@@ -208,7 +207,7 @@
 		},
 		"delete":function()
 		{
-			var promise=SC.itAs(this.selected.slice(),(index,filename)=>this.file.clone().changePath(filename).remove()
+			var promise=SC.prom.chain(this.selected.slice(),(index,filename)=>this.file.clone().changePath(filename).remove()
 				.then(()=>[filename],e=>
 				{
 					this.selected.push(filename);
@@ -224,7 +223,7 @@
 			return SC.util.enshureDir(target)
 			.then(()=>
 			{
-				var p= SC.itAs(this.selected.slice(),(index,filename)=>
+				var p= SC.prom.chain(this.selected.slice(),(index,filename)=>
 					this.file.clone().changePath(filename).move(target).then(function(){return this.filePath})
 				);
 				this.selected.length=0;
@@ -234,7 +233,7 @@
 		//TODO fix dot between numbers
 		cleanNames:function()
 		{
-			return SC.itAs(this.selected,(index,filename)=>
+			return SC.prom.chain(this.selected,(index,filename)=>
 			{
 				var name=filename;
 		    	if((name.indexOf("%20")!==-1&&name.indexOf(" ")===-1)||(name.indexOf("%5B")!==-1&&name.indexOf("[")===-1))
@@ -263,10 +262,10 @@
 			{
 				return this._getFiles(splitFiles).then(allParts=>
 				{
-					return SC.itAs(selectedParts,(i,part)=>
+					return SC.prom.chain(selectedParts,(i,part)=>
 					{
 						var affectedParts=allParts.sort().filter(p=>p.indexOf(part[1])==0);
-						return SC.itAs(affectedParts,(i,aPart)=>
+						return SC.prom.chain(affectedParts,(i,aPart)=>
 							this.file.clone().changePath(aPart).readStream({encoding:"binary"})
 							.then(stream=>{return{name:aPart,stream:stream}})
 						,null,this)
@@ -285,7 +284,7 @@
 							});
 						})
 						.then(data=>
-							SC.itAs(data.read,(i,read)=>
+							SC.prom.chain(data.read,(i,read)=>
 								new SC.prom(signal=>{
 
 									if(cb)cb("\tstart\t"+read.name+"\t"+(i+1)+"/"+data.read.length);
