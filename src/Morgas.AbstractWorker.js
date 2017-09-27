@@ -73,15 +73,20 @@
 				}
 				else
 				{
+					let feedbackPromise=null;
 					try
 					{
-						let result=this.onFeedback(message.data);
-						this._send({feedback:message.feedback,data:result});
+						feedbackPromise=Promise.resolve(this.onFeedback(message.data));
 					}
 					catch(e)
 					{
-						this._send({feedback:message.feedback,error:e.message+"\n"+e.stack});
+						feedbackPromise=Promise.reject(e.message+"\n"+e.stack);
 					}
+
+					feedbackPromise.then(
+						result=>this._send({feedback:message.feedback,data:result}),
+						error=>this._send({feedback:message.feedback,error:error})
+					);
 				}
 			}
 			else if ("error" in message)
