@@ -76,7 +76,12 @@
 					let feedbackPromise=null;
 					try
 					{
-						feedbackPromise=Promise.resolve(this.onFeedback(message.data));
+						feedbackPromise=Promise.resolve(this.onFeedback(message.data))
+						.catch(function(error)
+						{
+							if(error instanceof Error) error=error.message+"\n"+error.stack;
+							return Promise.reject(error);
+						});
 					}
 					catch(e)
 					{
