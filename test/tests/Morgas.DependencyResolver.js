@@ -11,7 +11,7 @@ QUnit.module("DependencyResolver",function()
      	});
 
 		assert.deepEqual(dr.resolve("aa"),["a","aa"],"single");
-		assert.deepEqual(dr.resolve(["aa","ab","ba"]),["a","aa","b","ab","ba"],"multiple");
+		assert.deepEqual(dr.resolve(["aa","ab","ba"]),["a","b","ba","ab","aa"],"multiple");
 	});
 	QUnit.test("cycle",function(assert)
 	{
@@ -42,23 +42,6 @@ QUnit.module("DependencyResolver",function()
 			return error.message.indexOf("[a <-> b <-> c]")!=-1;
 		},
 		"cycle message");
-
-
-		var dr=new µ.DependencyResolver({
-     		a:"b",
-     		b:"c",
-     		c:"a"
-     	});
-
-		assert.throws(function()
-		{
-			dr.resolve("a");
-		},
-		function(error)
-		{
-			return error.message.indexOf("[a <-> b <-> c]")!=-1;
-		},
-		"middle cycle message");
 	});
 
 	QUnit.test("depend uses",function(assert)
@@ -70,20 +53,17 @@ QUnit.module("DependencyResolver",function()
 			d:{deps:[],uses:["a"]}
 		});
 
-		µ.logger.setLevel(µ.logger.LEVEL.off);
-
-		assert.deepEqual(dr.resolve("a"),["b","d","c","a"],"single");
-		assert.deepEqual(dr.resolve("c"),["d","b","a","c"],"single 2");
+		assert.deepEqual(dr.resolve("a",true),["d","c","b","a"],"single");
+		assert.deepEqual(dr.resolve("c",true),["b","a","d","c"],"single 2");
 
 		assert.throws(function()
 		{
-			dr.resolve("c",true);
+			dr.resolve("c");
 		},
 		function(error){return (error instanceof Error)&&error.message.startsWith("#DependencyResolver:003 ")},
 		"strict");
-		assert.deepEqual(dr.resolve(["a","c"]),["b","d","c","a"],"multiple");
 
-		µ.logger.setLevel(µ.logger.LEVEL.trace);
+		assert.deepEqual(dr.resolve(["a","c"],true),["d","c","b","a"],"multiple");
 	});
 
 	QUnit.test("added",function(assert)

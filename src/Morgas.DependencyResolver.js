@@ -3,13 +3,14 @@
 	SC=SC({
 		remove:"array.remove",
 		uniquify:"uniquify",
-		register:"register"
+		flatten:"flatten"
 	});
 
 	let applyPrefix=function(arr,prefix)
 	{
 		return (arr||[]).map(function(a){return prefix+a});
 	};
+
 	µ.DependencyResolver=µ.Class({
 		constructor:function(config,prefix)
 		{
@@ -57,89 +58,191 @@
 			if(!config) throw new ReferenceError("#DependencyResolver:002 "+item+" is not in config");
 			return config;
 		},
-		_getList:function(items)
+		resolve:function(list,allowUsesCycles=false)
 		{
-			let deps=[...items];
-			let uses=[];
-			for(let item of items)
-			{
-				let config = this.getConfig(item)
-				deps.push(...config.deps);
-				uses.push(...config.uses);
-			}
-			deps.push(...uses);
-			return SC.uniquify(deps);
-		},
-		resolve:function(keys,strict)
-		{
-			let list=this._getList([].concat(keys));
-			let cycleRegister=SC.register(1,Set);
-			let cursor=0;
+			let resolved=new Map();
+			let todo=[].concat(list).map(s=>({
+				name:s,
+				from:[]
+			}));
 
-			let checkDependencies=function(item)
+			for(let entry of todo)
 			{
-				let index=list.indexOf(item);
-				if(index==-1)
+				let config=this.getConfig(entry.name);
+				if(!resolved.has(entry.name))
 				{
-					list.splice(cursor,0,item);
-					return false;
+					resolved.set(entry.name,{
+						name:entry.name,
+						from:[]
+					});
 				}
-				if(index>cursor)
+				let item=resolved.get(entry.name);
+				if(entry.from.length!=0)
 				{
-					SC.remove(list,item);
-					list.splice(cursor,0,item);
-					return false;
+					item.from.push(entry.from);
 				}
-				return true;
-			};
-			let checkCycle=function(parent,child,noThrow)
-			{
-				let childSet=cycleRegister[child];
-				for(let ancestor of cycleRegister[parent])
-				{
-					if(ancestor===child)
-					{
-						let cycle=Array.from(cycleRegister[parent]).slice(childSet.size);
-						cycle.push(parent);
-						let error=new Error("#DependencyResolver:003 cyclic dependency ["+cycle.join(" <-> ")+"]");
-						if(!noThrow||strict) throw error;
-						µ.logger.error(error);
-						return false;
-					}
-					childSet.add(ancestor);
-				}
-				childSet.add(parent);
-				return true;
-			};
-			let counter=0;
-			resolveLoop: while(cursor<list.length)
-			{
-				if(counter++>100) throw "cycle guard";
-				let item=list[cursor];
-				for(let depItem of this.getConfig(item).deps)
-				{
-					checkCycle(item,depItem);
 
-					if(!checkDependencies(depItem))
+				for(let next of config.deps.concat(config.uses))
+				{
+					let index=entry.from.indexOf(next);
+					if(index!=-1)//cycle detected
 					{
-						continue resolveLoop;
-					}
-
-					for(let useItem of this.getConfig(depItem).uses)
-					{
-						if(checkCycle(depItem,useItem,true)&&!checkDependencies(useItem))
+						let cycle=entry.from.slice(index).concat(entry.name);
+						resolved.get(next).from.push(entry.from.slice().concat(entry.name,next));
+						if(allowUsesCycles&&(!config.deps.includes(next)||cycle.some(this._containsUses)))
 						{
-							continue resolveLoop;
+							continue;
+						}
+						throw new Error("#DependencyResolver:003 cyclic dependency ["+cycle.join(" <-> ")+"]");
+					}
+					else
+					{
+						todo.push({
+							name:next,
+							from:entry.from.concat(entry.name)
+						});
+					}
+				}
+			}
+
+			for (let item of resolved.values()) item.from=SC.uniquify(item.from,a=>a.join(","));
+
+			this._breakCycles(resolved);
+			let resolvedArr=Array.from(resolved.values());
+			return this._sort(resolvedArr);
+		},
+		_containsUses:function(dependPath)
+		{
+			return dependPath.some((key,index,array)=>
+			{
+				return index+1<array.length&&!this.getConfig(key).deps.includes(array[index+1]);
+			});
+		},
+		_breakCycles:function(resolved)
+		{
+			for (let item of resolved.values())
+			{
+				for(let index=0;index<item.from.length;index++)
+				{
+					let path=item.from[index];
+					if(path[path.length-1]!==item.name) continue;
+
+					let cycle=path.slice(path.indexOf(item.name),-1);
+					item.from.splice(index--,1);
+					path=path.slice(0,path.length-1-cycle.length);
+
+					let cycleParts=this._getCycleParts(cycle);
+					if(cycleParts===null) continue
+
+					for(let c=0;c<cycle.length;c++)
+					{
+						let name=cycle[c];
+						let cyclePath=path.concat(cycle.slice(0,c));
+						let replacePath=path.concat(cycleParts.get(name));
+						let searchPath=cyclePath.join(",");
+						let cycleItem=resolved.get(name);
+						for(let i=0;i<cycleItem.from.length;i++)
+						{
+							if(cycleItem.from[i].join(",")===searchPath)
+							{
+								cycleItem.from[i]=replacePath;
+								break;
+							}
 						}
 					}
 				}
-				for (let useItem of this.getConfig(item).uses)
-				{
-					if(list.indexOf(useItem)==-1) list.push(useItem);
-				}
-				cursor++;
 			}
-			return list;
+		},
+		_getCycleParts:function(cycle)
+		{
+			let isUseDependent=(name,index,arr)=>
+			{
+				return index+1<arr.length&&!this.getConfig(name).deps.includes(arr[index+1]);
+			};
+
+			let useIndex=cycle.findIndex(isUseDependent);
+
+			if(useIndex==-1) return null; //only use is already solved
+
+			let sortedCycle=cycle.slice(useIndex+1).concat(cycle.slice(0,useIndex+1));
+
+			let useIndexes=sortedCycle.reduce((arr,name,i)=>
+			{
+				if(isUseDependent(name,i,sortedCycle)) arr.push(i+1);
+				return arr;
+			},[0]);
+
+			useIndexes.push(sortedCycle.length);
+
+			let parts=new Map();
+			useIndexes.reduceRight((to,from)=>
+			{
+				for(;from<to;to--)
+				{
+					parts.set(sortedCycle[to-1],sortedCycle.slice(from,to-1));
+				}
+				return from;
+			});
+
+			return parts;
+		},
+		_sort:function(resolvedArr)
+		{
+			let rtn=[];
+			for(let item of resolvedArr)
+			{
+				let allFrom=SC.uniquify(SC.flatten(item.from));
+				let firstIndex=Math.min(...allFrom.map(f=>rtn.indexOf(f)).filter(i=>i!=-1));
+
+				if(firstIndex==Infinity)
+				{
+					let config=this.getConfig(item.name);
+					let allDeps=config.deps.concat(item.uses);
+					let lastIndex=Math.max(...allDeps.map(d=>rtn.lastIndexOf(d)),-1);
+
+					if(lastIndex==-1) rtn.unshift(item.name);
+					else rtn.splice(lastIndex+1,0,item.name);
+				}
+				else
+			 	{
+			 		rtn.splice(firstIndex,0,item.name);
+			 	}
+			}
+			return rtn;
+
+			return resolvedArr.sort((a,b)=>
+			{
+				let dependPathsA=a.from.filter(f=>f.indexOf(b.name)!=-1);
+				let dependPathsB=b.from.filter(f=>f.indexOf(a.name)!=-1);
+
+				if(dependPathsA.length>0)
+				{
+					if(dependPathsB.length>0) // cycle
+					{
+						let pathA=dependPathsA[0];
+						if(!this._containsUses(pathA.slice(pathA.indexOf(b.name))))
+						{
+							return -1;
+						}
+						let pathB=dependPathsB[0];
+						if(!this._containsUses(pathB.slice(pathB.indexOf(a.name))))
+						{
+							return 1;
+						}
+						// returns 0
+					}
+					else
+					{
+						return -1;
+					}
+				}
+				else if (dependPathsB.length>0)
+				{
+					return 1;
+				}
+
+				return 0;
+			});
 		},
         clone:function(prefix)
         {

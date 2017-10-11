@@ -14,6 +14,7 @@
 		tests:[
 			{path:"Morgas.js",nodeJs:true,web:true},
 			{path:"Morgas.util.array.remove.js",nodeJs:true,web:true},
+			{path:"Morgas.util.array.flatten.js",nodeJs:true,web:true},
 			{path:"Morgas.util.function.rescope.js",nodeJs:true,web:true},
 			{path:"Morgas.Patch.js",nodeJs:true,web:true},
 			{path:"Morgas.Event.js",nodeJs:true,web:true},

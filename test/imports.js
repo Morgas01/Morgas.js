@@ -17,7 +17,10 @@
 		µ.logger.setLevel(µ.logger.LEVEL.trace);
 	});
 
-	QUnit.log(console.info);
+	QUnit.log(function(data)
+	{
+		if(!data.result) µ.logger.info(data);
+	});
 
 	QUnit.done(function()
 	{
