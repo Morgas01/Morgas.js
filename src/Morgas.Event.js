@@ -54,7 +54,7 @@
 
 	µ.Event.CancelEvent=µ.Class(µ.Event,{
 		[cSym.abstract]:abstractImplementor,
-		constructor:function CancelEvent(state)
+		constructor:function CancelEvent()
 		{
 			this.phase=CancelEvent.phases.CHECK;
 		}
