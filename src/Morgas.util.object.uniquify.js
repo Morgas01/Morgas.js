@@ -3,6 +3,8 @@
 	let util=µ.util=µ.util||{};
 	let obj=util.object=util.object||{};
 
+	//SC=SC({});
+
 	/** uniquify
 	 * Creates a copy of {arr} without duplicates.
 	 * Generates an ID via {fn}(value)

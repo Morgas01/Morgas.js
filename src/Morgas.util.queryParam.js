@@ -2,6 +2,8 @@
 
     var util=µ.util=µ.util||{};
 
+	//SC=SC({});
+
     var queryRegExp=/[\?&]([^=&]+)(=(([^&]|\\&)*))?/g;
     util.queryParam={};
 

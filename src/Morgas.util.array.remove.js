@@ -3,6 +3,8 @@
 	var util=µ.util=µ.util||{};
 	var utilArray=util.array=util.array||{};
 
+	//SC=SC({});
+
 	utilArray.remove=function(array,item)
 	{
 		var index=array.indexOf(item);

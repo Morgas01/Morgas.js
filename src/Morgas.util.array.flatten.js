@@ -3,6 +3,8 @@
 	var util=µ.util=µ.util||{};
 	var array=util.array=util.array||{};
 
+	//SC=SC({});
+
 	var flattenAll=Array.prototype.concat.bind(Array.prototype);
 
 	array.flatten=flattenAll.apply.bind(flattenAll,null);

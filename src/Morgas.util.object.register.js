@@ -3,6 +3,8 @@
 	let util=µ.util=µ.util||{};
 	let uObj=util.object=util.object||{};
 
+	//SC=SC({});
+
 	/**
 	 *
 	 * @param {Number} (stageCount=1) - count of generated stages

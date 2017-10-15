@@ -2,7 +2,9 @@
 
 	let util=µ.util=µ.util||{};
 	let obj=util.object=util.object||{};
-	
+
+	//SC=SC({});
+
 	/**
 	 * adopt attributes defined in [target] from [provider].
 	 * when [extend] is set to true all attributes from [provider] are adopted

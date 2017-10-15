@@ -7,6 +7,8 @@
 	let arrayRegEx=/^\[(\d+)\]$/;
 	let trimRegEx=/^\.|^\["?|"?]$/g;
 
+	//SC=SC({});
+
 	/** goPath
 	 * Goes the {path} from {obj} checking all but last step for existance.
 	 * 

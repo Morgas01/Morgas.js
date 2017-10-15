@@ -15,6 +15,7 @@
 	"Promise": "Morgas.Promise.js",
 	"signature": "Morgas.signature.js",
 	"SortedArray": "Morgas.SortedArray.js",
+	"array.equal": "Morgas.util.array.equal.js",
 	"flatten": "Morgas.util.array.flatten.js",
 	"array.remove": "Morgas.util.array.remove.js",
 	"array.removeIf": "Morgas.util.array.remove.js",

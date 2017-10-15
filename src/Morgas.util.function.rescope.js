@@ -2,6 +2,8 @@
 	
 	let util=µ.util=µ.util||{};
 	let uFn=util.function=util.function||{};
+
+	//SC=SC({});
 	
 	/** rescope
 	 * faster than bind but only changes the scope.

@@ -1,6 +1,9 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
 	var util=µ.util=µ.util||{};
+
+	//SC=SC({});
+
 	util.download=function(data,name,mediaType)
 	{
 		if(data instanceof Blob)

@@ -3,6 +3,8 @@
     let util=µ.util=µ.util||{};
     let uCon=util.converter=util.converter||{};
 
+	//SC=SC({});
+
 	uCon.csv={
 		symbols:{
 			line:Symbol("csv.line"),

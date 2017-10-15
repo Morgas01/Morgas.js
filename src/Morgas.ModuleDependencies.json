@@ -18,7 +18,7 @@
 		"uses": [
 			"array.remove",
 			"uniquify",
-			"register"
+			"flatten"
 		]
 	},
 	"Morgas.Event.js": {
@@ -67,6 +67,10 @@
 		"uses": []
 	},
 	"Morgas.SortedArray.js": {
+		"deps": [],
+		"uses": []
+	},
+	"Morgas.util.array.equal.js": {
 		"deps": [],
 		"uses": []
 	},
