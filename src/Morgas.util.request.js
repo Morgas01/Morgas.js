@@ -29,7 +29,7 @@
 			};
 			req.onerror=function(error)
 			{
-				if(param.urls.length==0) signal.reject({url:url,xhr:req,error:error});
+				if(param.urls.length==0) signal.reject({url:url,xhr:req,error:error,response:error.message});
 				else doRequest(signal,param);
 			};
 			if(param.progress)
