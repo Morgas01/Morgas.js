@@ -4,7 +4,7 @@
 	let uObj=util.object=util.object||{};
 
 	let pathRegEx=/\[[^\]]+\]|\.?[^.\[]+/g;
-	let arrayRegEx=/^\[(\d+)\]$/;
+	let arrayRegEx=/^\[(\d+)\]$|^\]$/;
 	let trimRegEx=/^\.|^\["?|"?]$/g;
 
 	//SC=SC({});
@@ -14,7 +14,7 @@
 	 * 
 	 * goPath(obj,"path.to.target") === goPath(obj,["path","to","target"]) === obj.path.to.target
 	 * 
-	 * when creating is enabled use "foo[]" or "foo[2]" instead of "foo.2" to create an array 
+	 * when creating is enabled use "foo[].n" or "foo[n]" instead of "foo.2" to create an array
 	 * 
 	 * @param {Any} obj
 	 * @param {String|string[]} path
@@ -28,6 +28,7 @@
 
 		for(let index=0; index<path.length;index++)
 		{
+			if(path[index]==="]") continue;
 			let key=path[index].replace(trimRegEx,"");
 			if(!(key in obj))
 			{
