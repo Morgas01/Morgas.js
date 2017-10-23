@@ -85,6 +85,22 @@
 	};
 	SMOD("request",REQ);
 
+	/**
+	 * use: Request(...).catch(Request.allowedStatuses([201,204])).then(...)
+	 *
+	 */
+	REQ.allowedStatuses=function(statuses=[])
+	{
+		return function(error)
+		{
+			if(statuses.includes(error.status))
+			{
+				return error.response;
+			}
+			return Promise.reject(error);
+		};
+	};
+
 	REQ.json=function Request_Json(param,scope)
 	{
 
