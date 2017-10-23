@@ -15,18 +15,28 @@
 
 	utilArray.removeIf=function(array,predicate,all=false,scope=null)
 	{
+		let count=0;
 		if(all)
 		{
 			for(var i=array.length-1;i>=0;i--)
 			{
-				if(predicate.call(scope,array[i],i,array)) array.splice(i,1);
+				if(predicate.call(scope,array[i],i,array))
+				{
+					array.splice(i,1);
+					count++;
+				}
 			}
 		}
 		else
 		{
 			var index=array.findIndex(predicate,scope);
-			if(index!=-1) array.splice(index,1);
+			if(index!=-1)
+			{
+				array.splice(index,1);
+				count++;
+			}
 		}
+		return count;
 	};
 	SMOD("array.removeIf",utilArray.removeIf);
 
