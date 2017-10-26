@@ -88,20 +88,11 @@
 		out:function(verbose,msg)
 		{
 			var fn;
-			switch(verbose)
-			{
-				case µ.logger.LEVEL.error:
-					fn=console.error;
-					break;
-				case µ.logger.LEVEL.warn:
-					fn=console.warn;
-					break;
-				case µ.logger.LEVEL.info:
-					fn=console.info;
-					break;
-				default:
-					fn=console.log;
-			}
+			if(verbose<=µ.logger.LEVEL.error) fn=console.error;
+			else if(verbose<=µ.logger.LEVEL.warn) fn=console.warn;
+			else if(verbose<=µ.logger.LEVEL.info) fn=console.info;
+			else fn=console.log;
+
 			fn.apply(console,msg);
 		}
 	};
