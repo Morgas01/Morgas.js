@@ -12,23 +12,19 @@
 	var path=require("path");
 
 	var NODEWORKER=µ.NodeJs.Worker=µ.Class(AbstractWorker,{
-		constructor:function({
-			script=NODEWORKER.defaults.SCRIPT,
-			cwd=path.dirname(script),
-			param,
-			startTimeout,
-			loadScripts
-		}={})
+		constructor:function(param={})
 		{
-			this.script=script;
-			this.cwd=cwd;
-			this.param=param;
+			({
+				script:this.script=NODEWORKER.defaults.SCRIPT,
+				cwd:this.cwd=path.dirname(this.script),
+				param:this.param
+			}=param);
 
 			SC.Promise.pledgeAll(this,["stop"]);
 
-			this.mega(startTimeout,loadScripts);
+			this.mega(param);
 		},
-		_start:function(script,args,cwd)
+		_start:function()
 		{
 			this.worker=fork(this.script,{cwd:this.cwd});
 			this.worker.on("error",e=>

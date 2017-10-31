@@ -18,7 +18,7 @@
 			if(typeof sub.prototype._send!="function") throw new SyntaxError("#AbstractWorker:001 _send() is not defined");
 			if(typeof sub.prototype._start!="function") throw new SyntaxError("#AbstractWorker:002 _start() is not defined");
 		},
-		constructor:function(startTimeout,loadScripts)
+		constructor:function({startTimeout,loadScripts,autoStart=true}={})
 		{
 			this.requestMap=new Map();
 			this.id=ID_COUNTER++;
@@ -28,7 +28,7 @@
 			let reporter=new SC.Reporter(this,[WorkerStateEvent,WorkerMessageEvent,SC.ErrorEvent]);
 
 
-			let state=AbstractWorker.states.CLOSE;
+			let state;
 			Object.defineProperty(this,"state",{
 				enumerable:true,
 				get:function()
@@ -46,8 +46,9 @@
 					reporter.report(new WorkerStateEvent(newState));
 				}
 			});
+			this.state=AbstractWorker.states.CLOSE;
 
-			this.restart(startTimeout,loadScripts);
+			if(autoStart) this.restart(startTimeout,loadScripts);
 		},
 //		_send:function(payload){},
 //		_start:function(){}, // propagate id and other parameters to actual worker
@@ -150,9 +151,9 @@
 		},
 		restart(timeout=AbstractWorker.defaults.TIMEOUT,loadScripts)
 		{
-			if(this.state!==AbstractWorker.states.CLOSE) throw new Error("#AbstractWorker:005 worker is already open");
+			if(this.state!==AbstractWorker.states.CLOSE) throw SC.Promise.reject(new Error("#AbstractWorker:005 worker is already open"),this);
 			let timer;
-			this.state=(this.ready==null ? AbstractWorker.states.START:AbstractWorker.states.RESTART);
+			this.state=AbstractWorker.states.START;
 			this.ready=new SC.Promise(function(signal)
 			{
 				this.requestMap.set("init",signal);
@@ -203,7 +204,6 @@
 		START:"start",
 		OPEN:"open",
 		CLOSE:"close",
-		RESTART:"restart"
 	};
 	AbstractWorker.defaults={
 		TIMEOUT:60000

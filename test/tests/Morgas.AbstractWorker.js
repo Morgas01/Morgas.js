@@ -138,6 +138,46 @@ QUnit.module("AbstractWorker",function()
                     });
         		});
         	});
+        	QUnit.test("no autoStart",function(assert)
+        	{
+        		assert.expect(5);
+				let worker=generator(undefined,false);
+				return worker.ready
+				.catch(function()
+				{
+					assert.ok(true,"not started");
+					return worker.restart(undefined,testWorkerScript)
+				})
+        		.then(function(initData)
+        		{
+                    return this.request("increment",[3]).then(function(four)
+					{
+						assert.strictEqual(four,4,"increment");
+					})
+                    .then(()=>
+                    {
+                    	return this.request("timeout",undefined,200).catch(function(error)
+                    	{
+                    		assert.strictEqual(error,"timeout","timeout");
+                    	});
+                    })
+                    .then(()=>
+                    {
+                    	return this.request("error").catch(function(error)
+                    	{
+                    		assert.strictEqual(error,"test error","error");
+                    	});
+                    })
+                    .then(function()
+                    {
+                    	return this.request("exception").catch(function(error)
+                    	{
+                    		assert.strictEqual(error,"test exception","exception");
+        					return this.stop();
+                    	});
+                    });
+        		});
+        	});
         });
 	};
 });

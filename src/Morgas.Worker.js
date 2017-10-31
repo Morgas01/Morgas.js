@@ -5,20 +5,16 @@
 	//SC=SC({});
 	
 	let WORKER=µ.Worker=µ.Class(AbstractWorker,{
-		constructor:function({
-			basePath=WORKER.defaults.BASE_PATH,
-			workerScript=WORKER.defaults.SCRIPT,
-			workerBasePath=WORKER.defaults.WORKER_BASE_PATH, //relative from path of loaded script
-			morgasPath=WORKER.defaults.MORGAS_PATH, // relative from workerBasePath
-			startTimeout,
-			loadScripts
-		}={})
+		constructor:function(param={})
 		{
-			this.basePath=basePath;
-			this.morgasPath=morgasPath;
-			this.workerBasePath=workerBasePath;
-			this.workerScript=workerScript;
-			this.mega(startTimeout,loadScripts);
+			({
+				basePath:this.basePath=WORKER.defaults.BASE_PATH,
+				workerScript:this.workerScript=WORKER.defaults.SCRIPT,
+				workerBasePath:this.workerBasePath=WORKER.defaults.WORKER_BASE_PATH, //relative from path of loaded script
+				morgasPath:this.morgasPath=WORKER.defaults.MORGAS_PATH, // relative from workerBasePath
+			}=param);
+
+			this.mega(param);
 		},
 		_start:function()
 		{
