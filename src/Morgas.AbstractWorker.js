@@ -31,6 +31,7 @@
 			let state;
 			Object.defineProperty(this,"state",{
 				enumerable:true,
+				configurable:true,
 				get:function()
 				{
 					return state;
@@ -92,7 +93,8 @@
 					feedbackPromise.then(
 						result=>this._send({feedback:message.feedback,data:result}),
 						error=>this._send({feedback:message.feedback,error:error})
-					);
+					)
+					.catch(µ.logger.error);
 				}
 			}
 			else if ("error" in message)
