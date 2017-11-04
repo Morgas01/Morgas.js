@@ -2,8 +2,8 @@
 
 	µ.NodeJs=µ.NodeJs||{};
 
-	var FS=require("fs");
-	var PATH=require("path");
+	let FS=require("fs");
+	let PATH=require("path");
 	
 	SC=SC({
 		prom:"Promise",
@@ -13,20 +13,20 @@
 		uni:"uniquify"
 	});
 	
-	var regexLike=/^\/((?:[^\/]||\\\/)+)\/([gimy]*)$/;
-	var extractChecksum=/.*[\[\(]([0-9a-fA-F]{8})[\)\]]/;
-	var splitFiles=/^(.+).(\d{5}).(.+).(part)$/;
-	var convertRegex=function(pattern)
+	let regexLike=/^\/((?:[^\/]||\\\/)+)\/([gimy]*)$/;
+	let extractChecksum=/.*[\[\(]([0-9a-fA-F]{8})[\)\]]/;
+	let splitFiles=/^(.+).(\d{5}).(.+).(part)$/;
+	let convertRegex=function(pattern)
 	{
 		if(pattern instanceof RegExp || !regexLike.test(pattern)) return pattern;
 		else
 		{
-			var match=pattern.match(regexLike);
+			let match=pattern.match(regexLike);
 			return new RegExp(match[1],match[2]);
 		}
 	};
 	
-	var asyncCallback=function(signal)
+	let asyncCallback=function(signal)
 	{
 		return function(err,result)
 		{
@@ -35,8 +35,8 @@
 		};
 	};
 	
-	var FH=µ.NodeJs.FileHelper=µ.Class({
-		init:function(dir)
+	let FH=µ.NodeJs.FileHelper=µ.Class({
+		constructor:function(dir)
 		{
 			this.file=new SC.File(dir||"./");
 			this.file.getAbsolutePath(); //implicit set absolute path
@@ -45,14 +45,14 @@
 		},
 		ls:function(addition)
 		{
-			var listFile=this.file;
+			let listFile=this.file;
 			if(addition) listFile=this.file.clone().changePath(addition);
 			
 			return listFile.listFiles();
 		},
 		changeDirectory:function(dir)
 		{
-			var oldDir=this.file.getAbsolutePath();
+			let oldDir=this.file.getAbsolutePath();
 			return this.file.changePath(dir).stat().then(stat=>
 			{
 				if(stat.isDirectory()) this.selected.length=0;
@@ -75,23 +75,24 @@
 			}
 			else
 			{
-				var doFilter=function(files)
+				let doFilter=function(files)
 				{
 					if(pattern==="all")					return files;
 					else if(pattern==="noCRC")			return files.filter((a)=>!a.match(extractChecksum));
 					else if(pattern instanceof RegExp)	return files.filter(function(a){return pattern.test(a)});
 					else if(pattern==="empty")
 					{
-						var dir=this.dir;
-						return SC.prom.always(files.map(f=>this.isEmpty(f)).then(function()
+						let dir=this.dir;
+						return Promise.all(files.map(f=>this.isEmpty(f).catch(()=>false)))
+						.then(function(stats)
 						{
-							var rtn=[];
-							for(var i=0;i<arguments.length;i++)
+							let rtn=[];
+							for(let i=0;i<stats.length;i++)
 							{
-								if(arguments[i]) rtn.push(files[i]);
+								if(stats[i]) rtn.push(files[i]);
 							}
 							return rtn;
-						}));
+						});
 					}
 					else
 					{
@@ -127,13 +128,13 @@
 		rename:function(pattern,replacement,overwrite)
 		{
 			pattern=convertRegex(pattern)
-			var rtn=[];
-			return new SC.prom.chain(this.selected,(i,f)=>
+			let rtn=[];
+			return SC.prom.wrap(SC.prom.chain(this.selected,f=>
 			{
-				var r=f.replace(pattern,replacement);
+				let r=f.replace(pattern,replacement);
 				return this.file.clone().changePath(f).rename(r)
 				.then(()=> [f,r],e=>[f,f,e]);
-			},null,this)
+			}),this)
 			.then(function(args)
 			{
 				this.selected=args.map(f=>f[1]);
@@ -142,49 +143,49 @@
 		},
 		calcCRC:function(progress)
 		{
-			return SC.prom.chain(this.selected,function(index,filename)
+			return SC.prom.chain(this.selected,filename=>
 			{
-				var calcFile=this.file.clone().changePath(filename);
+				let calcFile=this.file.clone().changePath(filename);
 				return SC.util.calcCRC(calcFile,progress).then(crc=>[filename,crc],e=>[filename,e]);
-			},null,this);
+			});
 		},
 		checkCRC:function(cb,progress)
 		{
-			return SC.prom.chain(this.selected,function(index,filename)
+			return SC.prom.chain(this.selected,filename=>
 			{
-				var match=filename.match(extractChecksum);
+				let match=filename.match(extractChecksum);
 				if(!match)
 				{
-					var result=[filename,null,null];
+					let result=[filename,null,null];
 					if(cb) cb(result);
 					return result;
 				}
 				return SC.util.calcCRC(this.file.clone().changePath(filename),progress)
 				.then(crc=>
 				{
-					var result=[filename,crc===match[1].toUpperCase(),crc];
+					let result=[filename,crc===match[1].toUpperCase(),crc];
 					if(cb)cb(result);
 					return result;
 				},µ.constantFunctions.pass);
-			},null,this);
+			});
 		},
 		appendCRC:function(cb,progress)
 		{
-			return SC.prom.chain(this.selected,function(index,filename)
+			return SC.prom.wrap(SC.prom.chain(this.selected,filename=>
 			{
-				var result;
-				var match=filename.match(extractChecksum);
+				let result;
+				let match=filename.match(extractChecksum);
 				if(match)
 				{
 					result=[filename, filename,"no change"];
 					if(cb)cb(result);
 					return result;
 				}
-				var appendFile=this.file.clone().changePath(filename);
+				let appendFile=this.file.clone().changePath(filename);
 				return SC.util.calcCRC(appendFile,progress)
 				.then(crc=>
 				{
-					var rn=PATH.parse(filename);
+					let rn=PATH.parse(filename);
 					rn=rn.name+"["+crc+"]"+rn.ext;
 					return appendFile.rename(rn).then(function()
 					{
@@ -194,11 +195,11 @@
 					});
 				}).catch(function(error)
 				{
-					var result=[filename,filename,error]
+					let result=[filename,filename,error]
 					if(cb)cb(result);
 					return result;
 				});
-			},null,this)
+			}),this)
 			.then(function(args)
 			{
 				this.selected=args.map(f=>f[1]);
@@ -207,8 +208,11 @@
 		},
 		"delete":function()
 		{
-			var promise=SC.prom.chain(this.selected.slice(),(index,filename)=>this.file.clone().changePath(filename).remove()
-				.then(()=>[filename],e=>
+			let promise=SC.prom.chain(this.selected.slice(),filename=>this.file.clone()
+				.changePath(filename)
+				.remove()
+				.then(()=>[filename],
+				e=>
 				{
 					this.selected.push(filename);
 					return [filename,e];
@@ -219,11 +223,11 @@
 		},
 		moveToDir:function(dir)
 		{
-			var target=this.file.clone().changePath(dir)
+			let target=this.file.clone().changePath(dir)
 			return SC.util.enshureDir(target)
 			.then(()=>
 			{
-				var p= SC.prom.chain(this.selected.slice(),(index,filename)=>
+				let p= SC.prom.chain(this.selected.slice(),filename=>
 					this.file.clone().changePath(filename).move(target).then(function(){return this.filePath})
 				);
 				this.selected.length=0;
@@ -233,9 +237,9 @@
 		//TODO fix dot between numbers
 		cleanNames:function()
 		{
-			return SC.prom.chain(this.selected,(index,filename)=>
+			return SC.prom.wrap(SC.prom.chain(this.selected,filename=>
 			{
-				var name=filename;
+				let name=filename;
 		    	if((name.indexOf("%20")!==-1&&name.indexOf(" ")===-1)||(name.indexOf("%5B")!==-1&&name.indexOf("[")===-1))
 		    		name=decodeURIComponent(name);
 		    	name=name.replace(/_/g," ");
@@ -248,7 +252,7 @@
 		    	{
 		    		return this.file.clone().changePath(filename).rename(name).then(()=>[filename,name],e=>[filename,filename,e]);
 		    	}
-			})
+			}),this)
 			.then(args=>
 			{
 				this.selected=args.map(f=>f[1]);
@@ -257,21 +261,21 @@
 		},
 		mergeParts:function(cb)
 		{
-			var selectedParts=SC.uni(this.selected.map(a=>a.match(splitFiles)).filter(µ.constantFunctions.pass),p=>p[1]);
+			let selectedParts=SC.uni(this.selected.map(a=>a.match(splitFiles)).filter(µ.constantFunctions.pass),p=>p[1]);
 			if(selectedParts.length>0)
 			{
 				return this._getFiles(splitFiles).then(allParts=>
 				{
-					return SC.prom.chain(selectedParts,(i,part)=>
+					return SC.prom.chain(selectedParts,part=>
 					{
-						var affectedParts=allParts.sort().filter(p=>p.indexOf(part[1])==0);
-						return SC.prom.chain(affectedParts,(i,aPart)=>
+						let affectedParts=allParts.sort().filter(p=>p.indexOf(part[1])==0);
+						return SC.prom.chain(affectedParts,aPart=>
 							this.file.clone().changePath(aPart).readStream({encoding:"binary"})
 							.then(stream=>{return{name:aPart,stream:stream}})
 						,null,this)
 						.then(function(args)
 						{
-							var target=part[1]+"."+part[3];
+							let target=part[1]+"."+part[3];
 							return this.file.clone().changePath(target).writeStream({encoding:"binary"})
 							.then(write=>
 							{
@@ -284,7 +288,7 @@
 							});
 						})
 						.then(data=>
-							SC.prom.chain(data.read,(i,read)=>
+							SC.prom.chain(data.read,read=>
 								new SC.prom(signal=>{
 
 									if(cb)cb("\tstart\t"+read.name+"\t"+(i+1)+"/"+data.read.length);
@@ -309,7 +313,7 @@
 								})
 							)
 						)
-					},this);
+					});
 				});
 			}
 			return SC.prom.resolve([]);

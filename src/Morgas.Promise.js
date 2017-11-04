@@ -173,14 +173,9 @@
 			if(typeof scope[keys[i]]==="function")scope[keys[i]]=PROM.pledge(scope[keys[i]],scope);
 		}
 	};
-	PROM.always=function(fns,opts)
+	PROM.wrap=function(thenable,scope)
 	{
-		fns=fns.map(fn=>
-		{
-			if (PROM.isThenable(fn))return fn.then(µ.constantFunctions.pass,µ.constantFunctions.pass);
-			else return new PROM(fn,opts).always(µ.constantFunctions.pass);
-		});
-		return new PROM(fns,opts);
+		return PROM.prototype._wrapNext.call(scope,thenable);
 	};
 	/* creates a pending Promise and attaches its resolve and reject to it */
 	PROM.open=function(scope)

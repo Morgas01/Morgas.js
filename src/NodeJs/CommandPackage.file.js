@@ -15,7 +15,9 @@
 		return function()
 		{
 			this.pause();
-			cmd.apply(this,arguments).always((result)=>
+			cmd.apply(this,arguments)
+			.catch(µ.constantFunctions.pass)
+			.then(result=>
 			{
 				this.out(result);
 				this.resume();

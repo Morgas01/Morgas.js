@@ -200,7 +200,10 @@
 			pattern[friendship.prototype.friendFieldname]=fids;
 			toDelete.push(pattern);
 
-			return new SC.prom.always(toDelete.map(p=>this.delete(friendship,p)),{scope:this});
+			return SC.prom.wrap(Promise.all(toDelete.map(p=>
+				this.delete(friendship,p)
+				.catch(µ.constantFunctions.pass)
+			)),this);
 		},
 		connectFriends:function(dbObjects)
 		{
