@@ -213,14 +213,18 @@
 		},
 		get:function(key)
 		{
-			if(key!=null)
+			if(key==null) return this.toJSON();
+			if(!Array.isArray(key)) return this.configs.get(key);
+			if(key.length==0) return this;
+
+			let config=this.configs.get(key[0]);
+			if(config)
 			{
-				if(!Array.isArray(key)) return this.configs.get(key);
-				let config=this.configs.get(key[0])
-				if(config) return config.get(key.slice(1));
-				return undefined;
+				if(key.length==1) return config;
+				return config.get(key.slice(1));
 			}
-			return this.toJSON();
+
+			return undefined;
 		},
 		remove:function(key)
 		{
@@ -329,6 +333,7 @@
 				if(key>=0&&key<this.configs.length) return this.configs[key];
 				return undefined;
 			}
+			if(key.length==0) return this;
 			if(key[0]>=0&&key[0]<this.configs.length)
 			{
 				let config=this.configs[key[0]];
@@ -429,14 +434,17 @@
 		},
 		get:function(key)
 		{
-			if(key!=null)
+			if(key==null) return this.toJSON();
+			if(!Array.isArray(key)) return this.configs.get(key);
+			if(key.length==0) return this;
+
+			let config=this.configs.get(key[0])
 			{
-				if(!Array.isArray(key)) return this.configs.get(key);
-				let config=this.configs.get(key[0])
-				if(config) return config.get(key.slice(1));
-				return undefined;
+				if(key.length==1) return config;
+				return config.get(key.slice(1));
 			}
-			return this.toJSON();
+
+			return undefined;
 		},
 		remove:function(key)
 		{

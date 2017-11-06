@@ -68,14 +68,18 @@ QUnit.module("Config",function()
 		assert.notOk(obj.set("foo","bar"),"reject invalid field");
 		assert.ok(obj.set("value",true),"set value");
 
-		obj.add("foo",new µ.Config.Field({
+		let foo=new µ.Config.Field({
 			type:"string",
 			default:"bar"
-		}));
+		});
+		obj.add("foo",foo);
 		assert.deepEqual(obj.get(),{
 			value:true,
 			foo:"bar"
 		},"add field");
+
+		assert.strictEqual(obj.get("foo"),foo,"get field");
+		assert.strictEqual(obj.get(["foo"]),foo,"get path field");
 	});
 
 	QUnit.test("array",function(assert)
