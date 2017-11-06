@@ -63,6 +63,7 @@
 			file=File.stringToFile(file);
 			var folder=file.clone().changePath("..");
 			var regex=new RegExp(String.raw`^${file.getName()}(\.([0-9]+))?$`);
+			let others=[];
 			return folder.exists()
 			.then(()=>folder.listFiles())
 			.then(files=>files.filter(f=>regex.test(f))
@@ -74,29 +75,28 @@
 					return a-b;
 				})
 			)
-			.then(files=>SC.prom.chain(files,function(index,file)
+			.then(async function(fileNames)
+			{
+				let errors=[];
+				for(let fileName of fileNames)
 				{
-					return folder.clone().changePath(file)
-					.read()
-					.then(mapper)
-					.then(function(data)
+					let file=folder.clone().changePath(fileName);
+					try
 					{
-						return Promise.reject({
+						let data=await mapper(await file.read());
+						return {
 							data:data,
-							file:this
-						});
-					},function(error)
+							file:file,
+							others:errors
+						}
+					}
+					catch (error)
 					{
-						return {error:error,file:this};
-					});//invert to control iteration
-				})
-				.then(e=>Promise.reject(e),result=>
-				{
-					var loaded=result.pop();
-					loaded.others=result;
-					return loaded;
-				})//invert to control iteration
-			);
+						errors.push({error:error,file:this});
+					}
+				}
+				throw errors;
+			});
 		},
 		enshureDir:function(dir)
 		{
