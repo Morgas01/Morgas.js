@@ -219,9 +219,10 @@
 	PROM.chain=async function(arr,mapper)
 	{
 		let results=[];
+		let index=0;
 		for(let entry of arr)
 		{
-			if(mapper) results.push(await mapper(entry));
+			if(mapper) results.push(await mapper(entry,index++));
 			else results.push(await entry());
 		}
 		return results;
