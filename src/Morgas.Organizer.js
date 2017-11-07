@@ -260,7 +260,7 @@
 			this.mega();
 			for(let filter of this.filters.values()) filter.child.clear();
 			for(let map of this.maps.values()) map.values={};
-			for(let group of this.groups)
+			for(let group of this.groups.values())
 			{
 				for(let child in Object.values(group.children))
 				{
