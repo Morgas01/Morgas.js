@@ -321,15 +321,19 @@
 		},
 		destroy:function()
 		{
-			SC.it(this.filters,(i,child)=>child.destroy());
+			for (let filter of this.filters.values())
+			{
+				filter.child.destroy();
+			}
 			this.filters.clear();
 			this.maps.clear();
-			SC.it(this.groups,(i,group)=>{
+			for (let group of this.groups.values())
+			{
 				for(let child of Object.values(group.children))
 				{
 					child.destroy();
 				}
-			});
+			}
 			this.groups.clear();
 
 			this.mega();

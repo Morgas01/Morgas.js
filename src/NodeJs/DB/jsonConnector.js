@@ -13,7 +13,7 @@
 	});
 
 	module.exports=µ.Class(OCON,{
-		init:function(file,param)
+		constructor:function(file,param)
 		{
 			param=param||{};
 			this.mega();
@@ -32,7 +32,7 @@
 			this.open=new SC.Promise(SC.FileUtil.getRotatedFile(this.file,JSON.parse),{scope:this})
 			.then(function(result)
 			{
-				this.db.add(result.data);
+				this.db.addAll(result.data);
 				delete result.data;
 				return result;
 			});
