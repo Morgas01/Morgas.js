@@ -209,40 +209,6 @@
 			 	}
 			}
 			return rtn;
-
-			return resolvedArr.sort((a,b)=>
-			{
-				let dependPathsA=a.from.filter(f=>f.indexOf(b.name)!=-1);
-				let dependPathsB=b.from.filter(f=>f.indexOf(a.name)!=-1);
-
-				if(dependPathsA.length>0)
-				{
-					if(dependPathsB.length>0) // cycle
-					{
-						let pathA=dependPathsA[0];
-						if(!this._containsUses(pathA.slice(pathA.indexOf(b.name))))
-						{
-							return -1;
-						}
-						let pathB=dependPathsB[0];
-						if(!this._containsUses(pathB.slice(pathB.indexOf(a.name))))
-						{
-							return 1;
-						}
-						// returns 0
-					}
-					else
-					{
-						return -1;
-					}
-				}
-				else if (dependPathsB.length>0)
-				{
-					return 1;
-				}
-
-				return 0;
-			});
 		},
         clone:function(prefix)
         {
