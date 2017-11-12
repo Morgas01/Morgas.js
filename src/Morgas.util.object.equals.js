@@ -172,6 +172,26 @@
 		betweenInclude.toString=betweenInclude.toJSON=()=>"[betweenInclude]"+uObj.equals.patternToString(pattern);
 		return betweenInclude;
 	};
+	uObj.equals.containsOrdered=function(iterablePattern)
+	{
+		let length=iterablePattern.size||iterablePattern.length||0;
+
+		let containsOrdered=function containsOrdered(value)
+		{
+			if(!value||!(Symbol.iterator in value)) return false;
+			let valueLength=value.size||value.length||0;
+			if(valueLength!=length) return false;
+			let iterator=value[Symbol.iterator]();
+			for(let pattern of iterablePattern)
+			{
+				let {done,value:entry}=iterator.next();
+				if(done||!uObj.equals(entry,pattern)) return false;
+			}
+			return true;
+		};
+		containsOrdered.toString=containsOrdered.toJSON=()=>"[containsOrdered]"+uObj.equals.patternToString(iterablePattern);
+		return containsOrdered;
+	};
 
 	let patternToJSON=function(pattern)
 	{
@@ -201,6 +221,7 @@
 		return JSON.stringify(patternToJSON(pattern,function(key,value)
 		{
 			if(value instanceof RegExp) return value.toString();
+			if(value instanceof Set) return Array.from(value);
 			return value;
 		}));
 	}

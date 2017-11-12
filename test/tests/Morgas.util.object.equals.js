@@ -2,7 +2,7 @@ QUnit.module("util.object.equals",function()
 {
 	QUnit.test("equals",function(assert)
 	{
-		var pattern={
+		let pattern={
 			string:"string",
 			regExp:/[gerx]{4}p/i,
 			num:4,
@@ -13,7 +13,7 @@ QUnit.module("util.object.equals",function()
 			},
 			arr:[1,"4",1,4,2,1,3,5,6,2,3,7]
 		};
-		var complex={
+		let complex={
 			equals:pattern.value
 		};
 		assert.ok(µ.util.object.equals("string",pattern.string),"string 1");
@@ -50,28 +50,257 @@ QUnit.module("util.object.equals",function()
 
 	QUnit.module("logic",function()
 	{
-		var testlogic=function(key,pattern,value)
+		let testlogic=function(key,tests)
 		{
 			QUnit.test(key,function(assert)
 			{
-				var fn=µ.util.object.equals[key](pattern);
-				assert.ok(µ.util.object.equals(value,fn),key);
-				var clone=µ.util.object.equals.stringToPattern(µ.util.object.equals.patternToString(fn));
-				assert.ok(µ.util.object.equals.patternToString(fn)===µ.util.object.equals.patternToString(clone),key+" string");
+				let index=1;
+				for(let testParam of tests)
+				{
+					let fn=µ.util.object.equals[key](testParam.pattern);
+					for (let {value,result=true,name=index} of testParam.checks)
+					{
+						assert.ok(µ.util.object.equals(value,fn)==result,key+" "+name);
+						index++;
+					}
+					let clone=µ.util.object.equals.stringToPattern(µ.util.object.equals.patternToString(fn));
+					assert.ok(µ.util.object.equals.patternToString(fn)===µ.util.object.equals.patternToString(clone),key+" serialize");
+				}
 			})
 		};
 
-		testlogic("Number.NaN",Number.NaN,Number.NaN);
-		testlogic("Number.NEGATIVE_INFINITY",Number.NEGATIVE_INFINITY,Number.NEGATIVE_INFINITY);
-		testlogic("Number.POSITIVE_INFINITY",Number.POSITIVE_INFINITY,Number.POSITIVE_INFINITY);
-		testlogic("unset",null,null);
-		testlogic("not",1,2);
-		testlogic("greater",1,2);
-		testlogic("greaterEqual",1,1);
-		testlogic("less",2,1);
-		testlogic("lessEqual",1,1);
-		testlogic("between",["apple","coconut"],"banana");
-		testlogic("betweenInclude",[1,1],1);
+		testlogic("Number.NaN",[
+			{
+				pattern:Number.NaN,
+				checks:[
+					{
+						value:Number.NaN
+					},
+					{
+						value:null,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("Number.NEGATIVE_INFINITY",[
+			{
+				pattern:Number.NEGATIVE_INFINITY,
+				checks:[
+					{
+						value:Number.NEGATIVE_INFINITY
+					},
+					{
+						value:null,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("Number.POSITIVE_INFINITY",[
+			{
+				pattern:Number.POSITIVE_INFINITY,
+				checks:[
+					{
+						value:Number.POSITIVE_INFINITY
+					},
+					{
+						value:null,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("unset",[
+			{
+				checks:[
+					{
+						value:null,
+						name:"null"
+					},
+					{
+						value:undefined,
+						name:"undefined"
+					},
+					{
+						value:0,
+						result:false,
+						name:"zero"
+					}
+				]
+			}
+		]);
+		testlogic("not",[
+			{
+				pattern:1,
+				checks:[
+					{
+						value:2
+					},
+					{
+						value:1,
+						result:false
+					}
+				]
+			},
+			{
+				pattern:"a",
+				checks:[
+					{
+						value:"b"
+					},
+					{
+						value:"a",
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("greater",[
+			{
+				pattern:2,
+				checks:[
+					{
+						value:3
+					},
+					{
+						value:10
+					},
+					{
+						value:2,
+						result:false
+					},
+					{
+						value:-2,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("greaterEqual",[
+			{
+				pattern:2,
+				checks:[
+					{
+						value:2
+					},
+					{
+						value:10
+					},
+					{
+						value:1,
+						result:false
+					},
+					{
+						value:-2,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("less",[
+			{
+				pattern:5,
+				checks:[
+					{
+						value:3
+					},
+					{
+						value:-11
+					},
+					{
+						value:5,
+						result:false
+					},
+					{
+						value:11,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("lessEqual",[
+			{
+				pattern:5,
+				checks:[
+					{
+						value:3
+					},
+					{
+						value:5
+					},
+					{
+						value:6,
+						result:false
+					},
+					{
+						value:200,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("between",[
+			{
+				pattern:["apple","coconut"],
+				checks:[
+					{
+						value:"banana"
+					},
+					{
+						value:"eggplant",
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("betweenInclude",[
+			{
+				pattern:[2,3],
+				checks:[
+					{
+						value:1,
+						result:false
+					},
+					{
+						value:2
+					},
+					{
+						value:3
+					},
+					{
+						value:4,
+						result:false
+					}
+				]
+			}
+		]);
+		testlogic("containsOrdered",[
+			{
+				pattern:[1,4,7,8,5,2],
+				checks:[
+					{
+						value:[1,4,7,8,5,2],
+						name:"ok"
+					},
+					{
+						value:[1,4,7,8,5],
+						name:"missing",
+						result:false
+					},
+					{
+						value:[1,4,7,8,5,2,3],
+						name:"more",
+						result:false
+					},
+					{
+						value:null,
+						name:"not iterable",
+						result:false
+					}
+				]
+			}
+		]);
 	});
 
 	QUnit.module("bugs",function()
