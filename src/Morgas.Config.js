@@ -422,10 +422,7 @@
 			{
 				if(this.configs.has(key))
 				{
-					µ.logger.warn(new µ.Warning(String.raw`overwriting config in Object under key ${key}`,{
-						old:this.configs.get(key),
-						new:value
-					}));
+					µ.logger.warn(`overwriting config in Object under key ${key}`);
 				}
 				this.configs.set(key,value);
 				return value;
