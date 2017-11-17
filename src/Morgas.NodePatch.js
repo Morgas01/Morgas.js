@@ -149,16 +149,18 @@
 			if(children)
 			{
 				let childSiblings=[];
-				for(let i=0;i<children.length;i++)
+				let i=0;
+				for(let child of children)
 				{
 					todo.push({
-						node:children[i],
+						node:child,
 						parent:entry.node,
 						parentResult:entry.siblingResults[entry.siblingResults.length-1],
 						siblingResults:childSiblings,
 						index:i,
 						depth:entry.depth+1
 					});
+					i++;
 				}
 			}
 		}
