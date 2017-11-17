@@ -33,6 +33,12 @@
 		"deps": [],
 		"uses": []
 	},
+	"Morgas.NodePatch.Compare.js": {
+		"deps": [
+			"NodePatch"
+		],
+		"uses": []
+	},
 	"Morgas.NodePatch.js": {
 		"deps": [
 			"Patch"

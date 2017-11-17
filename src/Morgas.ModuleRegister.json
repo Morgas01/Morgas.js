@@ -9,6 +9,7 @@
 	"ErrorEvent": "Morgas.Event.js",
 	"EventReporterPatch": "Morgas.Event.js",
 	"EventListenerPatch": "Morgas.Event.js",
+	"NodePatch.Compare": "Morgas.NodePatch.Compare.js",
 	"NodePatch": "Morgas.NodePatch.js",
 	"Organizer": "Morgas.Organizer.js",
 	"Patch": "Morgas.Patch.js",

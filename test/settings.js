@@ -35,6 +35,7 @@
 			{path:"Morgas.SortedArray.js",nodeJs:true,web:true},
 			{path:"Morgas.Organizer.js",nodeJs:true,web:true},
 			{path:"Morgas.NodePatch.js",nodeJs:true,web:true},
+			{path:"Morgas.NodePatch.Compare.js",nodeJs:true,web:true},
 			{path:"Morgas.AbstractWorker.js",nodeJs:true,web:true},
 			{path:"Morgas.Worker.js",nodeJs:false,web:true},
 			{path:"DB/Morgas.DB.js",nodeJs:true,web:true},
