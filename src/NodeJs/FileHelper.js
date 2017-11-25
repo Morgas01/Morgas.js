@@ -43,6 +43,10 @@
 			this.selected=[];
 			SC.prom.pledgeAll(this,["_getFiles"]);
 		},
+		getAbsolutePath:function()
+		{
+			return this.file.getAbsolutePath();
+		},
 		ls:function(addition)
 		{
 			let listFile=this.file;

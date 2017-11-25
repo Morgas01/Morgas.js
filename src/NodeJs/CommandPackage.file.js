@@ -1,16 +1,16 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
-	var COM=GMOD("Commander");
+	let COM=GMOD("Commander");
 	
 	SC=SC({
 		FH:"FileHelper",
 		rs:"rescope"
 	});
 
-	var FS=require("fs");
-	var PATH=require("path");
+	let FS=require("fs");
+	let PATH=require("path");
 	
-	var callAsync=function(cmd)
+	let callAsync=function(cmd)
 	{
 		return function()
 		{
@@ -24,6 +24,7 @@
 			});
 		};
 	};
+
 	var fileNameCompleter=function(line)
 	{
 		var addition=PATH.join(line+"dirt","..");
@@ -54,7 +55,7 @@
 		);
 	};
 	
-	var FILE=µ.Class(COM.CommandPackage,
+	let FILE=µ.Class(COM.CommandPackage,
 	{
 		patchID:"file",
 		patch:function()
@@ -68,35 +69,35 @@
 			ls:callAsync(function(addition){return this.fh.ls(addition).then(o=>o.join("\n"))}),
 			cd:(function()
 			{
-				var cmd=callAsync(function(dir)
+				let cmd=callAsync(function(dir)
 				{
 					return this.fh.changeDirectory(dir)
-					.then(()=>{this.instance.prompt=this.fh.file.filePath+">>";})
+					.then(()=>{this.instance.prompt=this.getAbsolutePath()+">>";})
 				});
 				cmd.completer=pathCompleter;
 				return cmd;
 			})(),
 			select:(function()
 			{
-				var cmd=callAsync(function(pattern){return this.fh.select(pattern).then(o=>o.join("\n"))});
+				let cmd=callAsync(function(pattern){return this.fh.select(pattern).then(o=>o.join("\n"))});
 				cmd.completer=fileNameCompleter;
 				return cmd;
 			})(),
 			selectAdd:(function()
 			{
-				var cmd=callAsync(function(pattern){return this.fh.selectAdd(pattern).then(o=>o.join("\n"))});
+				let cmd=callAsync(function(pattern){return this.fh.selectAdd(pattern).then(o=>o.join("\n"))});
 				cmd.completer=fileNameCompleter;
 				return cmd;
 			})(),
 			deselect:(function()
 			{
-				var cmd=callAsync(function(pattern){return this.fh.deselect(pattern).then(o=>o.join("\n"))});
+				let cmd=callAsync(function(pattern){return this.fh.deselect(pattern).then(o=>o.join("\n"))});
 				cmd.completer=selectedFileNameCompleter;
 				return cmd;
 			})(),
 			selected:function(){this.out(this.fh.selected.join("\n"));},
 			rename:function(line){
-				var match=line.match(/(?:(\/.*\/[gimy]*)|"(.*)")\s+"(.*)"/);
+				let match=line.match(/(?:(\/.*\/[gimy]*)|"(.*)")\s+"(.*)"/);
 				if(!match)this.out('rename pattern replacement\n\tpattern:\t\/regex\/ or "string"\n\treplacement:\t"string"');
 				else callAsync(function()
 				{
@@ -117,13 +118,13 @@
 			}),
 			"delete":(function()
 			{
-				var cmd=callAsync(function(pattern){return this.fh["delete"]().then(o=>o.map(r=>r.join("\t")).join("\n"))});
+				let cmd=callAsync(function(pattern){return this.fh["delete"]().then(o=>o.map(r=>r.join("\t")).join("\n"))});
 				cmd.completer=fileNameCompleter;
 				return cmd;
 			})(),
 			moveToDir:(function()
 			{
-				var cmd=callAsync(function(dir){return this.fh.moveToDir(dir).then(o=>o.join("\n"))});
+				let cmd=callAsync(function(dir){return this.fh.moveToDir(dir).then(o=>o.join("\n"))});
 				cmd.completer=pathCompleter;
 				return cmd;
 			})(),
@@ -132,7 +133,11 @@
 			{
 				return this.fh.cleanNames().then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));
 			}),
-			mergeParts:callAsync(function(pattern){return this.fh.mergeParts(this.out).then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));})
+			mergeParts:callAsync(function(pattern){return this.fh.mergeParts(this.out).then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));}),
+		},
+		getAbsolutePath:function()
+		{
+			return this.fh.getAbsolutePath();
 		},
 		progressOutput:function(value,max)
 		{
@@ -140,7 +145,10 @@
 			this.instance.rl.write((value*100/max).toFixed(2)+"%");
 			this.instance.rl.clearLine(1);
 			this.instance.rl.output.moveCursor(0,-1);
-		}
+		},
+		fileNameCompleter:fileNameCompleter,
+		selectedFileNameCompleter:selectedFileNameCompleter,
+		pathCompleter:pathCompleter
 	});
 	SMOD("CommandPackage.file",FILE);
 	
