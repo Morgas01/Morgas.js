@@ -136,12 +136,14 @@
 						let message=getTimeString(date);
 						if(filesize) message+=" "+(size*100/filesize).toFixed(2)+"%";
 						this.progressOutput(message);
-					},1000);
+					},250);
 					response.on("error",reject)
 					.on("end",()=>
 					{
 						clearInterval(timer);
-						resolve("complete     ");
+						date.setTime(Date.now()-startTime);
+						let message=getTimeString(date);
+						resolve(getTimeString(date)+" complete");
 					});
 					p.then(()=>target.writeStream())
 					.then(function(dest)
@@ -164,10 +166,21 @@
 			for(let i=0;i<list.length;i++)
 			{
 				let entry=list[i];
-				this.out(`${i}/${list.length}	${entry}`);
-				await this.download(entry);
+				let url=null;
+				let filename=null;
+				if(Array.isArray(entry))
+				{
+					url=entry[0];
+					filename=entry[1];
+				}
+				else
+				{
+					url=entry;
+				}
+				this.out(`${i+1}/${list.length}	${url}	${filename||""}`);
+				this.out(await this.download(url,filename));
 			}
-			return getTimeString(new Date(Date.now()-startTime));
+			return getTimeString(new Date(Date.now()-startTime))+" all complete";
 		},
 		progressOutput:function(message)
 		{
