@@ -1,6 +1,6 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
+	let util=µ.util=µ.util||{};
 	
 	//SC=SC({});
 
@@ -16,55 +16,133 @@
 	 * @param {String[]} data
 	 * @returns {fuzzySearchResult[]}
 	 */
-	 var FUZZ=util.fuzzySearch=function fuzzySearch(search,data)
+	let FUZZ=util.fuzzySearch=function fuzzySearch(term,data,{
+		threshold=0.1,
+		scorers
+	}={})
 	{
-		var scorer=FUZZ.scoreFunction(search);
-		return data.map(function(d,i)
+		if(!scorers)
 		{
-			return {
-				data:d,
-				index:i,
-				score:scorer(d)
-			};
-		})
-		.sort(function(a,b)
-		{
-			return FUZZ.sortScore(a.score,b.score);
-		});
-	};
-	FUZZ.scoreFunction=function(search)
-	{
-		search=search.replace(/([.*+?^${}()|[\]\\])/g,"\\$1")
-		var regexs=[
-			new RegExp(search,"ig"), //whole string
-			new RegExp(search.trim().split(/\s+/).join(".*"),"ig"), // all words in order
-			new RegExp(search.replace(/[A-Z]/g,s=>s+"[a-z]*").trim().split(/\s+/).join(".*"),"ig"), // all camel case words in order
-			new RegExp(search.trim().split(/\s+/).join("|"),"ig"), // words
-			new RegExp(search.replace(/[A-Z]/g,s=>s+"[a-z]*").trim().split(/\s+/).join("|"),"ig"), // camel case words
-		];
+			term=term.trim();
+			let words=term.split(/\s+/);
+			scorers=[
+				FUZZ.scoreFunctions.string.complete(term),
+                FUZZ.scoreFunctions.string.wordOrder(words),
+                FUZZ.scoreFunctions.string.words(words)
+			];
 
-		return function(data)
-		{
-			var rtn=[];
-
-			for (var r of regexs)
+			let camelCaseWords=term.match(/(:?\b[a-z]|[A-Z])[a-z]*/g);
+			if(camelCaseWords)
 			{
-				var score=0;
-				while(r.exec(data))
-				{
-					score++;
-				}
-				rtn.push(score);
+				scorers.push(FUZZ.scoreFunctions.string.wordOrder(camelCaseWords));
+				scorers.push(FUZZ.scoreFunctions.string.words(camelCaseWords));
 			}
-			return rtn;
-		};
+		}
+		else
+		{
+			scorers=[].concat(scorers);
+		}
+
+		let rtn=[];
+		for(let index=0;index<data.length;index++)
+		{
+			let entry=data[index];
+			let score=FUZZ.score(entry,scorers);
+			if(score<threshold) continue;
+
+			rtn.push({
+				data:entry,
+				index:index,
+				score:score
+			});
+
+		}
+		rtn.sort(FUZZ.sortResults);
+		return rtn;
+	};
+	FUZZ.scoreFunctions={
+		string:{
+			complete:function(term)
+			{
+				let regex=new RegExp(term,"igm");
+				return function(data)
+				{
+					let matches=data.match(regex);
+					if (!matches) return 0;
+					return matches.length*term.length/data.length;
+				};
+			},
+			wordOrder:function(words)
+			{
+				words=words.map(s=>s.toLowerCase());
+				let regex=new RegExp(words.join("|"),"ig");
+				return function(data)
+				{
+					let wordIndex=words.length-1;
+					let count=0;
+					let found=null;
+					regex.lastIndex=0;
+					while(count<words.length&&(found=regex.exec(data)))
+					{
+						let foundIndex=words.indexOf(found[0].toLowerCase());
+						if(foundIndex==(wordIndex+1)%words.length)
+						{
+							count++;
+						}
+						wordIndex=foundIndex;
+					}
+					return count/words.length;
+				};
+			},
+			words:function(words)
+			{
+				words=words.map(s=>s.toLowerCase());
+				let regex=new RegExp(words.join("|"),"ig");
+				return function(data)
+				{
+					regex.lastIndex=0;
+					let toFind=words.slice();
+					let found=null;
+					while(toFind.length>0&&(found=regex.exec(data)))
+					{
+						let foundIndex=toFind.indexOf(found[0].toLowerCase());
+						if (foundIndex!=-1) toFind.splice(foundIndex,1);
+					}
+					return 1-toFind.length/words.length;
+				};
+			},
+		}
+	};
+	FUZZ.score=function(data,scorers)
+	{
+		let score=0;
+		let totalWeight=0;
+		for(let scorer of scorers)
+		{
+			let fn,weight;
+			if(typeof scorer=="function")
+			{
+				fn=scorer;
+				weight=1;
+			}
+			else
+			{
+				fn=scorer.fn;
+				weight=scorer.weight||1;
+			}
+			score+=fn(data)*weight;
+			totalWeight+=weight;
+		}
+		return score/totalWeight;
+	};
+	FUZZ.sortResults=function({score:score1},{score:score2})
+	{
+		return FUZZ.sortScore(score1,score2);
 	};
 	FUZZ.sortScore=function(score1,score2)
 	{
-		var rtn=0;
-		for(var i=0;i<score1.length&&rtn==0;i++) rtn=score2[i]-score1[i];
-		return rtn;
-	}
+		return score2-score1;
+	};
 
 	SMOD("fuzzySearch",FUZZ);
 	
