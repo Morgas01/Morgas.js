@@ -87,7 +87,7 @@
 
 			if(filename)
 			{
-				target=new SC.File(filename);
+				target=new SC.File(this.getCWD()).changePath(filename);
 				try
 				{
 					target.exists();
@@ -120,7 +120,7 @@
 						{
 							filename=PATH.basename(URL.parse(url).pathname);
 						}
-						target=new SC.File(filename);
+						target=new SC.File(this.getCWD()).changePath(filename);
 						p=SC.util.findUnusedName(target);
 					}
 					else
