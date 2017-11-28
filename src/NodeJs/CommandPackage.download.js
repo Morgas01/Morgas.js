@@ -32,6 +32,35 @@
 		return ("0"+date.getUTCHours()).slice(-2)+":"+("0"+date.getUTCMinutes()).slice(-2)+":"+("0"+date.getUTCSeconds()).slice(-2);
 	};
 
+	let makeRequest=function(url)
+	{
+		return new Promise(function(resolve,reject)
+		{
+			(function request(url)
+			{
+				let protocol=require(URL.parse(url).protocol.slice(0,-1)||"http");
+				protocol.get(url,response=>
+				{
+					switch(response.statusCode)
+					{
+						case 200:
+							resolve(response);
+							break;
+						case 301:
+						case 302:
+						case 303:
+						case 307:
+						case 308:
+							request(response.headers.location);
+							break;
+						default:
+							reject("status :"+response.statusCode);
+					}
+				});
+			})(url);
+		});
+	}
+
 	let download=µ.Class(COM.CommandPackage,
 	{
 		patch:function()
@@ -96,66 +125,60 @@
 				catch(e){}
 			}
 
-			let protocol=require(URL.parse(url).protocol.slice(0,-1)||"http");
-			return await new Promise((resolve,reject)=>
-			{
-				protocol.get(url,(response)=>
-				{
-					let filesize=null;
-					if("content-length" in response.headers) filesize=response.headers["content-length"];
+			let response = await makeRequest(url);
 
-					let p;
-					if(!target)
+			let filesize=null;
+			if("content-length" in response.headers) filesize=response.headers["content-length"];
+
+			if(!target)
+			{
+				if("content-disposition" in response.headers)
+				{
+					let match=response.headers["content-disposition"].match(/filename="(.+)"/);
+					if(match)
 					{
-						if("content-disposition" in response.headers)
-						{
-							let match=response.headers["content-disposition"].match(/filename="(.+)"/);
-							if(match)
-							{
-								filename=match[1];
-								this.out("as "+filename);
-							}
-						}
-						if(!filename)
-						{
-							filename=PATH.basename(URL.parse(url).pathname);
-						}
-						target=new SC.File(this.getCWD()).changePath(filename);
-						p=SC.util.findUnusedName(target);
+						filename=match[1];
+						this.out("as "+filename);
 					}
-					else
-					{
-						p=Promise.resolve();
-					}
-					let date=new Date(0);
-					let startTime=Date.now();
-					let size=0;
-					let timer=setInterval(()=>
-					{
-						date.setTime(Date.now()-startTime);
-						let message=getTimeString(date);
-						if(filesize) message+=" "+(size*100/filesize).toFixed(2)+"%";
-						this.progressOutput(message);
-					},250);
-					response.on("error",reject)
-					.on("end",()=>
-					{
-						clearInterval(timer);
-						date.setTime(Date.now()-startTime);
-						let message=getTimeString(date);
-						resolve(getTimeString(date)+" complete");
-					});
-					p.then(()=>target.writeStream())
-					.then(function(dest)
-					{
-						response.pipe(dest);
-						response.on("data",function(data)
-						{
-							size+=data.length;
-						});
-						dest.on("error",reject);
-					},reject);
+				}
+				if(!filename)
+				{
+					filename=PATH.basename(URL.parse(url).pathname);
+				}
+				target=new SC.File(this.getCWD()).changePath(filename);
+				await SC.util.findUnusedName(target);
+			}
+			let date=new Date(0);
+			let startTime=Date.now();
+			let size=0;
+			let timer=setInterval(()=>
+			{
+				date.setTime(Date.now()-startTime);
+				let message=getTimeString(date);
+				if(filesize) message+=" "+(size*100/filesize).toFixed(2)+"%";
+				this.progressOutput(message);
+			},250);
+
+			return await new Promise(function(resolve,reject)
+			{
+				response.on("error",reject)
+				.on("end",()=>
+				{
+					clearInterval(timer);
+					date.setTime(Date.now()-startTime);
+					let message=getTimeString(date);
+					resolve(getTimeString(date)+" complete");
 				});
+				target.writeStream()
+				.then(function(dest)
+				{
+					response.pipe(dest);
+					response.on("data",function(data)
+					{
+						size+=data.length;
+					});
+					dest.on("error",reject);
+				},reject);
 			});
 		},
 		downloadList:async function(source)
@@ -163,7 +186,10 @@
 			let startTime=Date.now();
 			source=new SC.File(this.getCWD()).changePath(source);
 			let list=JSON.parse(await source.read());
-			for(let i=0;i<list.length;i++)
+			let stop=false;
+			let stopFn=()=>stop=true;
+			this.instance.rl.on("SIGINT",stopFn);
+			for(let i=0;!stop&&i<list.length;i++)
 			{
 				let entry=list[i];
 				let url=null;
@@ -180,7 +206,8 @@
 				this.out(`${i+1}/${list.length}	${url}	${filename||""}`);
 				this.out(await this.download(url,filename));
 			}
-			return getTimeString(new Date(Date.now()-startTime))+" all complete";
+			this.instance.rl.removeListener("SIGINT",stopFn);
+			return getTimeString(new Date(Date.now()-startTime))+(stop?" stopped":" all complete");
 		},
 		progressOutput:function(message)
 		{
