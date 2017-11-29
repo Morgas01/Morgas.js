@@ -32,6 +32,7 @@
 			{path:"Morgas.util.object.inputValues.js",nodeJs:false,web:true},
 			{path:"Morgas.util.request.js",nodeJs:false,web:true},
 			{path:"Morgas.util.converter.csv.js",nodeJs:false,web:true}, // remove request module from test for nodeJs
+			{path:"Morgas.util.converter.metricUnit.js",nodeJs:true,web:true},
 			{path:"Morgas.SortedArray.js",nodeJs:true,web:true},
 			{path:"Morgas.Organizer.js",nodeJs:true,web:true},
 			{path:"Morgas.NodePatch.js",nodeJs:true,web:true},

@@ -89,6 +89,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"Morgas.util.converter.metricUnit.js": {
+		"deps": [],
+		"uses": []
+	},
 	"Morgas.util.crc32.js": {
 		"deps": [],
 		"uses": []

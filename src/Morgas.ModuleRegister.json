@@ -21,6 +21,7 @@
 	"array.remove": "Morgas.util.array.remove.js",
 	"array.removeIf": "Morgas.util.array.remove.js",
 	"CSV": "Morgas.util.converter.csv.js",
+	"metricUnit": "Morgas.util.converter.metricUnit.js",
 	"util.crc32": "Morgas.util.crc32.js",
 	"download": "Morgas.util.download.js",
 	"proxy": "Morgas.util.function.proxy.js",
