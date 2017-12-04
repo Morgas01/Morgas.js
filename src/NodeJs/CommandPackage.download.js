@@ -119,7 +119,7 @@
 				target=new SC.File(this.getCWD()).changePath(filename);
 				try
 				{
-					target.exists();
+					await target.exists();
 					return target.getName()+" exists";
 				}
 				catch(e){}
