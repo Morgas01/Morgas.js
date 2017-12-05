@@ -1,10 +1,10 @@
-µ.util.Request.json("../src/Morgas.Dependencies.json")
+µ.util.request.json("../src/Morgas.Dependencies.json")
 .then(function(mDeps)
 {
-	var resolver=new µ.DependencyResolver();
+	let resolver=new µ.DependencyResolver();
 	resolver.addConfig(mDeps);
-    var html='';
-	var keys=Object.keys(mDeps);
+    let html='';
+	let keys=Object.keys(mDeps);
 	keys.sort(function(a,b)
 	{
 		a=a.slice(0,-3);
@@ -12,39 +12,30 @@
 		if((a.indexOf("/")!==-1) != (b.indexOf("/")!==-1)) return false; //sort subfolders last
 		else return a>b;
 	});
-    for(var k=0;k<keys.length;k++)
+    for(let k=0;k<keys.length;k++)
     {
         html+='<label><input type="checkbox" value="'+keys[k]+'">'+keys[k]+'</label>';
     }
 
-	var selections=document.getElementById("selections");
-	var prefix=document.getElementById("prefix");
-	var result=document.getElementById("result");
+	let selections=document.getElementById("selections");
+	let prefix=document.getElementById("prefix");
+	let result=document.getElementById("result");
 	selections.innerHTML=html;
 
-	var update=function()
+	let update=function()
     {
     	Array.forEach(selections.querySelectorAll(':indeterminate'), function(v){v.indeterminate=false});
-        var values=Array.map(selections.querySelectorAll('[type="checkbox"]:checked'),function(val){return val.value});
+        let values=Array.map(selections.querySelectorAll('[type="checkbox"]:checked'),function(val){return val.value});
         if(values)
         {
-            var resolved=resolver.resolve(values);
-            for(var i=0;i<resolved.length;i++)
+            let resolved=resolver.resolve(values);
+        	resolved.unshift("Morgas.js");
+            for(let i=0;i<resolved.length;i++)
         	{
-            	var checkbox=document.querySelector('[type="checkbox"][value="'+resolved[i]+'"]:not(:checked)');
+            	let checkbox=document.querySelector('[type="checkbox"][value="'+resolved[i]+'"]:not(:checked)');
             	if(checkbox)checkbox.indeterminate=true;
         	}
-            resolved.sort(function(a,b){
-               return a.endsWith(".css")-b.endsWith(".css");
-            });
-			result.value=resolved.map(function(v)
-            {
-                if(v.endsWith(".css"))
-                {
-                    return '<link rel="stylesheet" href="'+prefix.value+v+'">'
-                }
-                return '<script defer src="'+prefix.value+v+'"></script>';
-            }).join("\n");
+			result.value=resolved.map(v=>`<script defer src="${prefix.value+v}"></script>`).join("\n");
         }
         else
         {
@@ -53,4 +44,9 @@
     };
 	window.addEventListener("change",update);
 	window.addEventListener("input",update);
+},
+function(error)
+{
+	console.error(error);
+	alert("network error");
 });

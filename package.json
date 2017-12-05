@@ -6,6 +6,7 @@
 		"url": "https://github.com/Morgas01/Morgas.js.git"
 	},
 	"devDependencies": {
+		"concat-with-sourcemaps": "^1.0.4",
 		"qunit-tap": "^1.5.1",
 		"qunitjs": "^2.0.1",
 		"tap-difflet": "^0.7.0",
