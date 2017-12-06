@@ -21,7 +21,7 @@ JavaScript data processing framework for fun
 	```
 	2. js
 	```js
-		require("Morgas");
+		require("morgas");
 		// creates global "Morgas" and "µ" namespaces
 	```
 	In Node context every module is available via µ.getModule("\<name\>").

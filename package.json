@@ -1,10 +1,10 @@
 {
-	"name": "Morgas",
+	"name": "morgas",
 	"version": "0.8.0",
 	"description": "dependency free framework for fun",
 	"homepage": "https://github.com/Morgas01/Morgas.js",
-	"bugs":{
-		"url":"https://github.com/Morgas01/Morgas.js/issues"
+	"bugs": {
+		"url": "https://github.com/Morgas01/Morgas.js/issues"
 	},
 	"license": "MIT",
 	"main": "src/NodeJs/Morgas.NodeJs.js",
