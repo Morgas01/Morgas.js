@@ -25,11 +25,11 @@
 	let update=function()
     {
     	Array.forEach(selections.querySelectorAll(':indeterminate'), function(v){v.indeterminate=false});
+    	document.querySelector('[type="checkbox"][value="Morgas.js"]').checked=true;
         let values=Array.map(selections.querySelectorAll('[type="checkbox"]:checked'),function(val){return val.value});
         if(values)
         {
             let resolved=resolver.resolve(values);
-        	resolved.unshift("Morgas.js");
             for(let i=0;i<resolved.length;i++)
         	{
             	let checkbox=document.querySelector('[type="checkbox"][value="'+resolved[i]+'"]:not(:checked)');
@@ -44,6 +44,7 @@
     };
 	window.addEventListener("change",update);
 	window.addEventListener("input",update);
+	update();
 },
 function(error)
 {
