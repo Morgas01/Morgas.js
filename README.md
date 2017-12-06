@@ -17,14 +17,14 @@ JavaScript data processing framework for fun
 - Node
 	1. cli
 	```
-	npm install Morgas
+	npm install morgas
 	```
 	2. js
 	```js
 		require("morgas");
 		// creates global "Morgas" and "µ" namespaces
 	```
-	In Node context every module is available via µ.getModule("\<name\>").
+	In Node context every module is available via `µ.getModule("<name>")`.
 
 ##Node custom modules
 In order to load custom modules you need to
@@ -59,7 +59,7 @@ and parses every shortcut as "use" dependency and every `GMOD("<moduleName>")` *
 
 
 therefore it is recommended to use an IIFE like this:
-```json
+```js
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
