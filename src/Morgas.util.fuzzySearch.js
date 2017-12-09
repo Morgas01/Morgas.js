@@ -21,27 +21,8 @@
 		scorers
 	}={})
 	{
-		if(!scorers)
-		{
-			term=term.trim();
-			let words=term.split(/\s+/);
-			scorers=[
-				FUZZ.scoreFunctions.string.complete(term),
-                FUZZ.scoreFunctions.string.wordOrder(words),
-                FUZZ.scoreFunctions.string.words(words)
-			];
-
-			let camelCaseWords=term.match(/(:?\b[a-z]|[A-Z])[a-z]*/g);
-			if(camelCaseWords)
-			{
-				scorers.push(FUZZ.scoreFunctions.string.wordOrder(camelCaseWords));
-				scorers.push(FUZZ.scoreFunctions.string.words(camelCaseWords));
-			}
-		}
-		else
-		{
-			scorers=[].concat(scorers);
-		}
+		if(!scorers) scorers=[FUZZ.scoreFunctions.misc.query(term)];
+		else scorers=[].concat(scorers);
 
 		let rtn=[];
 		for(let index=0;index<data.length;index++)
@@ -111,10 +92,55 @@
 					return 1-toFind.length/words.length;
 				};
 			},
+		},
+		object:{
+			property:function(key,scorers)
+			{
+				return function(data)
+				{
+					if(data&&key in data) return FUZZ.score(data[key],scorers);
+					return 0;
+				}
+			}
+		},
+		misc:{
+			query:function(term)
+			{
+				term=term.trim();
+				let words=term.split(/\s+/);
+				let scorers=[
+					FUZZ.scoreFunctions.string.complete(term),
+					FUZZ.scoreFunctions.string.wordOrder(words),
+					FUZZ.scoreFunctions.string.words(words)
+				];
+
+				let camelCaseWords=term.match(/(:?\b[a-z]|[A-Z])[a-z]*/g);
+				if(camelCaseWords)
+				{
+					scorers.push(FUZZ.scoreFunctions.string.wordOrder(camelCaseWords));
+					scorers.push(FUZZ.scoreFunctions.string.words(camelCaseWords));
+				}
+				return function(data)
+				{
+					return FUZZ.score(data,scorers);
+				};
+			},
+			cache:function(scorers)
+			{
+				let cache=new WeakMap();
+				return function(data)
+				{
+					if(!cache.has(data)) cache.set(data,FUZZ.score(data,scorers));
+					return cache.get(data);
+				};
+			}
 		}
 	};
 	FUZZ.score=function(data,scorers)
 	{
+		// shortcut for arrays with only 1 entry
+		if(scorers.length==1) return scorers[0](data);
+
 		let score=0;
 		let totalWeight=0;
 		for(let scorer of scorers)
