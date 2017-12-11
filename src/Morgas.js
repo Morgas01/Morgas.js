@@ -1,5 +1,5 @@
 ﻿(function MorgasInit(oldµ){
-	Morgas={version:"0.8.1"};
+	Morgas={version:"0.8.2"};
 	µ=Morgas;
 	/**
 	 * revert "µ" to its old value

@@ -29,10 +29,6 @@
 			"array.removeIf"
 		]
 	},
-	"Morgas.js": {
-		"deps": [],
-		"uses": []
-	},
 	"Morgas.NodePatch.Compare.js": {
 		"deps": [
 			"NodePatch"
