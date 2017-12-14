@@ -26,10 +26,6 @@
 			"Morgas.util.array.remove.js"
 		]
 	},
-	"Morgas.js": {
-		"deps": [],
-		"uses": []
-	},
 	"Morgas.NodePatch.Compare.js": {
 		"deps": [
 			"Morgas.NodePatch.js"

@@ -16,14 +16,14 @@ JavaScript data processing framework for fun
 
 - Node
 	1. cli
-	```
-	npm install morgas
-	```
+		```
+		npm install morgas
+		```
 	2. js
-	```js
+		```js
 		require("morgas");
 		// creates global "Morgas" and "µ" namespaces
-	```
+		```
 	In Node context every module is available via `µ.getModule("<name>")`.
 
 ##Node custom modules
