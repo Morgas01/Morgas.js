@@ -242,6 +242,7 @@
 
 				this.eventMap.set(eventClass.prototype.constructor,eventRegister);
 			}
+			return this;
 		},
 		add(eventName,scope=null,fn,phase)
 		{
