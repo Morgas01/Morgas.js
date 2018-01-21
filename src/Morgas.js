@@ -189,7 +189,7 @@
 		if(arguments.length==1)
 		{
 			newClass=superClass;
-			superClass=BASE;
+			superClass=µ.BaseClass;
 		}
 
 		if(typeof newClass=="object")
@@ -243,7 +243,7 @@
 	 *	allows to check of being a class ( foo instanceof µ.BaseClass )
 	 *	provides mega and basic destroy method
 	 */
-	var BASE=µ.BaseClass=µ.Class({
+	µ.BaseClass=µ.Class({
 		mega:function mega()
 		{
 			let isFirstCall=false,rtn;
