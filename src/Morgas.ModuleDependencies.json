@@ -1,5 +1,5 @@
 {
-	"Morgas.AbstractWorker.js": {
+	"AbstractWorker": {
 		"deps": [],
 		"uses": [
 			"Event",
@@ -9,11 +9,11 @@
 			"Promise"
 		]
 	},
-	"Morgas.Config.js": {
+	"Config": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.DependencyResolver.js": {
+	"DependencyResolver": {
 		"deps": [],
 		"uses": [
 			"array.remove",
@@ -21,7 +21,15 @@
 			"flatten"
 		]
 	},
-	"Morgas.Event.js": {
+	"DepRes": {
+		"deps": [],
+		"uses": [
+			"array.remove",
+			"uniquify",
+			"flatten"
+		]
+	},
+	"Event": {
 		"deps": [
 			"Patch"
 		],
@@ -29,19 +37,59 @@
 			"array.removeIf"
 		]
 	},
-	"Morgas.NodePatch.Compare.js": {
+	"StateEvent": {
+		"deps": [
+			"Patch"
+		],
+		"uses": [
+			"array.removeIf"
+		]
+	},
+	"CancelEvent": {
+		"deps": [
+			"Patch"
+		],
+		"uses": [
+			"array.removeIf"
+		]
+	},
+	"ErrorEvent": {
+		"deps": [
+			"Patch"
+		],
+		"uses": [
+			"array.removeIf"
+		]
+	},
+	"EventReporterPatch": {
+		"deps": [
+			"Patch"
+		],
+		"uses": [
+			"array.removeIf"
+		]
+	},
+	"EventListenerPatch": {
+		"deps": [
+			"Patch"
+		],
+		"uses": [
+			"array.removeIf"
+		]
+	},
+	"NodePatch.Compare": {
 		"deps": [
 			"NodePatch"
 		],
 		"uses": []
 	},
-	"Morgas.NodePatch.js": {
+	"NodePatch": {
 		"deps": [
 			"Patch"
 		],
 		"uses": []
 	},
-	"Morgas.Organizer.js": {
+	"Organizer": {
 		"deps": [
 			"SortedArray"
 		],
@@ -51,118 +99,134 @@
 			"proxy"
 		]
 	},
-	"Morgas.Patch.js": {
+	"Patch": {
 		"deps": [],
 		"uses": [
 			"array.remove",
 			"rescope"
 		]
 	},
-	"Morgas.Promise.js": {
+	"Promise": {
 		"deps": [],
 		"uses": [
 			"rescope"
 		]
 	},
-	"Morgas.signature.js": {
+	"signature": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.SortedArray.js": {
+	"SortedArray": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.array.equal.js": {
+	"array.equal": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.array.flatten.js": {
+	"flatten": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.array.remove.js": {
+	"array.remove": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.converter.csv.js": {
+	"array.removeIf": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.converter.metricUnit.js": {
+	"CSV": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.crc32.js": {
+	"metricUnit": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.download.js": {
+	"util.crc32": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.function.proxy.js": {
+	"download": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.function.rescope.js": {
+	"proxy": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.fuzzySearch.js": {
+	"rescope": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.map.register.js": {
+	"fuzzySearch": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.object.adopt.js": {
+	"mapRegister": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.object.equals.js": {
+	"adopt": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.object.goPath.js": {
+	"equals": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.object.inputValues.js": {
+	"goPath": {
+		"deps": [],
+		"uses": []
+	},
+	"setInputValues": {
 		"deps": [],
 		"uses": [
 			"goPath"
 		]
 	},
-	"Morgas.util.object.register.js": {
+	"getInputValues": {
+		"deps": [],
+		"uses": [
+			"goPath"
+		]
+	},
+	"register": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.object.registerMap.js": {
+	"registerMap": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.object.uniquify.js": {
+	"uniquify": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.queryParam.js": {
+	"queryParam": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.request.js": {
+	"request": {
 		"deps": [],
 		"uses": [
 			"Promise"
 		]
 	},
-	"Morgas.Worker.js": {
+	"request.json": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"Worker": {
 		"deps": [
 			"AbstractWorker"
 		],
 		"uses": []
 	},
-	"DB/Morgas.DB.IndexedDBConnector.js": {
+	"IndexedDBConnector": {
 		"deps": [
 			"DBConn"
 		],
@@ -173,13 +237,48 @@
 			"DBFriend"
 		]
 	},
-	"DB/Morgas.DB.js": {
+	"IDBConn": {
+		"deps": [
+			"DBConn"
+		],
+		"uses": [
+			"Promise",
+			"equals",
+			"DBObj",
+			"DBFriend"
+		]
+	},
+	"DBConn": {
 		"deps": [],
 		"uses": [
 			"Promise"
 		]
 	},
-	"DB/Morgas.DB.ObjectConnector.js": {
+	"DBObj": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"DBFriend": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"DBRel": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"DBField": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"ObjectConnector": {
 		"deps": [
 			"DBConn",
 			"Organizer"
