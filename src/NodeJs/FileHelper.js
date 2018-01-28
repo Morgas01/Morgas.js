@@ -139,10 +139,10 @@
 				return this.file.clone().changePath(f).rename(r)
 				.then(()=> [f,r],e=>[f,f,e]);
 			}),this)
-			.then(function(args)
+			.then(function(results)
 			{
-				this.selected=args.map(f=>f[1]);
-				return args;
+				this.selected=results.map(([oldFilename,newFilename])=>newFilename);
+				return results;
 			});
 		},
 		calcCRC:function(progress)
