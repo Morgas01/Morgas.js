@@ -30,6 +30,7 @@
 			{path:"Morgas.util.object.goPath.js",nodeJs:true,web:true},
 			{path:"Morgas.util.object.equals.js",nodeJs:true,web:true},
 			{path:"Morgas.util.object.inputValues.js",nodeJs:false,web:true},
+			{path:"Morgas.util.map.register.js",nodeJs:true,web:true},
 			{path:"Morgas.util.request.js",nodeJs:false,web:true},
 			{path:"Morgas.util.converter.csv.js",nodeJs:false,web:true}, // remove request module from test for nodeJs
 			{path:"Morgas.util.converter.metricUnit.js",nodeJs:true,web:true},

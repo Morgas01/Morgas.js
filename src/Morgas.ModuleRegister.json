@@ -27,6 +27,7 @@
 	"proxy": "Morgas.util.function.proxy.js",
 	"rescope": "Morgas.util.function.rescope.js",
 	"fuzzySearch": "Morgas.util.fuzzySearch.js",
+	"mapRegister": "Morgas.util.map.register.js",
 	"adopt": "Morgas.util.object.adopt.js",
 	"equals": "Morgas.util.object.equals.js",
 	"goPath": "Morgas.util.object.goPath.js",

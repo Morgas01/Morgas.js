@@ -112,6 +112,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"Morgas.util.map.register.js": {
+		"deps": [],
+		"uses": []
+	},
 	"Morgas.util.object.adopt.js": {
 		"deps": [],
 		"uses": []
