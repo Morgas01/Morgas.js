@@ -248,6 +248,16 @@ QUnit.module("Promise",function()
 		return rtn;
 	});
 
+	QUnit.test("wrap",function(assert)
+	{
+		let inst={};
+		return µ.Promise.wrap(Promise.resolve(),inst)
+		.then(function()
+		{
+			assert.strictEqual(this,inst);
+		});
+	});
+
 	QUnit.test("bug: catch wraps result in array",function(assert)
 	{
 		return new µ.Promise(function(signal){signal.resolve("some arg");})

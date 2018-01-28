@@ -175,7 +175,7 @@
 	};
 	PROM.wrap=function(thenable,scope)
 	{
-		return PROM.prototype._wrapNext.call(scope,thenable);
+		return PROM.prototype._wrapNext.call({scope:scope},thenable);
 	};
 	/* creates a pending Promise and attaches its resolve and reject to it */
 	PROM.open=function(scope)
