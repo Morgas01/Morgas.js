@@ -244,6 +244,9 @@
 	 *	provides mega and basic destroy method
 	 */
 	µ.BaseClass=µ.Class({
+		/**
+		 * calls same function from prototype chain as the caller
+		 */
 		mega:function mega()
 		{
 			let isFirstCall=false,rtn;
