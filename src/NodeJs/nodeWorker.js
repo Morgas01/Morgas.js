@@ -27,10 +27,7 @@
 		_start:function()
 		{
 			this.worker=fork(this.script,{cwd:this.cwd});
-			this.worker.on("error",e=>
-			{
-				this._onMessage({error:e});
-			});
+			this.worker.on("error",e=>this._onMessage({error:e}));
 			this.worker.on("exit",(code,signal)=>
 			{
 				this.state=AbstractWorker.states.CLOSE;
@@ -69,6 +66,9 @@
 		destroy:function()
 		{
 			this.worker.kill("SIGKILL");
+			this.worker.removeAllListeners("error");
+			this.worker.removeAllListeners("exit");
+			this.worker.removeAllListeners("message");
 			this.state=AbstractWorker.states.CLOSE;
 			this.mega();
 		}

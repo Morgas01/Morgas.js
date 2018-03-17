@@ -48,7 +48,8 @@ worker={
 			{
 				try
 				{
-					callPromise=Promise.resolve(worker[message.method](...message.args));
+					callPromise=worker[message.method](...message.args);
+					if(!callPromise||typeof callPromise.then!="function") callPromise=Promise.resolve(callPromise);
 				}
 				catch(e)
 				{
