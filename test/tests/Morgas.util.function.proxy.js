@@ -30,7 +30,7 @@ QUnit.module("util.function.proxy",function()
 			return dynamicSource;
 		};
 		
-		µ.util.function.proxy(target.innerSource,["f1"],target);
+		µ.util.function.proxy("innerSource",["f1"],target);
 		µ.util.function.proxy(outerSource,{"function2":"f2"},target);
 		µ.util.function.proxy(getter,["f3"],target);
 		
