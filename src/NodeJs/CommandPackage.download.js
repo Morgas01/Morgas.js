@@ -38,8 +38,10 @@
 		{
 			(function request(url)
 			{
-				let protocol=require(URL.parse(url).protocol.slice(0,-1)||"http");
-				protocol.get(url,response=>
+				let options=URL.parse(url);
+				let protocol=require(options.protocol.slice(0,-1)||"http");
+				options.rejectUnauthorized=false;
+				protocol.get(options,response=>
 				{
 					switch(response.statusCode)
 					{
