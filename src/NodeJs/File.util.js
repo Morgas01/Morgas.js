@@ -1,25 +1,25 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var File=GMOD("File");
-
+	let File=GMOD("File");
+	let CRYPTO=require("crypto");
 	SC=SC({
 		crc:"util.crc32",
 		prom:"Promise"
 	});
 
-	var PATH=require("path");
-	var FS=require("fs");
+	let PATH=require("path");
+	let FS=require("fs");
 
-	var UTIL=File.util={
+	let UTIL=File.util={
 		findUnusedName:SC.prom.pledge(function(signal,file)
 		{
 			file=File.stringToFile(file);
 			file.exists().then(function()
 			{
-				var pathInfo=PATH.parse(file.filePath);
-				var counter=1;
+				let pathInfo=PATH.parse(file.filePath);
+				let counter=1;
 
-				var find=function()
+				let find=function()
 				{
 					return file.changePath(PATH.format({
 						dir:pathInfo.dir,
@@ -42,7 +42,7 @@
 		{
 			if(!count) count=3;
 			file=File.fileToString(file);
-			var rot=function(prevFile,number)
+			let rot=function(prevFile,number)
 			{
 				return new File(file+"."+number).exists().then(function()
 				{
@@ -61,15 +61,15 @@
 		getRotatedFile:function(file,mapper)
 		{
 			file=File.stringToFile(file);
-			var folder=file.clone().changePath("..");
-			var regex=new RegExp(String.raw`^${file.getName()}(\.([0-9]+))?$`);
+			let folder=file.clone().changePath("..");
+			let regex=new RegExp(String.raw`^${file.getName()}(\.([0-9]+))?$`);
 			let others=[];
 			return folder.exists()
 			.then(()=>folder.listFiles())
 			.then(files=>files.filter(f=>regex.test(f))
 				.sort((a,b)=>
 				{
-					var aMatch=a.match(regex),bMatch=b.match(regex);
+					let aMatch=a.match(regex),bMatch=b.match(regex);
 					a=parseInt(aMatch&&aMatch[2]||-1,10);
 					b=parseInt(bMatch&&bMatch[2]||-1,10);
 					return a-b;
@@ -103,7 +103,7 @@
 			dir=File.stringToFile(dir);
 			return dir.exists().catch(function()
 			{
-				var parentDir=PATH.dirname(dir.getAbsolutePath());
+				let parentDir=PATH.dirname(dir.getAbsolutePath());
 				if(dir.getAbsolutePath()===parentDir)
 				{
 					signal.reject(new RangeError("no existing dir found"));
@@ -122,7 +122,7 @@
 		enshureDirSync:function(dir)
 		{
 			dir=File.stringToFile(dir).clone();
-			var todo=[];
+			let todo=[];
 			while (!FS.existsSync(dir.getAbsolutePath()))
 			{
 				todo.push(dir.getAbsolutePath());
@@ -140,8 +140,8 @@
 				file.readStream().then(stream=>
 					new SC.prom(signal=>
 					{
-						var dataRead=0;
-						var builder=new SC.crc.Builder();
+						let dataRead=0;
+						let builder=new SC.crc.Builder();
 						stream.on("data",function(data)
 						{
 							builder.add(data);
@@ -156,8 +156,28 @@
 					})
 				)
 			);
+		},
+		async calcHash(file,algorithm="md5",progress)
+		{
+			let stat=await file.stat();
+			let stream=await calcFile.readStream();
+			return new Promise((resolve,reject)=>
+			{
+				let hash=CRYPTO.createHash(algorithm);
+				let dataRead=0;
+
+				stream.on('data', function (data) {
+					hash.update(data, 'utf8');
+					dataRead+=data.length;
+					if(progress)progress(dataRead,stat.size);
+				});
+				stream.on('end', function () {
+					resolve(hash.digest('hex'));
+				});
+				stream.on('error', reject);
+			});
 		}
-	}
+	};
 
 	SMOD("File.util",UTIL);
 

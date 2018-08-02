@@ -2,7 +2,6 @@
 
 	µ.NodeJs=µ.NodeJs||{};
 
-	let FS=require("fs");
 	let PATH=require("path");
 	
 	SC=SC({
@@ -210,6 +209,15 @@
 				return args;
 			});
 		},
+		calcHash(algorithm="md5",cb,progress)
+		{
+			return SC.prom.chain(this.selected,filename=>
+			{
+				let calcFile=this.file.clone().changePath(filename);
+				return SC.util.calcHash(algorithm,calcFile,progress)
+				.then(hash=>cb([filename,hash]),e=>cb([filename,e]));
+			});
+		},
 		"delete":function()
 		{
 			let promise=SC.prom.chain(this.selected.slice(),filename=>this.file.clone()
@@ -227,7 +235,7 @@
 		},
 		moveToDir:function(dir)
 		{
-			let target=this.file.clone().changePath(dir)
+			let target=this.file.clone().changePath(dir);
 			return SC.util.enshureDir(target)
 			.then(()=>
 			{
