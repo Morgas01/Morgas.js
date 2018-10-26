@@ -285,7 +285,7 @@
 							this.file.clone().changePath(aPart).readStream({encoding:"binary"})
 							.then(stream=>{return{name:aPart,stream:stream}})
 						,null,this)
-						.then(function(args)
+						.then(args=>
 						{
 							let target=part[1]+"."+part[3];
 							return this.file.clone().changePath(target).writeStream({encoding:"binary"})
@@ -300,7 +300,7 @@
 							});
 						})
 						.then(data=>
-							SC.prom.chain(data.read,read=>
+							SC.prom.chain(data.read,(read,i)=>
 								new SC.prom(signal=>{
 
 									if(cb)cb("\tstart\t"+read.name+"\t"+(i+1)+"/"+data.read.length);

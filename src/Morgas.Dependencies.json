@@ -135,10 +135,6 @@
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.util.object.registerMap.js": {
-		"deps": [],
-		"uses": []
-	},
 	"Morgas.util.object.uniquify.js": {
 		"deps": [],
 		"uses": []

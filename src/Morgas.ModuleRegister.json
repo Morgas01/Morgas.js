@@ -34,7 +34,6 @@
 	"setInputValues": "Morgas.util.object.inputValues.js",
 	"getInputValues": "Morgas.util.object.inputValues.js",
 	"register": "Morgas.util.object.register.js",
-	"registerMap": "Morgas.util.object.registerMap.js",
 	"uniquify": "Morgas.util.object.uniquify.js",
 	"queryParam": "Morgas.util.queryParam.js",
 	"request": "Morgas.util.request.js",

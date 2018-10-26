@@ -196,10 +196,6 @@
 		"deps": [],
 		"uses": []
 	},
-	"registerMap": {
-		"deps": [],
-		"uses": []
-	},
 	"uniquify": {
 		"deps": [],
 		"uses": []
