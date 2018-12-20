@@ -220,7 +220,7 @@
 						{
 							db.close();
 							//TODO replace with Array.slice
-							signal.resolve(Array.prototype.slice.call(arguments));
+							signal.resolve(Array.from(arguments));
 						},µ.logger.error);
 					});
 				}

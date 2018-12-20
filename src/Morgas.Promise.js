@@ -161,7 +161,7 @@
 		args=[].concat(args);
 		return function vow()
 		{
-			let vArgs=args.concat(Array.prototype.slice.call(arguments));
+			let vArgs=args.concat(Array.from(arguments));
 			return new PROM(fn,{args:vArgs,scope:scope});
 		}
 	};

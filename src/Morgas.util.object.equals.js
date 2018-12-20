@@ -199,7 +199,7 @@
 		else if(Number.isNaN(pattern)) return "[Number.NaN]";
 		else if (pattern===Number.NEGATIVE_INFINITY) return "[Number.NEGATIVE_INFINITY]";
 		else if (pattern===Number.POSITIVE_INFINITY) return "[Number.POSITIVE_INFINITY]";
-		else if (Array.isArray(pattern)) return Array.prototype.map.call(pattern,patternToJSON);
+		else if (Array.isArray(pattern)) return pattern.map(patternToJSON);
 		else
 		{
 			switch(typeof pattern)
