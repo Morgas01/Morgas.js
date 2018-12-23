@@ -10,8 +10,7 @@
 
 	let cSym=µ.Class.symbols;
 
-	let firstLowerCase=/^[a-z]/;
-	let alphabetic=/^[a-zA-Z]+$/;
+	let eventNamePattern=/^[a-z_][a-zA-Z_.:\-@#]+$/;
 	let abstractImplementor=function(name)
 	{
 		if(typeof name==="string")
@@ -28,9 +27,8 @@
 		{
 			let sProt=sub.prototype;
 			if(!sProt.hasOwnProperty("name")||!sProt.name) throw new SyntaxError("#Event:001 Event has no name");
-			if(!sProt.name.match(firstLowerCase)) throw new RangeError("#Event:002 Event name must start lower case");
-			if(!sProt.name.match(alphabetic)) throw new RangeError("#Event:003 Event name must only consist of alphabetic characters");
-			if(eventClassesMap.has(sProt.name)) throw new RangeError("#Event:004 Event name must be unique");
+			if(!sProt.name.match(eventNamePattern)) throw new RangeError("#Event:002 Event name does not match pattern "+eventNamePattern);
+			if(eventClassesMap.has(sProt.name)) throw new RangeError("#Event:003 Event name must be unique");
 
 			eventClassesMap.set(sProt.name,sProt.constructor);
 		},
@@ -224,6 +222,7 @@
 		composeKeys:["introduce","add","remove","report"],
 		introduce(eventClass)
 		{
+			if(!(eventClass.prototype instanceof µ.Event)) throw new TypeError("#ReporterPatch:001 'eventClass' does not derive from Event class");
 			if(!this.eventMap.has(eventClass))
 			{
 				let eventRegister;
@@ -278,6 +277,7 @@
 		{
 			if(!this.eventMap.has(event.constructor)) throw new ReferenceError(`#ReporterPatch:004 tried to report unintroduced Event ${event.name}`);
 			this.eventMap.get(event.constructor).report(event,fn);
+			return event.phase!==µ.Event.CancelEvent.phases.CHECK;
 		},
 		destroy()
 		{

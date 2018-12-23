@@ -22,22 +22,13 @@ QUnit.module("Event",function()
 		function(error){return (error instanceof RangeError)&&error.message.startsWith("#Event:002 ")});
 	});
 
-	QUnit.test("name only alphabetic",function(assert)
-	{
-		assert.throws(function()
-		{
-			µ.Event.implement("test3");
-		},
-		function(error){return (error instanceof RangeError)&&error.message.startsWith("#Event:003 ")});
-	});
-
 	QUnit.test("require unique name",function(assert)
 	{
 		assert.throws(function()
 		{
 			µ.Event.implement("testEvent");
 		},
-		function(error){return (error instanceof RangeError)&&error.message.startsWith("#Event:004 ")});
+		function(error){return (error instanceof RangeError)&&error.message.startsWith("#Event:003 ")});
 	});
 
 	QUnit.test("ReporterPatch",function(assert)
