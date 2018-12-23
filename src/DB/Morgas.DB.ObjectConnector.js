@@ -114,8 +114,7 @@
 			{
 				this.db.clear();
 			}
-			this.db=null;
-			this.save=this.load=this["delete"]=µ.constantFunctions.ndef;
+			this.mega();
 		},
 		_getNextID:function(objectType)
 		{
