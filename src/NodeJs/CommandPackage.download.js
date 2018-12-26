@@ -4,7 +4,7 @@
 	
 	SC=SC({
 		File:"File",
-		util:"File.util",
+		util:"File/util",
 		Patch:"Patch",
 		FileCmd:"CommandPackage.file"
 	});

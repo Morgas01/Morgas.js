@@ -8,7 +8,7 @@
 	SC=SC({
 		Promise:"Promise",
 		File:"File",
-		FileUtil:"File.util",
+		FileUtil:"File/util",
 		rs:"rescope"
 	});
 

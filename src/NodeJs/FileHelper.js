@@ -7,7 +7,7 @@
 	SC=SC({
 		prom:"Promise",
 		File:"File",
-		util:"File.util",
+		util:"File/util",
 		crc:"util.crc32",
 		uni:"uniquify"
 	});

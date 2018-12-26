@@ -13,6 +13,36 @@
 		"deps": [],
 		"uses": []
 	},
+	"DBConn": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"DBObj": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"DBFriend": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"DBRel": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"DBField": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
 	"DependencyResolver": {
 		"deps": [],
 		"uses": [
@@ -77,12 +107,6 @@
 			"array.removeIf"
 		]
 	},
-	"NodePatch.Compare": {
-		"deps": [
-			"NodePatch"
-		],
-		"uses": []
-	},
 	"NodePatch": {
 		"deps": [
 			"Patch"
@@ -120,6 +144,71 @@
 		"deps": [],
 		"uses": []
 	},
+	"Worker": {
+		"deps": [
+			"AbstractWorker"
+		],
+		"uses": []
+	},
+	"IndexedDBConnector": {
+		"deps": [
+			"DBConn"
+		],
+		"uses": [
+			"Promise",
+			"equals",
+			"DBObj",
+			"DBFriend"
+		]
+	},
+	"IDBConn": {
+		"deps": [
+			"DBConn"
+		],
+		"uses": [
+			"Promise",
+			"equals",
+			"DBObj",
+			"DBFriend"
+		]
+	},
+	"ObjectConnector": {
+		"deps": [
+			"DBConn",
+			"Organizer"
+		],
+		"uses": [
+			"equals"
+		]
+	},
+	"util.crc32": {
+		"deps": [],
+		"uses": []
+	},
+	"download": {
+		"deps": [],
+		"uses": []
+	},
+	"fuzzySearch": {
+		"deps": [],
+		"uses": []
+	},
+	"queryParam": {
+		"deps": [],
+		"uses": []
+	},
+	"request": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"request.json": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
 	"array.equal": {
 		"deps": [],
 		"uses": []
@@ -144,23 +233,11 @@
 		"deps": [],
 		"uses": []
 	},
-	"util.crc32": {
-		"deps": [],
-		"uses": []
-	},
-	"download": {
-		"deps": [],
-		"uses": []
-	},
 	"proxy": {
 		"deps": [],
 		"uses": []
 	},
 	"rescope": {
-		"deps": [],
-		"uses": []
-	},
-	"fuzzySearch": {
 		"deps": [],
 		"uses": []
 	},
@@ -199,88 +276,5 @@
 	"uniquify": {
 		"deps": [],
 		"uses": []
-	},
-	"queryParam": {
-		"deps": [],
-		"uses": []
-	},
-	"request": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"request.json": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"Worker": {
-		"deps": [
-			"AbstractWorker"
-		],
-		"uses": []
-	},
-	"IndexedDBConnector": {
-		"deps": [
-			"DBConn"
-		],
-		"uses": [
-			"Promise",
-			"equals",
-			"DBObj",
-			"DBFriend"
-		]
-	},
-	"IDBConn": {
-		"deps": [
-			"DBConn"
-		],
-		"uses": [
-			"Promise",
-			"equals",
-			"DBObj",
-			"DBFriend"
-		]
-	},
-	"DBConn": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBObj": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBFriend": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBRel": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBField": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"ObjectConnector": {
-		"deps": [
-			"DBConn",
-			"Organizer"
-		],
-		"uses": [
-			"equals"
-		]
 	}
 }

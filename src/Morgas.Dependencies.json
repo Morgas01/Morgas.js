@@ -1,182 +1,176 @@
 {
-	"Morgas.AbstractWorker.js": {
+	"AbstractWorker.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.Event.js",
-			"Morgas.Promise.js"
+			"Event.js",
+			"Promise.js"
 		]
 	},
-	"Morgas.Config.js": {
+	"Config.js": {
 		"deps": [],
 		"uses": []
 	},
-	"Morgas.DependencyResolver.js": {
+	"DB.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.util.array.remove.js",
-			"Morgas.util.object.uniquify.js",
-			"Morgas.util.array.flatten.js"
+			"Promise.js"
 		]
 	},
-	"Morgas.Event.js": {
+	"DependencyResolver.js": {
+		"deps": [],
+		"uses": [
+			"util/array/remove.js",
+			"util/object/uniquify.js",
+			"util/array/flatten.js"
+		]
+	},
+	"Event.js": {
 		"deps": [
-			"Morgas.Patch.js"
+			"Patch.js"
 		],
 		"uses": [
-			"Morgas.util.array.remove.js"
+			"util/array/remove.js"
 		]
 	},
-	"Morgas.NodePatch.Compare.js": {
+	"NodePatch.js": {
 		"deps": [
-			"Morgas.NodePatch.js"
-		],
-		"uses": []
-	},
-	"Morgas.NodePatch.js": {
-		"deps": [
-			"Morgas.Patch.js"
-		],
-		"uses": []
-	},
-	"Morgas.Organizer.js": {
-		"deps": [
-			"Morgas.SortedArray.js"
-		],
-		"uses": [
-			"Morgas.util.object.equals.js",
-			"Morgas.util.object.goPath.js",
-			"Morgas.util.function.proxy.js"
-		]
-	},
-	"Morgas.Patch.js": {
-		"deps": [],
-		"uses": [
-			"Morgas.util.array.remove.js",
-			"Morgas.util.function.rescope.js"
-		]
-	},
-	"Morgas.Promise.js": {
-		"deps": [],
-		"uses": [
-			"Morgas.util.function.rescope.js"
-		]
-	},
-	"Morgas.signature.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.SortedArray.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.array.equal.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.array.flatten.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.array.remove.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.converter.csv.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.converter.metricUnit.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.crc32.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.download.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.function.proxy.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.function.rescope.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.fuzzySearch.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.map.register.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.object.adopt.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.object.equals.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.object.goPath.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.object.inputValues.js": {
-		"deps": [],
-		"uses": [
-			"Morgas.util.object.goPath.js"
-		]
-	},
-	"Morgas.util.object.register.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.object.uniquify.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.queryParam.js": {
-		"deps": [],
-		"uses": []
-	},
-	"Morgas.util.request.js": {
-		"deps": [],
-		"uses": [
-			"Morgas.Promise.js"
-		]
-	},
-	"Morgas.Worker.js": {
-		"deps": [
-			"Morgas.AbstractWorker.js"
+			"Patch.js"
 		],
 		"uses": []
 	},
-	"DB/Morgas.DB.IndexedDBConnector.js": {
+	"Organizer.js": {
 		"deps": [
-			"DB/Morgas.DB.js"
+			"SortedArray.js"
 		],
 		"uses": [
-			"Morgas.Promise.js",
-			"Morgas.util.object.equals.js"
+			"util/object/equals.js",
+			"util/object/goPath.js",
+			"util/function/proxy.js"
 		]
 	},
-	"DB/Morgas.DB.js": {
+	"Patch.js": {
 		"deps": [],
 		"uses": [
-			"Morgas.Promise.js"
+			"util/array/remove.js",
+			"util/function/rescope.js"
 		]
 	},
-	"DB/Morgas.DB.ObjectConnector.js": {
+	"Promise.js": {
+		"deps": [],
+		"uses": [
+			"util/function/rescope.js"
+		]
+	},
+	"signature.js": {
+		"deps": [],
+		"uses": []
+	},
+	"SortedArray.js": {
+		"deps": [],
+		"uses": []
+	},
+	"Worker.js": {
 		"deps": [
-			"DB/Morgas.DB.js",
-			"Morgas.Organizer.js"
+			"AbstractWorker.js"
+		],
+		"uses": []
+	},
+	"DB/IndexedDBConnector.js": {
+		"deps": [
+			"DB.js"
 		],
 		"uses": [
-			"Morgas.util.object.equals.js"
+			"Promise.js",
+			"util/object/equals.js"
 		]
+	},
+	"DB/ObjectConnector.js": {
+		"deps": [
+			"DB.js",
+			"Organizer.js"
+		],
+		"uses": [
+			"util/object/equals.js"
+		]
+	},
+	"util/crc32.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/download.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/fuzzySearch.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/queryParam.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/request.js": {
+		"deps": [],
+		"uses": [
+			"Promise.js"
+		]
+	},
+	"util/array/equal.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/array/flatten.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/array/remove.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/converter/csv.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/converter/metricUnit.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/function/proxy.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/function/rescope.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/map/register.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/object/adopt.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/object/equals.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/object/goPath.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/object/inputValues.js": {
+		"deps": [],
+		"uses": [
+			"util/object/goPath.js"
+		]
+	},
+	"util/object/register.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/object/uniquify.js": {
+		"deps": [],
+		"uses": []
 	}
 }
