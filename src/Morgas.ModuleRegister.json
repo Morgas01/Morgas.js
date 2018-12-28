@@ -24,6 +24,7 @@
 	"IndexedDBConnector": "DB/IndexedDBConnector.js",
 	"IDBConn": "DB/IndexedDBConnector.js",
 	"ObjectConnector": "DB/ObjectConnector.js",
+	"NodePatch.Compare": "NodePatch/Compare.js",
 	"util.crc32": "util/crc32.js",
 	"download": "util/download.js",
 	"fuzzySearch": "util/fuzzySearch.js",

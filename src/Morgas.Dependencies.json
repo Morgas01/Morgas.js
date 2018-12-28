@@ -93,6 +93,12 @@
 			"util/object/equals.js"
 		]
 	},
+	"NodePatch/Compare.js": {
+		"deps": [
+			"NodePatch.js"
+		],
+		"uses": []
+	},
 	"util/crc32.js": {
 		"deps": [],
 		"uses": []

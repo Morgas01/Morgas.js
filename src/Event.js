@@ -30,6 +30,8 @@
 			if(!sProt.name.match(eventNamePattern)) throw new RangeError("#Event:002 Event name does not match pattern "+eventNamePattern);
 			if(eventClassesMap.has(sProt.name)) throw new RangeError("#Event:003 Event name must be unique");
 
+			sub.name=sProt.name;
+
 			eventClassesMap.set(sProt.name,sProt.constructor);
 		},
 		[cSym.abstract]:abstractImplementor,
@@ -54,6 +56,7 @@
 		[cSym.abstract]:abstractImplementor,
 		constructor:function CancelEvent()
 		{
+			//will also be set in reporter
 			this.phase=CancelEvent.phases.CHECK;
 		}
 	});
@@ -163,9 +166,9 @@
 			this.mega();
 			this.checkListeners=[];
 		},
-		add(scope=null,fn,phase)
+		add(scope=null,fn,checkPhase)
 		{
-			if(phase)
+			if(checkPhase)
 			{
 				this.checkListeners.push([scope,fn]);
 			}
@@ -243,21 +246,21 @@
 			}
 			return this;
 		},
-		add(eventName,scope=null,fn,phase)
+		add(eventName,scope=null,fn,checkPhase)
 		{
 			let eventClass=eventClassesMap.get(eventName);
 			if(!eventClass) throw new ReferenceError(`#ReporterPatch:001 Event class with name ${eventName} does not exist`);
 			if(!this.eventMap.has(eventClass)) throw new ReferenceError(`#ReporterPatch:002 Event ${eventName} is not introduced`);
 			if(typeof fn!=="function") throw new TypeError("#ReporterPatch:003 fn is not a function");
-			this.eventMap.get(eventClass).add(scope,fn,phase);
+			this.eventMap.get(eventClass).add(scope,fn,checkPhase);
 
 			if(scope!=null&&scope!=globalScope) checkListenerPatch(scope,this);
 		},
-		remove(eventName,scope,fn,phase)
+		remove(eventName,scope,fn,checkPhase)
 		{
 			let eventClass=eventClassesMap.get(eventName);
 			if(!eventClass||!this.eventMap.has(eventClass)) return;
-			this.eventMap.get(eventClass).remove(scope,fn,phase);
+			this.eventMap.get(eventClass).remove(scope,fn,checkPhase);
 			if(scope!=null&&scope!=globalScope)
 			{// removed && not global
 				for(let eventRegister of this.eventMap.values()) if (eventRegister.has(scope)) return ;

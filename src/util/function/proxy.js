@@ -43,7 +43,11 @@
 			}
 			else if (isGetter)
 			{
-				target[targetKey]=function(){var scope=source.call(this,sourcekey);return scope[sourcekey].apply(scope,arguments);};
+				target[targetKey]=function()
+				{
+					let scope=source.call(this,sourcekey);
+					return scope[sourcekey].apply(scope,arguments);
+				};
 			}
 			else
 			{

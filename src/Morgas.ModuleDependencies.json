@@ -181,6 +181,12 @@
 			"equals"
 		]
 	},
+	"NodePatch.Compare": {
+		"deps": [
+			"NodePatch"
+		],
+		"uses": []
+	},
 	"util.crc32": {
 		"deps": [],
 		"uses": []
