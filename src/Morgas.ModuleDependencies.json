@@ -231,6 +231,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"array.repeat": {
+		"deps": [],
+		"uses": []
+	},
 	"CSV": {
 		"deps": [],
 		"uses": []

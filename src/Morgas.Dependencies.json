@@ -133,6 +133,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"util/array/repeat.js": {
+		"deps": [],
+		"uses": []
+	},
 	"util/converter/csv.js": {
 		"deps": [],
 		"uses": []
