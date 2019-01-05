@@ -308,874 +308,669 @@
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	let util=µ.util=µ.util||{};
-	let uObj=util.object=util.object||{};
-
 	//SC=SC({});
 
-	/**
-	 *
-	 * @param {Number} (stageCount=1) - count of generated stages
-	 * @param {Function} (lastType=Object())
-	 * @param {Function} (defaultValue=Function returning empty Object]
-	 */
-	let register=uObj.register=function(stageCount,defaultValue=()=>({}))
-	{
-		stageCount=stageCount>1?stageCount:1;
-		let createProxy=function(stageCount,keys=[])
+	let CONFIG=µ.Config=µ.Class({
+		[µ.Class.symbols.abstract]:true,
+		get:null,
+		set:null,// (key,value)=>{} // (value)=>{}
+		setDefault:function(def)
 		{
-			return new Proxy({},{
-				get:function(storage,key,receiver)
-				{
-					if(key==="toJSON") return undefined; // called by JSON.stringify
-					if(!(key in storage))
-					{
-						if (stageCount<=1)
-						{
-							if(defaultValue) storage[key]=defaultValue(keys.concat(key));
-						}
-						else
-						{
-							storage[key]=createProxy(stageCount-1,keys.concat(key));
-						}
-					}
-					return storage[key];
-				},
-				set:µ.constantFunctions.f
-			});
-		};
-		return createProxy(stageCount);
-	};
-
-	SMOD("register",register);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let util=µ.util=µ.util||{};
-	let obj=util.object=util.object||{};
-	
-	SC=SC({
-		goPath:"goPath"
+			if(def!=null) this.default=def;
+			else this.default=null;
+		},
+		reset:null,
+		toJSON:null,
+		toDescription:null
 	});
-
-	let getPath=function(input)
+	CONFIG.parse=function(desc,value)
 	{
-		let path="";
-		if(input.dataset.path)
+		if(typeof desc=="string") return new FIELD({type:desc},value);
+		else if (Array.isArray(desc)) return new ARRAY({model:desc[0]},value);
+		switch(desc.type)
 		{
-			path=input.dataset.path;
-			if(!input.name.startsWith("["))
-			{
-				path+=".";
-			}
+			case "object":
+			case undefined:
+				let defaults=desc.default;
+				if("model" in desc) desc=desc.model;
+				return new OBJECT(desc,defaults,value);
+				break;
+			case "map":
+				return new MAP(desc,value);
+				break;
+			case "array":
+				return new ARRAY(desc,value);
+			case "string":
+			case "boolean":
+			case "number":
+			case "select":
+				return new FIELD(desc,value);
 		}
-		path+=input.name;
-		return path;
 	}
-	
-	/**
-	 * set input values from object
-	 * path in object is defined by data-path attribute
-	 * key in object is defined by data-field attribute
-	 * @param inputs[] input Nodes
-	 * @param {object} source
-	 */
-	obj.setInputValues=function(inputs,source)
-	{
-		for(let input of inputs)
+	SMOD("Config",CONFIG);
+
+	let FIELD=CONFIG.Field=µ.Class(CONFIG,{
+		constructor:function(param,value)
 		{
-			let path=getPath(input);
-			let value=SC.goPath(source, path);
-			if(value!==undefined)
+			this.type=param.type;
+			this.setDefault(param.default);
+			this.pattern=null;
+			if(typeof param.pattern == "string")
 			{
-				if(input.type==="checkbox")
-				{
-					input.checked=!!value;
-				}
-				if(input.tagName==="SELECT"&&input.multiple&&Array.isArray(value))
-				{
-					for(let option of input.options)
-					{
-						option.selected=value.includes(option.value)
-					}
-				}
-				else
-				{
-					input.value=value;
-				}
+				let match=param.pattern.match(/^\/(.+)\/(.*)$/);
+				if(match) this.pattern=new RegExp(match[1],match[2])
+				else this.pattern=new RegExp(param.pattern);
+				this.pattern.toJSON=RegExp.prototype.toString;
 			}
-		}
-	};
+			else if (param.pattern) this.pattern=param.pattern;
+			this.validate=param.validate||null;
+			this.value=null;
 
-	/**
-	 * collect input values into object
-	 * path in object is defined by data-path attribute
-	 * key in object is defined by data-field attribute
-	 * @param inputs[] input Nodes
-	 * @param {object} target
-	 */
-	obj.getInputValues=function(inputs,target,create)
-	{
-		if(!target)
-		{
-			target={};
-			create=true;
-		}
-		for(let input of inputs)
-		{
-			let t=target;
-			if(input.dataset.path)
+			switch(this.type)
 			{
-				t=SC.goPath(t, input.dataset.path,create,(create?{}:undefined));
+				case "select":
+					this.values=param.values;
+					this.multiple=param.multiple||false;
+					break;
+				case "number":
+					this.min=param.min;
+					this.step=param.step;
+					this.max=param.max;
 			}
-			if(t&&(input.name in t||create))
-			{
-				let value;
-				if(input.type==="checkbox")
-				{
-					value=input.checked;
-				}
-				else if(input.tagName==="SELECT"&&input.multiple)
-				{
-					value=[];
-					for(let option of input.selectedOptions)
-					{
-						value.push(option.value);
-					}
-				}
-				else
-				{
-					value=input.valueAsDate||input.valueAsNumber||input.value;
-				}
-				t[input.name]=value;
-			}
-		}
-		return target;
-	};
-	
-	SMOD("setInputValues",obj.setInputValues);
-	SMOD("getInputValues",obj.getInputValues);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
 
-	let util=µ.util=µ.util||{};
-	let obj=util.object=util.object||{};
-
-	//SC=SC({});
-
-	/**
-	 * adopt attributes defined in [target] from [provider].
-	 * when [extend] is set to true all attributes from [provider] are adopted
-	 * @param {Object} target
-	 * @param {Object|Object[]} [provider=undefined]
-	 * @param {Boolean} [extend=false]
-	 */
-	obj.adopt=function(target,provider,extend)
-	{
-		if(provider)
-		{
-			let keys=Object.keys(extend ? provider : target);
-			for(let key of keys)
-			{
-				if(extend||key in provider)
-				{
-					target[key]=provider[key];
-				}
-			}
-		}
-		return target;
-	};
-	/**
-	 * creates a new object so that parameters are left unchanged
-	 *
-	 * @param {object} target
-	 * @param {object} [provider=undefined]
-	 * @param {boolean} [extend=false]
-	 */
-	obj.adopt.setDefaults=function(defaults,param,extend)
-	{
-		return obj.adopt(obj.adopt({},defaults,true),param,extend);
-	};
-	SMOD("adopt",obj.adopt);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let util=µ.util=µ.util||{};
-	let uMap=util.map=util.map||{};
-
-	//SC=SC({});
-
-	let mapGetCall=Map.prototype.get.call.bind(Map.prototype.get);
-
-	/**
-	 *
-	 * @param {Number} (stageCount=1) - count of generated stages
-	 * @param {Function} (lastType=WeakMap())
-	 * @param {Function} (mapType=WeakMap())
-	 */
-	let register=uMap.register=function(stageCount,lastType=WeakMap,mapType=WeakMap)
-	{
-		stageCount=stageCount>1?stageCount:1;
-		let createMap=function(stageCount)
-		{
-			let map=new mapType();
-			map.set=µ.constantFunctions.f;
-			map.get=function(key)
-			{
-				if(!this.has(key))
-				{
-					let value;
-					if (stageCount<=1)
-					{
-						value=new lastType();
-					}
-					else
-					{
-						value=createMap(stageCount-1);
-					}
-					mapType.prototype.set.call(this,key,value);
-				}
-				return mapType.prototype.get.call(this,key);
-			};
-			return map;
-		};
-		return createMap(stageCount);
-	};
-
-	SMOD("mapRegister",register);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let util=µ.util=µ.util||{};
-    let uCon=util.converter=util.converter||{};
-
-	//SC=SC({});
-
-	let stages=["y","z","a","f","p","n","µ","m","","K","M","G","T","P","E","Z","Y"];
-
-	let getRegex=function(base)
-	{
-		return new RegExp("([\\d.]+)\\s*(["+stages.join("")+"]?)"+base);
-	};
-
-	uCon.metricUnit={
-
-		to:function(value,{
-			base="",
-			decimalPlaces=2,
-			currentStage="",
-			factor=1000
-		}={})
-		{
-			if(value==0) return value.toFixed(decimalPlaces)+base;
-			let index=stages.indexOf(currentStage);
-			if(index==-1) return value.toFixed(decimalPlaces)+currentStage+base;
-			while(value>factor&&index<stages.length)
-			{
-				value/=factor;
-				index++;
-			}
-			while(value<1&&index>1)
-			{
-				value*=factor;
-				index--;
-			}
-			return value.toFixed(decimalPlaces)+stages[index]+base;
+			if(value!==undefined) this.set(value);
+			else this.reset();
 		},
-		from:function(string,{
-			base="",
-			toStage="",
-			factor=1000,
-		}={})
+		get:function()
 		{
-			let match=string.match(getRegex(base));
-			if(match)
-			{
-				let value=parseFloat(match[1]);
-				if(Number.isNaN(value)) return NaN;
-				let modifier=match[2];
-				let index=stages.indexOf(modifier);
-				if(index==-1) return NaN;
-				let toIndex=stages.indexOf(toStage);
-				if(toIndex==-1) return NaN;
-				return value*(factor**(index-toIndex));
-			}
-			return NaN;
-		}
-	};
-
-	SMOD("metricUnit",uCon.metricUnit);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-    let util=µ.util=µ.util||{};
-    let uCon=util.converter=util.converter||{};
-
-	//SC=SC({});
-
-	uCon.csv={
-		symbols:{
-			line:Symbol("csv.line"),
-			overflowCells:Symbol("csv.overflowCells")
+			return this.value;
 		},
-		to:function(){
-			//TODO
-			throw "todo";
-		},
-		defaultSeperator:",",
-		from:function(csvData,columnNames,seperator)
+		set:function(value)
 		{
-			csvData+="";
-			
-			seperator=seperator||uCon.csv.defaultSeperator;
-			let cellEXP=new RegExp('(?:"((?:[^"]|"")*)"|([^"\r\n'+seperator+']*))'+seperator+'?','g'), cleanUpEXP=/"(")/g;
-
+			if(arguments.length==2) value=arguments[1];
+			let validity=this.isValid(value);
+			if(validity===true) this.value=value;
+			else return validity;
+			return true;
+		},
+		/**
+		 * checks value and returns a boolean or any error object from validate callback.
+		 * if you want to use validation messages check if isValid(value)===true
+		 * @param {*} value
+		 * @returns {boolean|*}
+		 */
+		isValid:function(value)
+		{
+			return (this.type=="select"
+				&& (
+					this.multiple
+					&& Array.isArray(value)
+					&& value.every(v=>this.values.indexOf(v)!=-1) //All select values are valid
+					||
+					this.values.indexOf(value)!=-1 //select value is valid
+				)
+			)
+			||
+			(
+				typeof value==this.type
+				&& (!this.pattern || this.pattern.test(value))
+				&& (this.type!="number"||(
+					(this.min==null||value>=this.min)
+					&& (this.max==null||value<=this.max)
+					&& (this.step==null||value%this.step==0)
+					)
+				)
+				&& (!this.validate|| this.validate(value,this.value)) // type, pattern and validator ok
+			);
+		},
+		reset:function()
+		{
+			this.value=null;
+			this.set(this.default);
+		},
+		toJSON:function()
+		{
+			return this.get();
+		},
+		toDescription:function()
+		{
 			let rtn={
-				data:[],
-				columns:columnNames||[]
+				type:this.type,
+				pattern:this.pattern,
+				validate:this.validate,
+				default:this.default
 			};
-			
-			let item={
-				[uCon.csv.symbols.line]:"",
-				[uCon.csv.symbols.overflowCells]:[]
-			};
-			let cellIndex=0,isFirstLine=!columnNames,match=null;
-			while((match=cellEXP.exec(csvData))!==null)
+			switch(this.type)
 			{
-				if(match[0]==="")
-				{//line end
-					while(csvData[cellEXP.lastIndex]==="\r"||csvData[cellEXP.lastIndex]==="\n") cellEXP.lastIndex++;
-					if(isFirstLine) isFirstLine=false;
-					else
-					{
-						for(;cellIndex<rtn.columns.length;cellIndex++)item[rtn.columns[cellIndex]]=null;
-						rtn.data.push(item);
-						//item for next line
-						item={
-							[uCon.csv.symbols.line]:"",
-							[uCon.csv.symbols.overflowCells]:[]
-						}
-						cellIndex=0;
-					}
-					if(cellEXP.lastIndex>=csvData.length) break;
-				}
-				else
-				{//next cell
-					let value=null;
-					if(match[1]) value=match[1].replace(cleanUpEXP,"$1");
-					else value=match[2];
-					if(isFirstLine)
-					{
-						rtn.columns.push(value);
-					}
-					else
-					{
-						item[uCon.csv.symbols.line]+=match[0];
-						if(cellIndex<rtn.columns.length)
-						{
-							item[rtn.columns[cellIndex]]=value;
-						}
-						else item[uCon.csv.symbols.overflowCells].push(value);
-
-						cellIndex++;
-					}
-				}
+				case "select":
+					rtn.values=this.values;
+					rtn.multiple=this.multiple;
+					break;
+				case "number":
+					rtn.min=this.min;
+					rtn.step=this.step;
+					rtn.max=this.max;
 			}
 			return rtn;
 		}
-	};
-    SMOD("CSV",uCon.csv);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let util=µ.util=µ.util||{};
-    let utilArray=util.array=util.array||{};
-	//SC=SC({});
-
-	/**
-	 * fills an array with the results of repeated calls of fn
-	 */
-	utilArray.repeat=function(count,fn,scope)
-	{
-		let rtn=[];
-		for(let i=0;i<count;i++)
-		{
-			rtn.push(fn.call(scope,i));
-		}
-		return rtn;
-	};
-
-	SMOD("array.repeat",utilArray.repeat);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	var util=µ.util=µ.util||{};
-	var utilArray=util.array=util.array||{};
-
-	//SC=SC({});
-
-	/**
-	 * Compares each value of the arrays for equality ( like a[n]===b[n] , where n>=0 && n<=length)
-	 * Arrays of different length are not equal
-	 *
-	 * @param {Any[]} a
-	 * @param {Any[]} b
-	 */
-	utilArray.equal=function(a,b)
-	{
-		if(!a!=!b) return false;
-		if(!a) return true; // both null
-		if(a.length!=b.length) return false;
-		for (let i=0;i<a.length;i++)
-		{
-			if(a[i]!==b[i]) return false;
-		}
-		return true;
-	};
-	SMOD("array.equal",utilArray.equal);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-	
-	let util=µ.util=µ.util||{};
-	let uFn=util.function=util.function||{};
-
-	//SC=SC({});
-	
-	/** rescope
-	 * faster than bind but only changes the scope.
-	 */
-	uFn.rescope=function(fn,scope)
-	{
-		if(fn==null||fn.apply==null) throw new TypeError("#rescope:001 function is not defined");
-		else return function(...args)
-		{
-			return fn.call(scope,...args);
-		}
-	};
-	uFn.rescope.all=function(scope,keys)
-	{
-		keys=keys||Object.keys(scope);
-		for(let key of keys)
-		{
-			if(typeof scope[key]==="function") scope[key]=uFn.rescope(scope[key],scope);
-		}
-	};
-	SMOD("rescope",uFn.rescope);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-	
-	µ.util=µ.util||{};
-
-	SC=SC({
-		Promise:"Promise"
 	});
-	
-	let doRequest=function(signal,param)
-	{
-		if(param.urls.length==0) signal.reject(new µ.Warning("no Url"));
-		else
+	FIELD.TYPES=["string","boolean","number","select"];
+
+	let CONTAINER=CONFIG.Container=µ.Class(CONFIG,{
+		[µ.Class.symbols.abstract]:true,
+		[Symbol.iterator]:function()
 		{
-			let url=param.urls.shift();
-			let req=new XMLHttpRequest();
-			req.open(param.method,url,true,param.user,param.password);
-			req.responseType=param.responseType;
-			req.onload=function()
+			return this.configs.entries();
+		},
+		setAll:function(values,create){throw "abstract"},
+		get:function(key){throw "abstract"},
+		set:function(key,value)
+		{
+			if(arguments.length==1&&typeof key=="object")
 			{
-				if (req.status == 200)
+				this.setAll(key,true);
+				return true;
+			}
+			if(!Array.isArray(key))key=[key];
+			for(let entry of this)
+			{
+				if(entry[0]==key[0])return entry[1].set(key.slice(1),value);
+			}
+			return false;
+		}
+	});
+
+	let OBJECT=CONTAINER.Object=µ.Class(CONTAINER,{
+		constructor:function(configs,defaults,value)
+		{
+			this.configs=new Map();
+			this.setDefault(defaults);
+			if(configs)
+			{
+				this.addAll(configs);
+			}
+
+			if(value!==undefined) this.setAll(value,true);
+		},
+		addAll:function(configs)
+		{
+			let rtn={};
+			for(let key in configs)
+			{
+				rtn[key]=this.add(key,configs[key]);
+			}
+			return rtn;
+		},
+		add:function(key,config)
+		{
+			if(!(config instanceof CONFIG))config=CONFIG.parse(config);
+			if(config)
+			{
+				if(this.configs.has(key))
 				{
-					signal.resolve(req.response);
+					µ.logger.warn(new µ.Warning(String.raw`overwriting config in Object under key ${key}`,{
+						old:this.configs.get(key),
+						new:config
+					}));
 				}
+				if(this.default && key in this.default) config.setDefault(this.default[key]);
+				this.configs.set(key,config);
+				return config;
+			}
+			return false;
+		},
+		get:function(key)
+		{
+			if(key==null) return this.toJSON();
+			if(!Array.isArray(key)) return this.configs.get(key);
+			if(key.length==0) return this;
+
+			let config=this.configs.get(key[0]);
+			if(config)
+			{
+				if(key.length==1) return config;
+				return config.get(key.slice(1));
+			}
+
+			return undefined;
+		},
+		remove:function(key)
+		{
+			if(key instanceof CONFIG)
+			{
+				for(let entry of this.configs.entries)
+				{
+					if(entry[1]==key)
+					{
+						key=entry[0];
+						break;
+					}
+				}
+			}
+			let rtn=this.configs.get(key);
+			this.configs.delete(key);
+			return rtn;
+		},
+		setAll:function(configs,create)
+		{
+			for(let key in configs)
+			{
+				if(this.configs.has(key))
+				{
+					if(this.configs.get(key) instanceof CONTAINER)
+					{
+						this.configs.get(key).setAll(configs[key],create);
+					}
+					else this.set(key,configs[key]);
+				}
+			}
+		},
+		reset:function()
+		{
+			for(let config of this.configs.values())
+			{
+				config.reset();
+			}
+		},
+		toJSON:function()
+		{
+			let rtn={};
+			for(let key of this.configs.keys())
+			{
+				rtn[key]=this.configs.get(key).toJSON();
+			}
+			return rtn;
+		},
+		toDescription:function()
+		{
+			let rtn={
+				type:"object",
+				model:{},
+				default:this.default
+			};
+			for(let key of this.configs.keys())
+			{
+				rtn.model[key]=this.configs.get(key).toDescription();
+			}
+			return rtn;
+		}
+	});
+
+	let ARRAY=CONTAINER.Array=µ.Class(CONTAINER,{
+		constructor:function(param,value)
+		{
+			this.model=param.model;
+			this.setDefault(param.default);
+			this.configs=[];
+			Object.defineProperty(this,"length",{
+				configurable:false,
+				enumerable:true,
+				get:()=>this.configs.length
+			});
+
+			if(value!==undefined) this.setAll(value,true);
+			else this.reset();
+		},
+		pushAll:function(configs)
+		{
+			return configs.map(config=>this.push(config));
+		},
+		push:function(config)
+		{
+			let model;
+			if(this.default&&this.default.length>this.configs.length)
+			{
+				if(typeof this.model=="string") model={type:this.model};
+				else model=Object.create(this.model);
+				model.default=this.default[this.configs.length];
+			}
+			else model=this.model;
+			let value=CONFIG.parse(model);
+			if(value&&(config===undefined||value.set(config)))
+			{
+				this.configs.push(value);
+				return value;
+			}
+			return false;
+		},
+		get:function(key)
+		{
+			if(key==null) return this.toJSON();
+			if(!Array.isArray(key))
+			{
+				if(key>=0&&key<this.configs.length) return this.configs[key];
+				return undefined;
+			}
+			if(key.length==0) return this;
+			if(key[0]>=0&&key[0]<this.configs.length)
+			{
+				let config=this.configs[key[0]];
+				if(key.length==1) return config;
+				return config.get(key.slice(1));
+			}
+			return undefined;
+		},
+		splice:function(index)
+		{
+			if(index instanceof CONFIG)
+			{
+				index=this.configs.indexOf(index);
+			}
+			return this.configs.splice(index,1)[0];
+		},
+		setAll:function(values,create)
+		{
+			if(create&&this.configs.length>values.length) this.configs.length=values.length
+			for(let index=0;index<values.length;index++)
+			{
+				if(create&&this.configs.length<=index) this.push(values[index]);
+				else this.set(index,values[index]);
+			}
+		},
+		reset:function()
+		{
+			this.configs.length=0;
+			if(this.default)
+			{
+				let _model;
+				if(typeof this.model=="string"||!("default" in this.model))_model=this.model;
 				else
 				{
-					if(param.urls.length==0) signal.reject({status:req.status,response:req.response,url:url,xhr:req});
-					else doRequest(signal,param);
+					_model=Object.create(this.model);
+					_model.default=undefined;
 				}
-			};
-			req.onerror=function(error)
-			{
-				if(param.urls.length==0) signal.reject({url:url,xhr:req,error:error,response:error.message});
-				else doRequest(signal,param);
-			};
-			if(param.progress)
-			{
-				req.onprogress=param.progress;
-			}
-			signal.addAbort(function(){
-				param.urls.length=0;
-				req.abort();
-			});
-			req.send(param.data);
-		}
-	};
-	let parseParam=function(param)
-	{
-
-		let urls;
-		if(typeof param ==="string")
-		{
-			urls=[param];
-		}
-		else if (Array.isArray(param))
-		{
-			urls=param.slice();
-		}
-		else
-		{
-			urls=param.urls||[].concat(param.url);
-		}
-		
-		param={
-			method:param.method||(param.data?"POST":"GET"),
-			user:param.user,//||undefined
-			password:param.password,//||undefined
-			responseType:param.responseType||"",
-			withCredentials:param.withCredentials===true,
-			contentType:param.contentType,//||undefined
-			data:param.data,//||undefined
-			urls:urls
-		};
-		return param;
-	};
-	/**
-	 * 
-	 * @param {string|string[]|requestParam} param
-	 * @param {any} scope
-	 * @returns {Morgas.Promise}
-	 */
-	let REQ=µ.util.request=function Request_init(param,scope)
-	{
-		param=parseParam(param);
-		return new SC.Promise(doRequest,{args:param,scope:scope});
-	};
-	SMOD("request",REQ);
-
-	/**
-	 * use: Request(...).catch(Request.allowedStatuses([201,204])).then(...)
-	 *
-	 */
-	REQ.allowedStatuses=function(statuses=[])
-	{
-		return function(error)
-		{
-			if(statuses.includes(error.status))
-			{
-				return error.response;
-			}
-			return Promise.reject(error);
-		};
-	};
-
-	REQ.json=function Request_Json(param,scope)
-	{
-
-		param=parseParam(param);
-		param.responseType="json";
-		return REQ(param,scope);
-	};
-	SMOD("request.json",REQ.json);
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-    var util=µ.util=µ.util||{};
-
-	//SC=SC({});
-
-    var queryRegExp=/[\?&]([^=&]+)(=(([^&]|\\&)*))?/g;
-    util.queryParam={};
-
-    (function parseQueryParam(queryString){
-        var matches;
-        while(matches=queryRegExp.exec(queryString))
-        {
-            util.queryParam[matches[1]]=matches[3];
-        }
-    })(decodeURI(window.location.search));
-
-    SMOD("queryParam",util.queryParam);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let util=µ.util=µ.util||{};
-	
-	//SC=SC({});
-
-	/**
-	 * @typedef {object} fuzzySearchResult
-	 * @property {String} data
-	 * @property {Number} index - former index in array
-	 * @property {Number[]} score
-	 */
-	/**
-	 *
-	 * @param {String} search
-	 * @param {String[]} data
-	 * @returns {fuzzySearchResult[]}
-	 */
-	let FUZZ=util.fuzzySearch=function fuzzySearch(term,data,{
-		threshold=0.1,
-		scorers
-	}={})
-	{
-		if(!scorers) scorers=[FUZZ.scoreFunctions.misc.query(term)];
-		else scorers=[].concat(scorers);
-
-		let rtn=[];
-		for(let index=0;index<data.length;index++)
-		{
-			let entry=data[index];
-			let score=FUZZ.score(entry,scorers);
-			if(score<threshold) continue;
-
-			rtn.push({
-				data:entry,
-				index:index,
-				score:score
-			});
-
-		}
-		rtn.sort(FUZZ.sortResults);
-		return rtn;
-	};
-	FUZZ.scoreFunctions={
-		string:{
-			complete:function(term)
-			{
-				let regex=new RegExp(term,"igm");
-				return function(data)
+				while (this.configs.length<this.default.length)
 				{
-					let matches=data.match(regex);
-					if (!matches) return 0;
-					return matches.length*term.length/data.length;
-				};
-			},
-			wordOrder:function(words)
-			{
-				words=words.map(s=>s.toLowerCase());
-				let regex=new RegExp(words.join("|"),"ig");
-				return function(data)
+					this.configs.push(CONFIG.parse(_model));
+				}
+				for(let i=0;i<this.configs.length;i++)
 				{
-					let wordIndex=words.length-1;
-					let count=0;
-					let found=null;
-					regex.lastIndex=0;
-					while(count<words.length&&(found=regex.exec(data)))
+					this.configs[i].setDefault(this.default[i]);
+					this.configs[i].reset();
+				}
+			}
+		},
+		toJSON:function()
+		{
+			return this.configs.map(f=>f.toJSON());
+		},
+		toDescription:function()
+		{
+			return {
+				type:"array",
+				model:this.model,
+				default:this.default
+			};
+		}
+	});
+
+	let MAP=CONTAINER.Map=µ.Class(CONTAINER,{
+		constructor:function(param,value)
+		{
+			this.model=param.model;
+			this.setDefault(param.default);
+			this.configs=new Map();
+
+			if(value!==undefined) this.setAll(value,true);
+			else this.reset();
+		},
+		addAll:function(configs)
+		{
+			let rtn={};
+			for(let key in configs)
+			{
+				rtn[key]=this.add(key,configs[key]);
+			}
+			return rtn;
+		},
+		add:function(key,config)
+		{
+			let value=CONFIG.parse(this.model);
+			if(value&&key!==undefined&&(config===undefined||value.set(config)))
+			{
+				if(this.configs.has(key))
+				{
+					µ.logger.warn(`overwriting config in Object under key ${key}`);
+				}
+				this.configs.set(key,value);
+				return value;
+			}
+			return false;
+		},
+		get:function(key)
+		{
+			if(key==null) return this.toJSON();
+			if(!Array.isArray(key)) return this.configs.get(key);
+			if(key.length==0) return this;
+
+			let config=this.configs.get(key[0])
+			{
+				if(key.length==1) return config;
+				return config.get(key.slice(1));
+			}
+
+			return undefined;
+		},
+		remove:function(key)
+		{
+			if(key instanceof CONFIG)
+			{
+				for(let entry of this.configs.entries)
+				{
+					if(entry[1]==key)
 					{
-						let foundIndex=words.indexOf(found[0].toLowerCase());
-						if(foundIndex==(wordIndex+1)%words.length)
+						key=entry[0];
+						break;
+					}
+				}
+			}
+			let rtn=this.configs.get(key);
+			this.configs.delete(key);
+			return rtn;
+		},
+		setAll:function(values,create)
+		{
+			if(create)
+			{
+				for(let key of this.configs.keys())
+				{
+					if(!(key in values))
+					{
+						this.configs.delete(key);
+					}
+				}
+			}
+			for(let key in values)
+			{
+				if(create&&!this.configs.has(key)) this.add(key,values[key]);
+				else this.set(key,values[key]);
+			}
+		},
+		reset:function()
+		{
+			this.configs.clear();
+			if(this.default)
+			{
+				let _model;
+				if(typeof this.model=="string"||!("default" in this.model))_model=this.model;
+				else
+				{
+					_model=Object.create(this.model);
+					_model.default=undefined;
+				}
+				for(let key in this.default)
+				{
+					let config=CONFIG.parse(_model);
+					this.configs.set(key,config);
+					config.setDefault(this.default[key]);
+					config.reset();
+				}
+			}
+		},
+		toJSON:function()
+		{
+			let rtn={};
+			for(let key of this.configs.keys())
+			{
+				rtn[key]=this.configs.get(key).toJSON();
+			}
+			return rtn;
+		},
+		toDescription:function()
+		{
+			return {
+				type:"map",
+				model:this.model,
+				default:this.default
+			};
+		},
+		keys:function()
+		{
+			return Array.from(this.configs.keys());
+		}
+	});
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	//SC=SC({});
+
+	let applyPrefix=function(arr=[],prefix)
+	{
+		return arr.map(function(a){return prefix+a});
+	};
+
+	/**
+	 * holds configuration of dependencies and resolves them.
+	 * A configuration consists of deps[] (direct dependencies) and uses[] (indirect dependencies).
+	 * Indirect (or async) dependencies are (normaly) allowed to form cycles as they are not needed immediately (can cause problems!).
+	 */
+	µ.DependencyResolver=µ.Class({
+		constructor:function(config,prefix)
+		{
+			this.config={};
+			if(config)this.addConfig(config,prefix);
+		},
+		addConfig:function(obj,prefix="",overwrite)
+		{
+			let overwritten=[];
+			if(typeof obj==="object")
+			{
+				let keys=Object.keys(obj);
+				for(let l=keys.length,i=0;i<l;i++)
+				{
+					let k=keys[i];
+
+					if(this.config[prefix+k]===undefined||overwrite)
+					{
+						if(this.config[prefix+k]!==undefined) overwritten.push(prefix+k);
+						let v=null;
+						if(typeof obj[k]==="string")
 						{
-							count++;
+							v={deps:[prefix+obj[k]],uses:[]};
 						}
-						wordIndex=foundIndex;
+						else if (Array.isArray(obj[k]))
+						{
+							v={deps:applyPrefix(obj[k],prefix),uses:[]};
+						}
+						else if (obj[k]!==true)
+						{
+							v={deps:applyPrefix(obj[k].deps,prefix),uses:applyPrefix(obj[k].uses,prefix)}
+						}
+						else
+						{
+							v={deps:[],uses:[]};
+						}
+						this.config[prefix+k]=v;
 					}
-					return count/words.length;
-				};
-			},
-			words:function(words)
+				}
+			}
+			else throw new TypeError("#DependencyResolver:001 DependencyResolver.addConfig: obj is not an object");
+			return overwritten;
+		},
+		getConfig:function(item)
+		{
+			let config=this.config[item];
+			if(!config) throw new ReferenceError("#DependencyResolver:002 "+item+" is not in config");
+			return config;
+		},
+		resolve:function(list,allowUsesAsync=true)
+		{
+			if(typeof list==="string") list=[list];
+			// all items to resolve
+			let allList=new Set(list);
+			let todo=Array.from(allList);
+			let order=new Set();
+			let fulfilledDeps=new Set();
+
+			while (true)
 			{
-				words=words.map(s=>s.toLowerCase());
-				let regex=new RegExp(words.join("|"),"ig");
-				return function(data)
+				for(let i=0;i<todo.length;i++)
 				{
-					regex.lastIndex=0;
-					let toFind=words.slice();
-					let found=null;
-					while(toFind.length>0&&(found=regex.exec(data)))
+					let name=todo[i];
+					let config=this.getConfig(name);
+					if(config.deps.every(order.has,order)) fulfilledDeps.add(name);
+					if(fulfilledDeps.has(name)&config.uses.every(order.has,order))
 					{
-						let foundIndex=toFind.indexOf(found[0].toLowerCase());
-						if (foundIndex!=-1) toFind.splice(foundIndex,1);
+						order.add(name);
+						todo.splice(i,1);
+						fulfilledDeps.delete(name);
+						i=-1; //reset
 					}
-					return 1-toFind.length/words.length;
-				};
-			},
-		},
-		object:{
-			property:function(key,scorers)
-			{
-				return function(data)
-				{
-					if(data&&key in data) return FUZZ.score(data[key],scorers);
-					return 0;
+					else
+					{
+						for(let dependency of config.deps.concat(config.uses))
+						{
+							if(!allList.has(dependency))
+							{
+								allList.add(dependency);
+								todo.push(dependency);
+							}
+						}
+					}
 				}
-			}
-		},
-		misc:{
-			query:function(term)
-			{
-				term=term.trim();
-				let words=term.split(/\s+/);
-				let scorers=[
-					FUZZ.scoreFunctions.string.complete(term),
-					FUZZ.scoreFunctions.string.wordOrder(words),
-					FUZZ.scoreFunctions.string.words(words)
-				];
-
-				let camelCaseWords=term.match(/(:?\b[a-z]|[A-Z])[a-z]*/g);
-				if(camelCaseWords)
+				if(todo.length!=0)
 				{
-					scorers.push(FUZZ.scoreFunctions.string.wordOrder(camelCaseWords));
-					scorers.push(FUZZ.scoreFunctions.string.words(camelCaseWords));
+					if(allowUsesAsync)
+					{
+						if(fulfilledDeps.size==0) throw new RangeError("#DependencyResolver:003 can not resolve ["+todo+"] (cyclic dependencies)")
+						let wanted=[];
+						for(let fulfilledName of fulfilledDeps.values())
+						{
+							let wantedCount=todo.reduce((count,name)=>
+							{
+								if(name===fulfilledName) return count;
+								let config=this.getConfig(name);
+								if(config.deps.includes(fulfilledName)||config.uses.includes(fulfilledName)) count++;
+								return count;
+							},0);
+							wanted.push({count:wantedCount,name:fulfilledName});
+						}
+						let mostWanted=wanted.reduce((a,b)=>a.count>b.count?a:b).name;
+
+						order.add(mostWanted);
+						todo.splice(todo.indexOf(mostWanted),1);
+						fulfilledDeps.delete(mostWanted);
+						//try again
+					}
+					else
+					{
+						throw new RangeError("#DependencyResolver:004 can not resolve "+todo+" without async uses");
+					}
 				}
-				return function(data)
-				{
-					return FUZZ.score(data,scorers);
-				};
-			},
-			cache:function(scorers)
-			{
-				let cache=new WeakMap();
-				return function(data)
-				{
-					if(!cache.has(data)) cache.set(data,FUZZ.score(data,scorers));
-					return cache.get(data);
-				};
+				else break;
 			}
-		}
-	};
-	FUZZ.score=function(data,scorers)
-	{
-		// shortcut for arrays with only 1 entry
-		if(scorers.length==1) return scorers[0](data);
-
-		let score=0;
-		let totalWeight=0;
-		for(let scorer of scorers)
-		{
-			let fn,weight;
-			if(typeof scorer=="function")
-			{
-				fn=scorer;
-				weight=1;
-			}
-			else
-			{
-				fn=scorer.fn;
-				weight=scorer.weight||1;
-			}
-			score+=fn(data)*weight;
-			totalWeight+=weight;
-		}
-		return score/totalWeight;
-	};
-	FUZZ.sortResults=function({score:score1},{score:score2})
-	{
-		return FUZZ.sortScore(score1,score2);
-	};
-	FUZZ.sortScore=function(score1,score2)
-	{
-		return score2-score1;
-	};
-
-	SMOD("fuzzySearch",FUZZ);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-	
-	var util=µ.util=µ.util||{};
-
-	//SC=SC({});
-
-	util.download=function(data,name,mediaType)
-	{
-		if(data instanceof Blob)
-		{
-			data=URL.createObjectURL(data)
-		}
-		name=name||"file";
-		mediaType=mediaType||"";
-		
-		util.download.el.download=name;
-		if(data.startsWith("data:")||data.startsWith("blob:"))
-		{
-			util.download.el.href=data;
-		}
-		else
-		{
-			util.download.el.href="data:"+mediaType+";base64,"+btoa(unescape(encodeURIComponent(data)));
-		}
-		document.body.appendChild(util.download.el);
-		util.download.el.click();
-		util.download.el.remove();
-	};
-	util.download.el=document.createElement("a");
-	SMOD("download",util.download);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-	
-	let util=µ.util=µ.util||{};
-
-	//SC=SC({});
-
-	let table=new Map();
-	let getPolynomial=function(n)
-	{
-	   if(!table.hasOwnProperty(n))
-	   {
-		   let c=n;
-		   for(let k=0;k<8;k++)
-		   {
-			   c=((c&1)?(0xEDB88320^(c>>>1)):(c>>>1));
-		   }
-		   return table[n]=c;
-	   }
-	   return table[n];
-	};
-
-	let CRC32=util.crc32=function(data,crcPart)
-	{
-		let isString=typeof data==="string";
-		let crc=crcPart!=null ? ((crcPart^-1)<<0) : 0^(-1);
-		for (let i=0,l=data.length;i<l;i++)
-		{
-			let b=isString ? data.charCodeAt(i) : data[i];
-			crc=(crc>>>8)^getPolynomial((crc^b)&0xFF);
-		}
-		return (crc^(-1))>>>0;
-	};
-	CRC32.format=function(crc)
-	{
-		return "00000000"+crc.toString(16).toUpperCase().slice(-8);
-	};
-
-	CRC32.Builder=function(crcPart)
-	{
-		this.crcPart=crcPart!=null ? crcPart : 0;
-	};
-	CRC32.Builder.prototype.add=function(data)
-	{
-		this.crcPart=CRC32(data,this.crcPart);
-		return this;
-	};
-	CRC32.Builder.prototype.get=function(){return this.crcPart;};
-	CRC32.Builder.prototype.getFormatted=function()
-	{
-		return CRC32.format(this.crcPart);
-	};
-
-	SMOD("util.crc32",CRC32);
+			return Array.from(order);
+		},
+        clone:function(prefix)
+        {
+            return new µ.DependencyResolver(this.config,prefix);
+        }
+	});
+	SMOD("DependencyResolver",µ.DependencyResolver);
+	SMOD("DepRes",µ.DependencyResolver);
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
@@ -1445,6 +1240,550 @@
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
+	
+	let util=µ.util=µ.util||{};
+
+	//SC=SC({});
+
+	let table=new Map();
+	let getPolynomial=function(n)
+	{
+	   if(!table.hasOwnProperty(n))
+	   {
+		   let c=n;
+		   for(let k=0;k<8;k++)
+		   {
+			   c=((c&1)?(0xEDB88320^(c>>>1)):(c>>>1));
+		   }
+		   return table[n]=c;
+	   }
+	   return table[n];
+	};
+
+	let CRC32=util.crc32=function(data,crcPart)
+	{
+		let isString=typeof data==="string";
+		let crc=crcPart!=null ? ((crcPart^-1)<<0) : 0^(-1);
+		for (let i=0,l=data.length;i<l;i++)
+		{
+			let b=isString ? data.charCodeAt(i) : data[i];
+			crc=(crc>>>8)^getPolynomial((crc^b)&0xFF);
+		}
+		return (crc^(-1))>>>0;
+	};
+	CRC32.format=function(crc)
+	{
+		return "00000000"+crc.toString(16).toUpperCase().slice(-8);
+	};
+
+	CRC32.Builder=function(crcPart)
+	{
+		this.crcPart=crcPart!=null ? crcPart : 0;
+	};
+	CRC32.Builder.prototype.add=function(data)
+	{
+		this.crcPart=CRC32(data,this.crcPart);
+		return this;
+	};
+	CRC32.Builder.prototype.get=function(){return this.crcPart;};
+	CRC32.Builder.prototype.getFormatted=function()
+	{
+		return CRC32.format(this.crcPart);
+	};
+
+	SMOD("util.crc32",CRC32);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+	
+	var util=µ.util=µ.util||{};
+
+	//SC=SC({});
+
+	util.download=function(data,name,mediaType)
+	{
+		if(data instanceof Blob)
+		{
+			data=URL.createObjectURL(data)
+		}
+		name=name||"file";
+		mediaType=mediaType||"";
+		
+		util.download.el.download=name;
+		if(data.startsWith("data:")||data.startsWith("blob:"))
+		{
+			util.download.el.href=data;
+		}
+		else
+		{
+			util.download.el.href="data:"+mediaType+";base64,"+btoa(unescape(encodeURIComponent(data)));
+		}
+		document.body.appendChild(util.download.el);
+		util.download.el.click();
+		util.download.el.remove();
+	};
+	util.download.el=document.createElement("a");
+	SMOD("download",util.download);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	
+	//SC=SC({});
+
+	/**
+	 * @typedef {object} fuzzySearchResult
+	 * @property {String} data
+	 * @property {Number} index - former index in array
+	 * @property {Number[]} score
+	 */
+	/**
+	 *
+	 * @param {String} search
+	 * @param {String[]} data
+	 * @returns {fuzzySearchResult[]}
+	 */
+	let FUZZ=util.fuzzySearch=function fuzzySearch(term,data,{
+		threshold=0.1,
+		scorers
+	}={})
+	{
+		if(!scorers) scorers=[FUZZ.scoreFunctions.misc.query(term)];
+		else scorers=[].concat(scorers);
+
+		let rtn=[];
+		for(let index=0;index<data.length;index++)
+		{
+			let entry=data[index];
+			let score=FUZZ.score(entry,scorers);
+			if(score<threshold) continue;
+
+			rtn.push({
+				data:entry,
+				index:index,
+				score:score
+			});
+
+		}
+		rtn.sort(FUZZ.sortResults);
+		return rtn;
+	};
+	FUZZ.scoreFunctions={
+		string:{
+			complete:function(term)
+			{
+				let regex=new RegExp(term,"igm");
+				return function(data)
+				{
+					let matches=data.match(regex);
+					if (!matches) return 0;
+					return matches.length*term.length/data.length;
+				};
+			},
+			wordOrder:function(words)
+			{
+				words=words.map(s=>s.toLowerCase());
+				let regex=new RegExp(words.join("|"),"ig");
+				return function(data)
+				{
+					let wordIndex=words.length-1;
+					let count=0;
+					let found=null;
+					regex.lastIndex=0;
+					while(count<words.length&&(found=regex.exec(data)))
+					{
+						let foundIndex=words.indexOf(found[0].toLowerCase());
+						if(foundIndex==(wordIndex+1)%words.length)
+						{
+							count++;
+						}
+						wordIndex=foundIndex;
+					}
+					return count/words.length;
+				};
+			},
+			words:function(words)
+			{
+				words=words.map(s=>s.toLowerCase());
+				let regex=new RegExp(words.join("|"),"ig");
+				return function(data)
+				{
+					regex.lastIndex=0;
+					let toFind=words.slice();
+					let found=null;
+					while(toFind.length>0&&(found=regex.exec(data)))
+					{
+						let foundIndex=toFind.indexOf(found[0].toLowerCase());
+						if (foundIndex!=-1) toFind.splice(foundIndex,1);
+					}
+					return 1-toFind.length/words.length;
+				};
+			},
+		},
+		object:{
+			property:function(key,scorers)
+			{
+				return function(data)
+				{
+					if(data&&key in data) return FUZZ.score(data[key],scorers);
+					return 0;
+				}
+			}
+		},
+		misc:{
+			query:function(term)
+			{
+				term=term.trim();
+				let words=term.split(/\s+/);
+				let scorers=[
+					FUZZ.scoreFunctions.string.complete(term),
+					FUZZ.scoreFunctions.string.wordOrder(words),
+					FUZZ.scoreFunctions.string.words(words)
+				];
+
+				let camelCaseWords=term.match(/(:?\b[a-z]|[A-Z])[a-z]*/g);
+				if(camelCaseWords)
+				{
+					scorers.push(FUZZ.scoreFunctions.string.wordOrder(camelCaseWords));
+					scorers.push(FUZZ.scoreFunctions.string.words(camelCaseWords));
+				}
+				return function(data)
+				{
+					return FUZZ.score(data,scorers);
+				};
+			},
+			cache:function(scorers)
+			{
+				let cache=new WeakMap();
+				return function(data)
+				{
+					if(!cache.has(data)) cache.set(data,FUZZ.score(data,scorers));
+					return cache.get(data);
+				};
+			}
+		}
+	};
+	FUZZ.score=function(data,scorers)
+	{
+		// shortcut for arrays with only 1 entry
+		if(scorers.length==1) return scorers[0](data);
+
+		let score=0;
+		let totalWeight=0;
+		for(let scorer of scorers)
+		{
+			let fn,weight;
+			if(typeof scorer=="function")
+			{
+				fn=scorer;
+				weight=1;
+			}
+			else
+			{
+				fn=scorer.fn;
+				weight=scorer.weight||1;
+			}
+			score+=fn(data)*weight;
+			totalWeight+=weight;
+		}
+		return score/totalWeight;
+	};
+	FUZZ.sortResults=function({score:score1},{score:score2})
+	{
+		return FUZZ.sortScore(score1,score2);
+	};
+	FUZZ.sortScore=function(score1,score2)
+	{
+		return score2-score1;
+	};
+
+	SMOD("fuzzySearch",FUZZ);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+    var util=µ.util=µ.util||{};
+
+	//SC=SC({});
+
+    var queryRegExp=/[\?&]([^=&]+)(=(([^&]|\\&)*))?/g;
+    util.queryParam={};
+
+    (function parseQueryParam(queryString){
+        var matches;
+        while(matches=queryRegExp.exec(queryString))
+        {
+            util.queryParam[matches[1]]=matches[3];
+        }
+    })(decodeURI(window.location.search));
+
+    SMOD("queryParam",util.queryParam);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	var util=µ.util=µ.util||{};
+	var utilArray=util.array=util.array||{};
+
+	//SC=SC({});
+
+	/**
+	 * Compares each value of the arrays for equality ( like a[n]===b[n] , where n>=0 && n<=length)
+	 * Arrays of different length are not equal
+	 *
+	 * @param {Any[]} a
+	 * @param {Any[]} b
+	 */
+	utilArray.equal=function(a,b)
+	{
+		if(!a!=!b) return false;
+		if(!a) return true; // both null
+		if(a.length!=b.length) return false;
+		for (let i=0;i<a.length;i++)
+		{
+			if(a[i]!==b[i]) return false;
+		}
+		return true;
+	};
+	SMOD("array.equal",utilArray.equal);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	var util=µ.util=µ.util||{};
+	var array=util.array=util.array||{};
+
+	//SC=SC({});
+
+	var flattenAll=Array.prototype.concat.bind(Array.prototype);
+
+	array.flatten=flattenAll.apply.bind(flattenAll,null);
+	array.flatten.all=flattenAll;
+
+	SMOD("flatten",array.flatten);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	var util=µ.util=µ.util||{};
+	var utilArray=util.array=util.array||{};
+
+	//SC=SC({});
+
+	utilArray.remove=function(array,item)
+	{
+		var index=array.indexOf(item);
+		if(index!=-1) array.splice(index,1);
+		return index;
+	};
+	SMOD("array.remove",utilArray.remove);
+
+	utilArray.removeIf=function(array,predicate,all=false,scope=null)
+	{
+		let count=0;
+		if(all)
+		{
+			for(var i=array.length-1;i>=0;i--)
+			{
+				if(predicate.call(scope,array[i],i,array))
+				{
+					array.splice(i,1);
+					count++;
+				}
+			}
+		}
+		else
+		{
+			var index=array.findIndex(predicate,scope);
+			if(index!=-1)
+			{
+				array.splice(index,1);
+				count++;
+			}
+		}
+		return count;
+	};
+	SMOD("array.removeIf",utilArray.removeIf);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+    let utilArray=util.array=util.array||{};
+	//SC=SC({});
+
+	/**
+	 * fills an array with the results of repeated calls of fn
+	 */
+	utilArray.repeat=function(count,fn,scope)
+	{
+		let rtn=[];
+		for(let i=0;i<count;i++)
+		{
+			rtn.push(fn.call(scope,i));
+		}
+		return rtn;
+	};
+
+	SMOD("array.repeat",utilArray.repeat);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+    let util=µ.util=µ.util||{};
+    let uCon=util.converter=util.converter||{};
+
+	//SC=SC({});
+
+	uCon.csv={
+		symbols:{
+			line:Symbol("csv.line"),
+			overflowCells:Symbol("csv.overflowCells")
+		},
+		to:function(){
+			//TODO
+			throw "todo";
+		},
+		defaultSeperator:",",
+		from:function(csvData,columnNames,seperator)
+		{
+			csvData+="";
+			
+			seperator=seperator||uCon.csv.defaultSeperator;
+			let cellEXP=new RegExp('(?:"((?:[^"]|"")*)"|([^"\r\n'+seperator+']*))'+seperator+'?','g'), cleanUpEXP=/"(")/g;
+
+			let rtn={
+				data:[],
+				columns:columnNames||[]
+			};
+			
+			let item={
+				[uCon.csv.symbols.line]:"",
+				[uCon.csv.symbols.overflowCells]:[]
+			};
+			let cellIndex=0,isFirstLine=!columnNames,match=null;
+			while((match=cellEXP.exec(csvData))!==null)
+			{
+				if(match[0]==="")
+				{//line end
+					while(csvData[cellEXP.lastIndex]==="\r"||csvData[cellEXP.lastIndex]==="\n") cellEXP.lastIndex++;
+					if(isFirstLine) isFirstLine=false;
+					else
+					{
+						for(;cellIndex<rtn.columns.length;cellIndex++)item[rtn.columns[cellIndex]]=null;
+						rtn.data.push(item);
+						//item for next line
+						item={
+							[uCon.csv.symbols.line]:"",
+							[uCon.csv.symbols.overflowCells]:[]
+						}
+						cellIndex=0;
+					}
+					if(cellEXP.lastIndex>=csvData.length) break;
+				}
+				else
+				{//next cell
+					let value=null;
+					if(match[1]) value=match[1].replace(cleanUpEXP,"$1");
+					else value=match[2];
+					if(isFirstLine)
+					{
+						rtn.columns.push(value);
+					}
+					else
+					{
+						item[uCon.csv.symbols.line]+=match[0];
+						if(cellIndex<rtn.columns.length)
+						{
+							item[rtn.columns[cellIndex]]=value;
+						}
+						else item[uCon.csv.symbols.overflowCells].push(value);
+
+						cellIndex++;
+					}
+				}
+			}
+			return rtn;
+		}
+	};
+    SMOD("CSV",uCon.csv);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+    let uCon=util.converter=util.converter||{};
+
+	//SC=SC({});
+
+	let stages=["y","z","a","f","p","n","µ","m","","K","M","G","T","P","E","Z","Y"];
+
+	let getRegex=function(base)
+	{
+		return new RegExp("([\\d.]+)\\s*(["+stages.join("")+"]?)"+base);
+	};
+
+	uCon.metricUnit={
+
+		to:function(value,{
+			base="",
+			decimalPlaces=2,
+			currentStage="",
+			factor=1000
+		}={})
+		{
+			if(value==0) return value.toFixed(decimalPlaces)+base;
+			let index=stages.indexOf(currentStage);
+			if(index==-1) return value.toFixed(decimalPlaces)+currentStage+base;
+			while(value>factor&&index<stages.length)
+			{
+				value/=factor;
+				index++;
+			}
+			while(value<1&&index>1)
+			{
+				value*=factor;
+				index--;
+			}
+			return value.toFixed(decimalPlaces)+stages[index]+base;
+		},
+		from:function(string,{
+			base="",
+			toStage="",
+			factor=1000,
+		}={})
+		{
+			let match=string.match(getRegex(base));
+			if(match)
+			{
+				let value=parseFloat(match[1]);
+				if(Number.isNaN(value)) return NaN;
+				let modifier=match[2];
+				let index=stages.indexOf(modifier);
+				if(index==-1) return NaN;
+				let toIndex=stages.indexOf(toStage);
+				if(toIndex==-1) return NaN;
+				return value*(factor**(index-toIndex));
+			}
+			return NaN;
+		}
+	};
+
+	SMOD("metricUnit",uCon.metricUnit);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
 
 	let util=µ.util=µ.util||{};
 	let uFn=util["function"]=util["function"]||{};
@@ -1507,744 +1846,33 @@
 
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
-
+	
 	let util=µ.util=µ.util||{};
-	let uObj=util.object=util.object||{};
+	let uFn=util.function=util.function||{};
 
 	//SC=SC({});
-
-	/**
-	 * @param {Any} obj
-	 * @param {Any} pattern
-	 * @Returns {Boolean}
-	 *
-	 * @summary Matches {obj} against {pattern}.
-	 * @description
-	 *	check order:
-	 *
-	 * 1. match strictly (===) and check NaN
-	 * 2 of pattern is null (or undefined): false
-	 * 3. if Pattern is a RegExp: pattern.test(obj)
-	 * 3.1 if object is instance of RegExp match string representation
-	 * 4. if Pattern is a Function and obj isn't: pattern(obj)
-	 * 5. if pattern is an Array: check if it includes obj then check every sub pattern
-	 * 6. if obj is null: false
-	 * 7. if obj has a .equals Function: obj.equals(pattern)
-	 * 8. if pattern is an Object: recurse for every key in pattern
-	 *
+	
+	/** rescope
+	 * faster than bind but only changes the scope.
 	 */
-	uObj.equals=function(obj,pattern)
+	uFn.rescope=function(fn,scope)
 	{
-		if(obj===pattern||(Number.isNaN(obj)&&Number.isNaN(pattern)))
+		if(fn==null||fn.apply==null) throw new TypeError("#rescope:001 function is not defined");
+		else return function(...args)
 		{
-			return true;
-		}
-		if(pattern==null) return false;
-		if(pattern instanceof RegExp)
-		{
-			if( typeof obj==="string") return pattern.test(obj);
-			else if(obj instanceof RegExp) return obj.toString()==pattern.toString();
-			return false;
-		}
-		if(typeof pattern==="function")
-		{
-			if(typeof obj==="function") return false;
-			else return pattern(obj);
-		}
-		if(Array.isArray(pattern))
-		{
-			if(pattern.includes(obj))
-			{
-				return true;
-			}
-			return pattern.findIndex(p=>uObj.equals(obj,p))!=-1;
-		}
-		if(obj==null) return false;
-		if(typeof obj.equals==="function")
-        {
-            return obj.equals(pattern);
-        }
-		if(typeof pattern==="object")
-		{
-			for(let i in pattern)
-			{
-				if(!uObj.equals(obj[i],pattern[i]))
-					return false;
-			}
-			return true;
-		}
-		return false;
-	};
-	/**
-	 * creates a test for equals to pattern
-	 * @param pattern
-	 * @returns {Function}
-	 */
-	uObj.equals.test=function(pattern)
-	{
-		return function(obj)
-		{
-			return uObj.equals(obj,pattern);
+			return fn.call(scope,...args);
 		}
 	};
-
-	// logic
-	uObj.equals["Number.NaN"]=()=>Number.NaN;
-	uObj.equals["Number.NEGATIVE_INFINITY"]=()=>Number.NEGATIVE_INFINITY;
-	uObj.equals["Number.POSITIVE_INFINITY"]=()=>Number.POSITIVE_INFINITY;
-	uObj.equals.unset=function()
+	uFn.rescope.all=function(scope,keys)
 	{
-		let unset=function unset(value)
+		keys=keys||Object.keys(scope);
+		for(let key of keys)
 		{
-			return value==null;
-		};
-		unset.toString=unset.toJSON=()=>"[unset]";
-		return unset;
-	};
-	uObj.equals.not=function(pattern)
-	{
-		let not=function not(value)
-		{
-			return !uObj.equals(value,pattern);
-		};
-		not.toString=not.toJSON=()=>"[not]"+uObj.equals.patternToString(pattern);
-		return not;
-	};
-	uObj.equals.greater=function(pattern)
-	{
-		let greater=function greater(value)
-		{
-			return value>pattern;
-		};
-		greater.toString=greater.toJSON=()=>"[greater]"+uObj.equals.patternToString(pattern);
-		return greater;
-	};
-	uObj.equals.greaterEqual=function(pattern)
-	{
-		let greaterEqual=function greaterEqual(value)
-		{
-			return value>=pattern;
-		};
-		greaterEqual.toString=greaterEqual.toJSON=()=>"[greaterEqual]"+uObj.equals.patternToString(pattern);
-		return greaterEqual;
-	};
-	uObj.equals.less=function(pattern)
-	{
-		let less=function less(value)
-		{
-			return value<pattern;
-		};
-		less.toString=less.toJSON=()=>"[less]"+uObj.equals.patternToString(pattern);
-		return less;
-	};
-	uObj.equals.lessEqual=function(pattern)
-	{
-		let lessEqual=function lessEqual(value)
-		{
-			return value<=pattern;
-		};
-		lessEqual.toString=lessEqual.toJSON=()=>"[lessEqual]"+uObj.equals.patternToString(pattern);
-		return lessEqual;
-	};
-	uObj.equals.between=function(min,max)
-	{
-		let pattern;
-		if(Array.isArray(min))
-		{
-			pattern=min;
-			min=pattern[0];
-			max=pattern[1];
-		}
-		else pattern=[min,max];
-		let between=function between(value)
-		{
-			return min<value&&value<max;
-		};
-		between.toString=between.toJSON=()=>"[between]"+uObj.equals.patternToString(pattern);
-		return between;
-	};
-	uObj.equals.betweenInclude=function(min,max)
-	{
-		let pattern;
-		if(Array.isArray(min))
-		{
-			pattern=min;
-			min=pattern[0];
-			max=pattern[1];
-		}
-		else pattern=[min,max];
-		let betweenInclude=function betweenInclude(value)
-		{
-			return min<=value&&value<=max;
-		};
-		betweenInclude.toString=betweenInclude.toJSON=()=>"[betweenInclude]"+uObj.equals.patternToString(pattern);
-		return betweenInclude;
-	};
-	uObj.equals.containsOrdered=function(iterablePattern)
-	{
-		let length=iterablePattern.size||iterablePattern.length||0;
-
-		let containsOrdered=function containsOrdered(value)
-		{
-			if(!value||!(Symbol.iterator in value)) return false;
-			let valueLength=value.size||value.length||0;
-			if(valueLength!=length) return false;
-			let iterator=value[Symbol.iterator]();
-			for(let pattern of iterablePattern)
-			{
-				let {done,value:entry}=iterator.next();
-				if(done||!uObj.equals(entry,pattern)) return false;
-			}
-			return true;
-		};
-		containsOrdered.toString=containsOrdered.toJSON=()=>"[containsOrdered]"+uObj.equals.patternToString(iterablePattern);
-		return containsOrdered;
-	};
-
-	let patternToJSON=function(pattern)
-	{
-		if (pattern==null) return pattern;
-		else if(Number.isNaN(pattern)) return "[Number.NaN]";
-		else if (pattern===Number.NEGATIVE_INFINITY) return "[Number.NEGATIVE_INFINITY]";
-		else if (pattern===Number.POSITIVE_INFINITY) return "[Number.POSITIVE_INFINITY]";
-		else if (Array.isArray(pattern)) return pattern.map(patternToJSON);
-		else
-		{
-			switch(typeof pattern)
-			{
-				case "function":
-					return pattern.toString();
-				case "object":
-					let rtn={};
-					for(let key in pattern) rtn[key]=patternToJSON(pattern[key]);
-					return rtn;
-				default:
-					return pattern;
-			}
+			if(typeof scope[key]==="function") scope[key]=uFn.rescope(scope[key],scope);
 		}
 	};
-
-	uObj.equals.patternToString=function(pattern)
-	{
-		return JSON.stringify(patternToJSON(pattern,function(key,value)
-		{
-			if(value instanceof RegExp) return value.toString();
-			if(value instanceof Set) return Array.from(value);
-			return value;
-		}));
-	}
-	let parseRegex=/^\[([^\]]+)\](.*)/;
-	let patternFromJSON=function(pattern)
-	{
-		if(typeof pattern==="string")
-		{
-			let match=pattern.match(parseRegex);
-			if(match)
-			{
-				let fn=match[1],value=match[2];
-				if(value!=="")
-				{
-					value=JSON.parse(value);
-					if(parseRegex.test(value)) value=patternFromJSON(value);
-				}
-				if(fn in uObj.equals) return uObj.equals[fn](value);
-				else throw new SyntaxError("unknown equals function: "+fn);
-			}
-		}
-		else if (typeof pattern==="object")
-		{
-			if(pattern===null) return null;
-			else if (Array.isArray(pattern)) return pattern.map(patternFromJSON);
-			else
-			{
-				let rtn={};
-				for(let key in pattern) rtn[key]=patternFromJSON(pattern[key]);
-				return rtn;
-			}
-		}
-		return pattern;
-	};
-	uObj.equals.stringToPattern=function(patternString)
-	{
-		return patternFromJSON(JSON.parse(patternString));
-	};
-
-	SMOD("equals",uObj.equals);
+	SMOD("rescope",uFn.rescope);
 	
-})(Morgas,Morgas.setModule,Morgas.getModule);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let util=µ.util=µ.util||{};
-	let uObj=util.object=util.object||{};
-
-	let pathRegEx=/\[[^\]]+\]|\.?[^.\[]+/g;
-	let arrayRegEx=/^\[(\d+)\]$|^\]$/;
-	let trimRegEx=/^\.|^\["?|"?]$/g;
-
-	//SC=SC({});
-
-	/** goPath
-	 * Goes the {path} from {obj} checking all but last step for existance.
-	 * 
-	 * goPath(obj,"path.to.target") === goPath(obj,["path","to","target"]) === obj.path.to.target
-	 * 
-	 * when creating is enabled use "foo[].n" or "foo[n]" instead of "foo.2" to create an array
-	 * 
-	 * @param {Any} obj
-	 * @param {String|string[]} path
-	 * @param {Boolean} (create=false) create missing structures
-	 * @param {Any} (defaultValue) set missing value
-	 */
-	uObj.goPath=function(obj,path,create,defaultValue)
-	{
-		if(obj==null) return undefined;
-		if(typeof path=="string")path=path.match(pathRegEx);
-
-		for(let index=0; index<path.length;index++)
-		{
-			if(path[index]==="]") continue;
-			let key=path[index].replace(trimRegEx,"");
-			if(!(key in obj))
-			{
-				if(create&&index+1<path.length)
-				{
-					let value;
-					if(arrayRegEx.test(path[index+1])) value=[];
-					else value={};
-
-					obj=obj[key]=value;
-					continue;
-				}
-				if(index+1==path.length&&defaultValue!==undefined)
-				{
-					return obj[key]=defaultValue;
-				}
-				return undefined;
-			}
-			obj=obj[key];
-		}
-		return obj;
-	};
-	uObj.goPath.guide=function(...args)
-	{
-		return function(obj){return uObj.goPath(obj,...args)};
-	};
-	SMOD("goPath",uObj.goPath);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let SortedArray=GMOD("SortedArray");
-
-	SC=SC({
-		eq:"equals",
-		goPath:"goPath",
-		proxy:"proxy"
-	});
-	 
-	let ORG=µ.Organizer=µ.Class(SortedArray,{
-		constructor:function(values)
-		{
-
-			this.filters=new Map();
-			SC.proxy(this.filters,{
-				"has":"hasFilter",
-			},this);
-
-			this.maps=new Map();
-			SC.proxy(this.maps,{
-				"has":"hasMap",
-				"delete":"removeMap"
-			},this);
-
-			this.groups=new Map();
-			SC.proxy(this.groups,{
-				"has":"hasGroup"
-			},this);
-
-			this.mega(values);
-			
-		},
-		getSort:SortedArray.prototype.get,
-		getIndexSort:SortedArray.prototype.getIndexes,
-		filter:function(filterName,filterFn,createFn)
-		{
-			switch(typeof filterFn)
-			{
-				case "string":
-					filterFn=SC.goPath.guide(filterFn);
-					break;
-				case "object":
-					filterFn=SC.eq.test(filterFn);
-					break;
-			}
-			let filter=this.filters.get(filterName);
-			if(!filter)
-			{
-				let child=new ORG();
-				child.library=this.library||this.values;
-				filter={
-					child:child,
-					fn:filterFn
-				};
-			}
-			else
-			{
-				filter.fn=filterFn;
-				filter.child.clear();
-			}
-			this.filters.set(filterName,filter);
-
-			if(createFn) createFn(filter.child);
-
-			for(let i=0;i<this.values.length;i++)
-			{
-				this._filter(filter,this.values[i],i);
-			}
-			return this;
-		},
-		_filter:function(filter,value,index)
-		{
-			if(this.library)
-			{
-				index=value;
-				value=this.library[index];
-			}
-			if(filter.fn(value)) filter.child.add(index);
-		},
-		getFilter:function(filterName)
-		{
-			if(this.hasFilter(filterName))
-			{
-				return this.filters.get(filterName).child;
-			}
-			return null;
-		},
-		removeFilter:function(filterName)
-		{
-			if(this.hasFilter(filterName))
-			{
-				this.filters.get(filterName).child.destroy();
-				this.filters.delete(filterName);
-			}
-		},
-		map:function(mapName,mapFn)
-		{
-			if(typeof mapFn==="string") mapFn=SC.goPath.guide(mapFn);
-			let map={mapFn:mapFn,values:{}};
-			if(this.hasMap(mapName)) this.removeMap(mapName);
-			this.maps.set(mapName,map);
-			for(let i=0;i<this.values.length;i++)
-			{
-				this._map(map,this.values[i],i);
-			}
-			return this;
-		},
-		_map:function(map,value,index)
-		{
-			if(this.library){
-				index=value;
-				value=this.library[index];
-			}
-			let key=""+map.mapFn(value);
-			map.values[key]=index;
-		},
-		getIndexMap:function(mapName)
-		{
-			if(this.hasMap(mapName))return Object.assign({},this.maps.get(mapName).values);
-			return null;
-		},
-		getMap:function(mapName)
-		{
-			if(this.hasMap(mapName))
-			{
-				let rtn={};
-				for(let [key,index] of Object.entries(this.maps.get(mapName).values))
-				{
-					if(this.library) rtn[key]=this.library[index];
-					else rtn[key]=this.values[index];
-				}
-				return rtn;
-			}
-			else return null;
-		},
-		group:function(groupName,groupFn,createFn)
-		{
-			if(typeof groupFn==="string") groupFn=SC.goPath.guide(groupFn);
-			let group={children:{},groupFn:groupFn,createFn:createFn};
-			if(this.hasGroup(groupName))this.removeGroup(groupName);
-			this.groups.set(groupName,group);
-			for(let i=0;i<this.values.length;i++)
-			{
-				this._group(group,this.values[i],i);
-			}
-			return this;
-		},
-		_group:function(group,value,index)
-		{
-			if(this.library){
-				index=value;
-				value=this.library[index];
-			}
-			let gKeys=[].concat(group.groupFn(value));
-			for(let gKey of gKeys)
-			{
-				if(!(gKey in group.children))
-				{
-					let child=new ORG();
-					child.library=this.library||this.values;
-					if(group.createFn)group.createFn(child,gKey);
-					group.children[gKey]=child;
-				}
-				group.children[gKey].add(index);
-			}
-		},
-		getGroup:function(groupName)
-		{
-			if(this.hasGroup(groupName))
-			{
-				return Object.assign({},this.groups.get(groupName).children);
-			}
-			else return undefined;
-		},
-		getGroupPart:function(groupName,partName)
-		{
-			if(this.hasGroup(groupName))
-			{
-				return this.groups.get(groupName).children[partName];
-			}
-			else return undefined;
-		},
-		getGroupValues:function(groupName)
-		{
-			if(this.hasGroup(groupName))
-			{
-				let _g=this.getGroup(groupName);
-				let rtn={};
-				for(let i in _g)rtn[i]=_g[i].getValues();
-				return rtn;
-			}
-			else return undefined;
-		},
-		removeGroup:function(groupName)
-		{
-			if(this.hasGroup(groupName))
-			{
-				let gs=this.getGroup(groupName);
-				for(let g in gs)
-				{
-					gs[g].destroy();
-				}
-				this.groups.delete(groupName);
-			}
-			return this;
-		},
-		add:function(value)
-		{
-			let index=this.mega(value);
-			this._add(index);
-			return index;
-		},
-		_add:function(index)
-		{
-			let value=this.values[index];
-			for(let filter of this.filters.values()) this._filter(filter,value,index);
-			for(let map of this.maps.values()) this._map(map,value,index);
-			for(let group of this.groups.values()) this._group(group,value,index);
-		},
-		remove:function(values)
-		{
-			let indexes=this.mega(values);
-			if(indexes)
-			{
-				this._remove(indexes);
-				return indexes;
-			}
-			return indexes;
-		},
-		_remove:function(indexes)
-		{
-			for(let filter of this.filters.values()) filter.child.remove(indexes);
-			for(let map of this.maps.values())
-			{
-				for(let m in map.values)
-				{
-					if(indexes.indexOf(map.values[m])!==-1) delete map.values[m];
-				}
-			}
-			for(let group of this.groups.values())
-			{
-				for(let child of Object.values(group.children))
-				{
-					child.remove(indexes);
-				}
-			}
-		},
-		update:function(values)
-		{
-			let indexes=this.mega(values);
-			if(indexes)
-			{
-				this._remove(indexes);
-				for(let index of indexes) this._add(index);
-			}
-		},
-		clear:function()
-		{
-			this.mega();
-			for(let filter of this.filters.values()) filter.child.clear();
-			for(let map of this.maps.values()) map.values={};
-			for(let group of this.groups.values())
-			{
-				for(let child in Object.values(group.children))
-				{
-					child.clear();
-				}
-			}
-			return this;
-		},
-		/**
-		 * @param {Boolean} (some=false) - collect values that are anywhere included ( false = everywhere )
-		 * @param {String} (sort) - name of sort
-		 */
-		combine:function(some,sort)
-		{
-			some=!!some;
-			let indexes=this.hasSort(sort)?this.getIndexSort(sort):(this.library ? this.values.slice() : this.values.map((a,i)=>i));
-			let inside=some?[]:indexes;
-			let outside=some?indexes:[];
-			let _doCombine=list=>
-			{
-				let i=inside,o=outside;
-				if(some)i=outside,o=inside;
-
-				i.forEach((value,index)=>
-				{
-					if((list.indexOf(value)!==-1)==some)// in list XOR collecting those in some lists
-					{
-						o[index]=value;
-						delete i[index];
-					}
-				});
-			};
-			let rtn={
-				getIndexes:outer=>(outer?outside:inside).filter(i=>i!=undefined),
-				get:outer=>rtn.getIndexes(outer).map(i=>(this.library?this.library:this.values)[i]),
-				filter:name=>
-				{
-					if(this.hasFilter(name))_doCombine(this.getFilter(name).values);
-					return rtn;
-				},
-				group:(name,part)=>
-				{
-					part=this.getGroupPart(name,part);
-					if(part)_doCombine(part.values);
-					return rtn;
-				},
-				combine:c=>
-				{
-					if(c._getOrigin()===this||c._getOrigin().library===this.library)
-					{
-						_doCombine(c.getIndexes());
-					}
-					return rtn;
-				},
-				_getOrigin:()=>this
-			};
-			return rtn;
-		},
-		destroy:function()
-		{
-			for (let filter of this.filters.values())
-			{
-				filter.child.destroy();
-			}
-			this.filters.clear();
-			this.maps.clear();
-			for (let group of this.groups.values())
-			{
-				for(let child of Object.values(group.children))
-				{
-					child.destroy();
-				}
-			}
-			this.groups.clear();
-
-			this.mega();
-		}
-	});
-	ORG.naturalOrder=SortedArray.naturalOrder;
-	ORG.orderBy=SortedArray.orderBy;
-	
-	/**
-	 * sort by multiple attributes
-	 * @param {string[]} paths array of paths to attributes for sorting
-	 * @param {boolean} (DESC=false)
-	 * @return function
-	 */
-	ORG.attributeSort=function(paths,DESC)
-	{
-		return function(obj,obj2)
-		{
-			let rtn=0,a,b;
-			for(let i=0;i<paths.length&&rtn===0;i++)
-			{
-				a=SC.goPath(obj,paths[i]);
-				b=SC.goPath(obj2,paths[i]);
-				rtn=(DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0)
-			}
-			return rtn;
-		}
-	};
-	
-	SMOD("Organizer",ORG);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	var util=µ.util=µ.util||{};
-	var utilArray=util.array=util.array||{};
-
-	//SC=SC({});
-
-	utilArray.remove=function(array,item)
-	{
-		var index=array.indexOf(item);
-		if(index!=-1) array.splice(index,1);
-		return index;
-	};
-	SMOD("array.remove",utilArray.remove);
-
-	utilArray.removeIf=function(array,predicate,all=false,scope=null)
-	{
-		let count=0;
-		if(all)
-		{
-			for(var i=array.length-1;i>=0;i--)
-			{
-				if(predicate.call(scope,array[i],i,array))
-				{
-					array.splice(i,1);
-					count++;
-				}
-			}
-		}
-		else
-		{
-			var index=array.findIndex(predicate,scope);
-			if(index!=-1)
-			{
-				array.splice(index,1);
-				count++;
-			}
-		}
-		return count;
-	};
-	SMOD("array.removeIf",utilArray.removeIf);
-
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC)
@@ -2348,6 +1976,337 @@
 
 	SMOD("Patch",Patch);
 	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let Patch=GMOD("Patch");
+
+	SC=SC({
+		removeIf:"array.removeIf"
+	});
+
+	let globalScope=this;
+
+	let cSym=µ.Class.symbols;
+
+	let eventNamePattern=/^[a-z_][a-zA-Z_.:\-@#]+$/;
+	let abstractImplementor=function(name)
+	{
+		if(typeof name==="string")
+		{
+			name={name:name};
+		}
+		return name;
+	};
+
+	let eventClassesMap=new Map();
+
+	µ.Event=µ.Class({
+		[cSym.onExtend]:function(sub)
+		{
+			let sProt=sub.prototype;
+			if(!sProt.hasOwnProperty("name")||!sProt.name) throw new SyntaxError("#Event:001 Event has no name");
+			if(!sProt.name.match(eventNamePattern)) throw new RangeError("#Event:002 Event name does not match pattern "+eventNamePattern);
+			if(eventClassesMap.has(sProt.name)) throw new RangeError("#Event:003 Event name must be unique");
+
+			sub.name=sProt.name;
+
+			eventClassesMap.set(sProt.name,sProt.constructor);
+		},
+		[cSym.abstract]:abstractImplementor,
+		constructor:function Event(){}
+	});
+	SMOD("Event",µ.Event);
+
+
+
+	µ.Event.StateEvent=µ.Class(µ.Event,{
+		[cSym.abstract]:abstractImplementor,
+		constructor:function StateEvent(state)
+		{
+			this.state=state;
+		}
+	});
+	SMOD("StateEvent",µ.Event.StateEvent);
+
+
+
+	µ.Event.CancelEvent=µ.Class(µ.Event,{
+		[cSym.abstract]:abstractImplementor,
+		constructor:function CancelEvent()
+		{
+			//will also be set in reporter
+			this.phase=CancelEvent.phases.CHECK;
+		}
+	});
+	µ.Event.CancelEvent.phases={
+		CHECK:"check",
+		DONE:"done"
+	};
+	SMOD("CancelEvent",µ.Event.CancelEvent);
+
+
+
+	µ.Event.ErrorEvent=µ.Class(µ.Event,{
+		name:"error",
+		constructor:function(reason,cause)
+		{
+			//                                  ErrorEvent is undefined in nodeJs
+			if(reason instanceof Error||(typeof ErrorEvent!=="undefined"&&reason instanceof ErrorEvent))
+			{
+				cause=reason;
+				reason=reason.message;
+			}
+			this.reason=reason;
+			this.cause=cause;
+		},
+		toString()
+		{
+			return this.reason+"\n"+this.cause;
+		}
+	});
+	SMOD("ErrorEvent",µ.Event.ErrorEvent);
+	
+
+
+	let getListenerPatch=function(scope)
+	{
+		return Patch.getPatches(scope,ListenerPatch)[0];
+	};
+	let checkListenerPatch=function(scope,reporter)
+	{
+		if(scope&&globalScope!==scope)
+		{
+			let listenerPatch=getListenerPatch(scope);
+			if(!listenerPatch)
+			{
+				listenerPatch=new ListenerPatch(scope);
+			}
+			listenerPatch.add(reporter);
+		}
+	};
+
+	let EventRegister=µ.Class({
+		constructor:function()
+		{
+			this.listeners=[];
+		},
+		add(scope=null,fn)
+		{
+			this.listeners.push([scope,fn]);
+		},
+		has(scope=null)
+		{
+			return this.listeners.findIndex(([s])=>s===scope)!==-1;
+		},
+		remove(scope,fn)
+		{
+			SC.removeIf(this.listeners,([s,f])=>s===scope&&(!fn||fn===f),true);
+		},
+		report:function(event)
+		{
+			for(let [scope,fn] of this.listeners) fn.call(scope,event);
+		},
+		destroy()
+		{
+			this.listeners.length=0;
+			this.mega();
+		},
+		getScopes()
+		{
+			return this.listeners.map(a=>a[0]);
+		}
+	});
+	
+	
+	
+	let StateEventRegister=µ.Class(EventRegister,{
+		constructor:function()
+		{
+			this.mega();
+			this.lastState=null;
+		},
+		add(scope=null,fn)
+		{
+			this.mega(scope,fn)
+			if(this.lastState) fn.call(scope,this.lastState);
+		},
+		report(event)
+		{
+			this.mega(event);
+			this.lastState=event;
+		}
+	});
+	
+	
+	let CancelEventRegister=µ.Class(EventRegister,{
+		constructor:function()
+		{
+			this.mega();
+			this.checkListeners=[];
+		},
+		add(scope=null,fn,checkPhase)
+		{
+			if(checkPhase)
+			{
+				this.checkListeners.push([scope,fn]);
+			}
+			else
+			{
+				this.mega(scope,fn);
+			}
+		},
+		has(scope=null)
+		{
+			return this.mega(scope)&&this.checkListeners.findIndex(([s])=>s===scope)!==-1;
+		},
+		remove(scope,fn,phase)
+		{
+			if(phase) SC.removeIf(this.checkListeners,([s,f])=>s===scope&&(!fn||fn===f),true);
+			else this.mega(scope);
+		},
+		report(event,fn)
+		{
+			event.phase=µ.Event.CancelEvent.phases.CHECK;
+			for(let [scope,fn] of this.checkListeners)
+			{
+				if(fn.call(scope,event)===false)
+				{
+					return;
+				}
+			}
+			fn(event);
+			event.phase=µ.Event.CancelEvent.phases.DONE;
+			this.mega(event);
+		},
+		destroy()
+		{
+			this.checkListeners.length=0;
+			this.mega();
+		},
+		getScopes()
+		{
+			let scopes=this.mega();
+			this.checkListeners.forEach(a=>scopes.push(a[0]));
+			return scopes;
+		}
+	});
+	
+	
+
+	let ReporterPatch=µ.Event.ReporterPatch=µ.Class(Patch,{
+		patch(eventClasses=[],keys=ReporterPatch.defaultKeys)
+		{
+			this.eventMap=new Map();
+			for(let eventClass of eventClasses) this.introduce(eventClass);
+			this.composeInstance(keys);
+		},
+		composeKeys:["introduce","add","remove","report"],
+		introduce(eventClass)
+		{
+			if(!(eventClass.prototype instanceof µ.Event)) throw new TypeError("#ReporterPatch:001 'eventClass' does not derive from Event class");
+			if(!this.eventMap.has(eventClass))
+			{
+				let eventRegister;
+				if(eventClass.prototype instanceof µ.Event.StateEvent)
+				{
+					eventRegister=new StateEventRegister(this);
+				}
+				else if(eventClass.prototype instanceof µ.Event.CancelEvent)
+				{
+					eventRegister=new CancelEventRegister(this);
+				}
+				else
+				{
+					eventRegister=new EventRegister(this);
+				}
+
+				this.eventMap.set(eventClass.prototype.constructor,eventRegister);
+			}
+			return this;
+		},
+		add(eventName,scope=null,fn,checkPhase)
+		{
+			let eventClass=eventClassesMap.get(eventName);
+			if(!eventClass) throw new ReferenceError(`#ReporterPatch:001 Event class with name ${eventName} does not exist`);
+			if(!this.eventMap.has(eventClass)) throw new ReferenceError(`#ReporterPatch:002 Event ${eventName} is not introduced`);
+			if(typeof fn!=="function") throw new TypeError("#ReporterPatch:003 fn is not a function");
+			this.eventMap.get(eventClass).add(scope,fn,checkPhase);
+
+			if(scope!=null&&scope!=globalScope) checkListenerPatch(scope,this);
+		},
+		remove(eventName,scope,fn,checkPhase)
+		{
+			let eventClass=eventClassesMap.get(eventName);
+			if(!eventClass||!this.eventMap.has(eventClass)) return;
+			this.eventMap.get(eventClass).remove(scope,fn,checkPhase);
+			if(scope!=null&&scope!=globalScope)
+			{// removed && not global
+				for(let eventRegister of this.eventMap.values()) if (eventRegister.has(scope)) return ;
+				
+				let listenerPatch=getListenerPatch(scope);
+				listenerPatch.remove(this);
+			}
+		},
+		removeScope:function(scope)
+		{
+			for(let eventRegister of this.eventMap.values())
+			{
+				eventRegister.remove(scope);
+			}
+		},
+		report(event,fn)
+		{
+			if(!this.eventMap.has(event.constructor)) throw new ReferenceError(`#ReporterPatch:004 tried to report unintroduced Event ${event.name}`);
+			this.eventMap.get(event.constructor).report(event,fn);
+			return event.phase!==µ.Event.CancelEvent.phases.CHECK;
+		},
+		destroy()
+		{
+			let scopes=new Set();
+			for(let eventRegister of this.eventMap.values())
+			{
+				eventRegister.getScopes().forEach(s=>scopes.add(s));
+				eventRegister.destroy();
+			}
+			scopes.delete(null);
+			scopes.delete(globalScope);
+			scopes.forEach(scope=>getListenerPatch(scope).remove(this));
+			this.mega();
+		}
+	});
+	ReporterPatch.defaultKeys={
+		add:"addEventListener",
+		remove:"removeEventListener",
+		report:"reportEvent"
+	};
+	SMOD("EventReporterPatch",ReporterPatch);
+
+
+
+	let ListenerPatch=µ.Event.ListenerPatch=µ.Class(Patch,{
+		patch()
+		{
+			this.reporters=new Set();
+		},
+		add(reporter)
+		{
+			this.reporters.add(reporter);
+		},
+		remove(reporter)
+		{
+			this.reporters.delete(reporter);
+		},
+		destroy()
+		{
+			for(let reporter of this.reporters) reporter.removeScope(this.instance);
+			this.reporters.clear();
+			this.mega();
+		}
+	});
+	SMOD("EventListenerPatch",ListenerPatch);
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
@@ -2534,362 +2493,6 @@
 	SMOD("NodePatch",NODE);
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let NodePatch=GMOD("NodePatch");
-
-	//SC=SC({});
-
-	/**
-	 * @param {Any} root
-	 * @param {Function} compare - (a,b)=>Boolish
-	 * @param {String|Function} (childrenGetter)
-	 */
-	NodePatch.Compare=µ.Class(NodePatch.Basic,{
-		constructor:function(newNode,oldNode,compare=µ.constantFunctions.t)
-		{
-			this.mega();
-
-			this.newNode=newNode;
-			this.oldNode=oldNode;
-			this.compare=compare;
-		},
-		isNew:function(){return !this.oldNode},
-		isMissing:function(){return !this.newNode},
-		isCompareable:function(){return !this.isNew()&&!this.isMissing()},
-		isChanged:function(){return this.isCompareable()&&!this.compare(this.newNode,this.oldNode)},
-		isUnchanged:function(){return this.isCompareable()&&!this.isChanged()},
-		getNew:function(){return Array.from(this.children).filter(c=>c.isNew())},
-		getMissing:function(){return Array.from(this.children).filter(c=>c.isMissing())},
-		getChanged:function(){return Array.from(this.children).filter(c=>c.isCompareable()&&c.isChanged())},
-		getUnchanged:function(){return Array.from(this.children).filter(c=>c.isUnchanged())},
-
-		hasChanges:function()
-		{
-			return !this.isCompareable()||this.isChanged()||Array.from(this.children).some(c=>c.hasChanges());
-		}
-
-	});
-
-	NodePatch.Compare.create=function(newRoot,oldRoot,getId,compare,childrenGetter)
-	{
-		childrenGetter=NodePatch.normalizeChildrenGetter(childrenGetter);
-
-		let rtn=new NodePatch.Compare(newRoot,oldRoot,compare);
-		let todo=[rtn];
-
-		while(todo.length>0)
-		{
-			let parentCompare=todo.shift();
-			if(!parentCompare.isCompareable()) continue;
-
-			let oldChildren=new Map();
-			for(let child of childrenGetter(parentCompare.oldNode))
-			{
-				oldChildren.set(getId(child),child);
-			}
-
-			for (let child of childrenGetter(parentCompare.newNode))
-			{
-				let id=getId(child);
-				let oldNode=oldChildren.get(id)
-				let childCompare=new NodePatch.Compare(child,oldNode,compare);
-				parentCompare.addChild(childCompare);
-				if(oldNode)
-				{
-					todo.push(childCompare);
-					oldChildren.delete(id);
-				}
-			}
-			for (let child of oldChildren.values())
-			{
-				let childCompare=new NodePatch.Compare(null,child,compare);
-				parentCompare.addChild(childCompare);
-			}
-		}
-		return rtn;
-	};
-
-	SMOD("NodePatch.Compare",NodePatch.Compare);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	var util=µ.util=µ.util||{};
-	var array=util.array=util.array||{};
-
-	//SC=SC({});
-
-	var flattenAll=Array.prototype.concat.bind(Array.prototype);
-
-	array.flatten=flattenAll.apply.bind(flattenAll,null);
-	array.flatten.all=flattenAll;
-
-	SMOD("flatten",array.flatten);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let util=µ.util=µ.util||{};
-	let obj=util.object=util.object||{};
-
-	//SC=SC({});
-
-	/** uniquify
-	 * Creates a copy of {arr} without duplicates.
-	 * Generates an ID via {fn}(value)
-	 */
-	obj.uniquify=function(arr,fn)
-	{
-		let values;
-		if(fn)
-		{
-			let idMap=new Map();
-			for(let i=0;i<arr.length;i++)
-			{
-				let id=arr[i];
-				if(fn)
-				{
-					id=fn(arr[i]);
-				}
-				idMap.set(id,arr[i]);
-			}
-			values=idMap.values();
-		}
-		else
-		{
-			values=new Set(arr);
-		}
-		return Array.from(values);
-	};
-	SMOD("uniquify",obj.uniquify);
-	
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	SC=SC({
-		remove:"array.remove",
-		uniquify:"uniquify",
-		flatten:"flatten"
-	});
-
-	let applyPrefix=function(arr,prefix)
-	{
-		return (arr||[]).map(function(a){return prefix+a});
-	};
-
-	µ.DependencyResolver=µ.Class({
-		constructor:function(config,prefix)
-		{
-			this.config={};
-			if(config)this.addConfig(config,prefix);
-		},
-		addConfig:function(obj,prefix="",overwrite)
-		{
-			if(typeof obj==="object")
-			{
-				let keys=Object.keys(obj);
-				for(let l=keys.length,i=0;i<l;i++)
-				{
-					let k=keys[i];
-					if(this.config[prefix+k]===undefined||overwrite)//TODO overwrite message
-					{
-						let v=null;
-                        if(typeof obj[k]==="string")
-                        {
-                            v={deps:[prefix+obj[k]],uses:[]};
-                        }
-                        else if (Array.isArray(obj[k]))
-                        {
-                            v={deps:applyPrefix(obj[k],prefix),uses:[]};
-                        }
-                        else if (obj[k]!==true)
-                        {
-                            v={deps:applyPrefix(obj[k].deps,prefix),uses:applyPrefix(obj[k].uses,prefix)}
-                        }
-                        else
-                        {
-                            v={deps:[],uses:[]};
-                        }
-						this.config[prefix+k]=v;
-					}
-				}
-				return true;
-			}
-			µ.logger.error(new TypeError("#DependencyResolver:001 DependencyResolver.addConfig: obj is not an object"));
-			return false;
-		},
-		getConfig:function(item)
-		{
-			let config=this.config[item];
-			if(!config) throw new ReferenceError("#DependencyResolver:002 "+item+" is not in config");
-			return config;
-		},
-		resolve:function(list,allowUsesCycles=false)
-		{
-			let resolved=new Map();
-			let todo=[].concat(list).map(s=>({
-				name:s,
-				from:[]
-			}));
-
-			for(let entry of todo)
-			{
-				let config=this.getConfig(entry.name);
-				if(!resolved.has(entry.name))
-				{
-					resolved.set(entry.name,{
-						name:entry.name,
-						from:[]
-					});
-				}
-				let item=resolved.get(entry.name);
-				if(entry.from.length!=0)
-				{
-					item.from.push(entry.from);
-				}
-
-				for(let next of config.deps.concat(config.uses))
-				{
-					let index=entry.from.indexOf(next);
-					if(index!=-1)//cycle detected
-					{
-						let cycle=entry.from.slice(index).concat(entry.name);
-						resolved.get(next).from.push(entry.from.slice().concat(entry.name,next));
-						if(allowUsesCycles&&(!config.deps.includes(next)||cycle.some(this._containsUses)))
-						{
-							continue;
-						}
-						throw new Error("#DependencyResolver:003 cyclic dependency ["+cycle.join(" <-> ")+"]");
-					}
-					else
-					{
-						todo.push({
-							name:next,
-							from:entry.from.concat(entry.name)
-						});
-					}
-				}
-			}
-
-			for (let item of resolved.values()) item.from=SC.uniquify(item.from,a=>a.join(","));
-
-			this._breakCycles(resolved);
-			let resolvedArr=Array.from(resolved.values());
-			return this._sort(resolvedArr);
-		},
-		_containsUses:function(dependPath)
-		{
-			return dependPath.some((key,index,array)=>
-			{
-				return index+1<array.length&&!this.getConfig(key).deps.includes(array[index+1]);
-			});
-		},
-		_breakCycles:function(resolved)
-		{
-			for (let item of resolved.values())
-			{
-				for(let index=0;index<item.from.length;index++)
-				{
-					let path=item.from[index];
-					if(path[path.length-1]!==item.name) continue;
-
-					let cycle=path.slice(path.indexOf(item.name),-1);
-					item.from.splice(index--,1);
-					path=path.slice(0,path.length-1-cycle.length);
-
-					let cycleParts=this._getCycleParts(cycle);
-					if(cycleParts===null) continue
-
-					for(let c=0;c<cycle.length;c++)
-					{
-						let name=cycle[c];
-						let cyclePath=path.concat(cycle.slice(0,c));
-						let replacePath=path.concat(cycleParts.get(name));
-						let searchPath=cyclePath.join(",");
-						let cycleItem=resolved.get(name);
-						for(let i=0;i<cycleItem.from.length;i++)
-						{
-							if(cycleItem.from[i].join(",")===searchPath)
-							{
-								cycleItem.from[i]=replacePath;
-								break;
-							}
-						}
-					}
-				}
-			}
-		},
-		_getCycleParts:function(cycle)
-		{
-			let isUseDependent=(name,index,arr)=>
-			{
-				return index+1<arr.length&&!this.getConfig(name).deps.includes(arr[index+1]);
-			};
-
-			let useIndex=cycle.findIndex(isUseDependent);
-
-			if(useIndex==-1) return null; //only use is already solved
-
-			let sortedCycle=cycle.slice(useIndex+1).concat(cycle.slice(0,useIndex+1));
-
-			let useIndexes=sortedCycle.reduce((arr,name,i)=>
-			{
-				if(isUseDependent(name,i,sortedCycle)) arr.push(i+1);
-				return arr;
-			},[0]);
-
-			useIndexes.push(sortedCycle.length);
-
-			let parts=new Map();
-			useIndexes.reduceRight((to,from)=>
-			{
-				for(;from<to;to--)
-				{
-					parts.set(sortedCycle[to-1],sortedCycle.slice(from,to-1));
-				}
-				return from;
-			});
-
-			return parts;
-		},
-		_sort:function(resolvedArr)
-		{
-			let rtn=[];
-			for(let item of resolvedArr)
-			{
-				let allFrom=SC.uniquify(SC.flatten(item.from));
-				let firstIndex=Math.min(...allFrom.map(f=>rtn.indexOf(f)).filter(i=>i!=-1));
-
-				if(firstIndex==Infinity)
-				{
-					let config=this.getConfig(item.name);
-					let allDeps=config.deps.concat(item.uses);
-					let lastIndex=Math.max(...allDeps.map(d=>rtn.lastIndexOf(d)),-1);
-
-					if(lastIndex==-1) rtn.unshift(item.name);
-					else rtn.splice(lastIndex+1,0,item.name);
-				}
-				else
-			 	{
-			 		rtn.splice(firstIndex,0,item.name);
-			 	}
-			}
-			return rtn;
-		},
-        clone:function(prefix)
-        {
-            return new µ.DependencyResolver(this.config,prefix);
-        }
-	});
-	SMOD("DependencyResolver",µ.DependencyResolver);
-	SMOD("DepRes",µ.DependencyResolver);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
 
@@ -3122,6 +2725,235 @@
 	};
 	SMOD("Promise",PROM);
 	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	SC=SC({
+		Event:"Event",
+		Reporter:"EventReporterPatch",
+		ErrorEvent:"ErrorEvent",
+		StateEvent:"StateEvent",
+		Promise:"Promise"
+	});
+
+	let ID_COUNTER=0;
+	let REQUEST_COUNTER=0;
+
+	let AbstractWorker=µ.AbstractWorker=µ.Class({
+		[µ.Class.symbols.abstract]:true,
+		[µ.Class.symbols.onExtend]:function(sub)
+		{
+			if(typeof sub.prototype._send!="function") throw new SyntaxError("#AbstractWorker:001 _send() is not defined");
+			if(typeof sub.prototype._start!="function") throw new SyntaxError("#AbstractWorker:002 _start() is not defined");
+		},
+		constructor:function({startTimeout,loadScripts,autoStart=true}={})
+		{
+			this.requestMap=new Map();
+			this.id=ID_COUNTER++;
+			this.ready=null;
+			this.onFeedback=null;
+
+			let reporter=new SC.Reporter(this,[WorkerStateEvent,WorkerMessageEvent,SC.ErrorEvent]);
+
+
+			let state;
+			Object.defineProperty(this,"state",{
+				enumerable:true,
+				configurable:true,
+				get:function()
+				{
+					return state;
+				},
+				set:(newState)=>
+				{
+					state=newState;
+					if(newState===AbstractWorker.states.CLOSE)
+					{
+						this.ready=new SC.Promise.reject("closed",this);
+						this.ready.catch(µ.constantFunctions.pass); //suppress uncaught promise/exception
+					}
+					reporter.report(new WorkerStateEvent(newState));
+				}
+			});
+			this.state=AbstractWorker.states.CLOSE;
+
+			if(autoStart) this.restart(startTimeout,loadScripts);
+		},
+//		_send:function(payload){},
+//		_start:function(){}, // propagate id and other parameters to actual worker
+		_onMessage(message)
+		{
+			if("request" in message)
+			{
+				if(!this.requestMap.has(message.request))
+				{
+					this.reportEvent(new SC.ErrorEvent("no such request",`request ${message.request} is not known`));
+				}
+				else
+				{
+					if(message.error) this.requestMap.get(message.request).reject(message.error);
+					else this.requestMap.get(message.request).resolve(message.data);
+				}
+			}
+			else if("feedback" in message)
+			{
+				if(!this.onFeedback)
+				{
+					this._send({feedback:message.feedback,error:"no feedback handler"});
+				}
+				else
+				{
+					let feedbackPromise=null;
+					try
+					{
+						feedbackPromise=Promise.resolve(this.onFeedback(message.data))
+						.catch(function(error)
+						{
+							if(error instanceof Error) error=error.message+"\n"+error.stack;
+							return Promise.reject(error);
+						});
+					}
+					catch(e)
+					{
+						feedbackPromise=Promise.reject(e.message+"\n"+e.stack);
+					}
+
+					feedbackPromise.then(
+						result=>this._send({feedback:message.feedback,data:result}),
+						error=>this._send({feedback:message.feedback,error:error})
+					)
+					.catch(µ.logger.error);
+				}
+			}
+			else if ("error" in message)
+			{
+				if(this.requestMap.has("init"))this.requestMap.get("init").reject(message.error);
+				else this.reportEvent(new SC.ErrorEvent(message.error));
+			}
+			else
+			{
+				this.reportEvent(new WorkerMessageEvent(message));
+			}
+		},
+		send(method,args=[])
+		{
+			if(this.state!==AbstractWorker.states.OPEN) throw new Error("#AbstractWorker:003 worker is not open");
+
+			this._send({method:method,args:args});
+			return this;
+		},
+		request(method,args=[],timeout=AbstractWorker.defaults.TIMEOUT)
+		{
+			if(this.state!==AbstractWorker.states.OPEN) return SC.Promise.reject(new Error("#AbstractWorker:004 worker is not open"),this);
+
+			let requestData={
+				request:REQUEST_COUNTER++,
+				method:method,
+				args:args
+			};
+			let timer;
+			let promise=new SC.Promise(function(signal)
+			{
+				this.requestMap.set(requestData.request,signal);
+				timer=setTimeout(function()
+				{
+					signal.reject("timeout");
+				},timeout);
+				this._send(requestData);
+				signal.addAbort(function()
+				{
+					this._send({
+						request:requestData.request,
+						method:"_abort"
+					});
+				})
+			},{scope:this});
+			promise.always(function()
+			{
+				this.requestMap.delete(requestData.request);
+				clearTimeout(timer);
+			});
+			return promise;
+		},
+		stop(timeout)
+		{
+			return this.request("stop",[],timeout);
+		},
+		restart(timeout=AbstractWorker.defaults.TIMEOUT,loadScripts)
+		{
+			if(this.state!==AbstractWorker.states.CLOSE) throw SC.Promise.reject(new Error("#AbstractWorker:005 worker is already open"),this);
+			let timer;
+			this.state=AbstractWorker.states.START;
+			this.ready=new SC.Promise(function(signal)
+			{
+				this.requestMap.set("init",signal);
+				timer=setTimeout(function()
+				{
+					signal.reject("timeout");
+				},timeout);
+			},{scope:this});
+
+			this._start();
+
+			this.ready.always(function()
+			{
+				this.requestMap.delete("init");
+				clearTimeout(timer);
+			});
+
+			this.ready.then(function()
+			{
+				this.state=AbstractWorker.states.OPEN;
+			},
+			function()
+			{
+				this.state=AbstractWorker.states.CLOSE;
+			});
+
+			if(loadScripts)
+			{
+				this.ready=this.ready.then(initParam=>
+					this.request("loadScripts",[loadScripts])
+					.then(()=>initParam)
+				);
+			}
+
+			return this.ready;
+		},
+		destroy()
+		{
+			if(this.state!==AbstractWorker.states.CLOSE)
+			{
+				this.state=AbstractWorker.states.CLOSE; // trigger workerState Event
+				this.stop();
+			}
+			this.mega();
+		}
+	});
+	AbstractWorker.states={
+		START:"start",
+		OPEN:"open",
+		CLOSE:"close",
+	};
+	AbstractWorker.defaults={
+		TIMEOUT:60000
+	};
+	SMOD("AbstractWorker",AbstractWorker);
+
+	let WorkerMessageEvent=AbstractWorker.WorkerMessageEvent=µ.Class(SC.Event,{
+		name:"workerMessage",
+		constructor:function(message)
+		{
+			this.data=message.data;
+			this.time=new Date();
+			this.raw=message;
+		}
+	});
+
+	let WorkerStateEvent=AbstractWorker.WorkerStateEvent=SC.StateEvent.implement("workerState");
+
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
@@ -3741,142 +3573,610 @@
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	let DBC=GMOD("DBConn");
-	let ORG=GMOD("Organizer");
+	let AbstractWorker=GMOD("AbstractWorker");
+
+	//SC=SC({});
 	
-	SC=SC({
-		eq:"equals",
-	});
-	
-	let getDb=function()
-	{
-		return new ORG().group("objectType","objectType",function(tDb)
+	let WORKER=µ.Worker=µ.Class(AbstractWorker,{
+		constructor:function(param={})
 		{
-			tDb.map("ID","fields.ID");
-		});
-	};
-	
-	let OCON=DBC.ObjectConnector=µ.Class(DBC,
-	{
-		constructor:function(global)
+			({
+				basePath:this.basePath=WORKER.defaults.BASE_PATH,
+				workerScript:this.workerScript=WORKER.defaults.SCRIPT,
+				workerBasePath:this.workerBasePath=WORKER.defaults.WORKER_BASE_PATH, //relative from path of loaded script
+				morgasPath:this.morgasPath=WORKER.defaults.MORGAS_PATH, // relative from workerBasePath
+			}=param);
+
+			this.mega(param);
+		},
+		_start:function()
+		{
+			this.worker=new Worker(this.basePath+this.workerScript);
+			this.worker.onmessage = msg=>this._onMessage(msg.data);
+			this.worker.onerror = error=>this._onMessage({error:error});
+
+			this._send({
+				id:this.id,
+				basePath:this.workerBasePath,
+				morgasPath:this.morgasPath
+			});
+		},
+		_send(payload)
+		{
+			this.worker.postMessage(payload);
+		},
+		stop:function()
 		{
 			this.mega();
-			this.db=getDb();
-		},
-		save:function(signal,objs)
-		{
-			objs=[].concat(objs);
-			let sortedObjs=DBC.sortObjs(objs);
-			
-			for(let objectType in sortedObjs.fresh)
-			{
-				let objs=sortedObjs.fresh[objectType],
-				ids=this._getNextID(objectType);
-				for(let i=0;i<objs.length;i++)
-				{
-					let id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
-					objs[i].ID=id;
-					this.db.add({objectType:objs[i].objectType,fields:objs[i].toJSON()});
-				}
-			}
-			
-			let updates=[];
-			for(let objectType in sortedObjs.preserved)
-			{
-				let objs=sortedObjs.preserved[objectType],
-				ids=this.db.getGroupPart("objectType",objectType).getMap("ID");
-				for(let i=0;i<objs.length;i++)
-				{
-					let found=ids[objs[i].ID];
-					if(found)
-					{
-						found.fields=objs[i].toJSON();
-						updates.push(found)
-					}
-				}
-			}
-			this.db.update(updates);
-
-			for(let objectType in sortedObjs.friend)
-			{
-				let objs=sortedObjs.friend[objectType],
-					tDb=this.db.getGroupPart("objectType",objectType),
-					tDbValues=tDb ? tDb.getValues():null,
-					newFriends=[];
-
-				for(let i=0;i<objs.length;i++)
-				{
-					let json={fields:objs[i].toJSON()};
-					if(!tDbValues||tDbValues.findIndex(SC.eq.test(json))==-1)
-					{
-						json.objectType=objs[i].objectType;
-						newFriends.push(json);
-					}
-				}
-				this.db.addAll(newFriends);
-			}
-			signal.resolve();
-		},
-		load:function(signal,objClass,pattern,sort)
-		{
-			let tDb=this.db.getGroupPart("objectType",objClass.prototype.objectType);
-			if(!tDb) return signal.resolve([]);
-
-			let pDb;
-			if(pattern!=null)
-			{
-				pattern={fields:pattern};
-				let patternKey=SC.eq.patternToString(pattern);
-				if(!tDb.hasFilter(patternKey)) tDb.filter(patternKey,pattern);
-				pDb=tDb.getFilter(patternKey);
-			}
-			else pDb=tDb;
-			let rtn;
-			if(sort)
-			{
-				sort=[].concat(sort).map(s=>"fields."+s);
-				let sortKey=JSON.stringify(sort);
-				if(!pDb.hasSort(sortKey)) pDb.sort(sortKey,ORG.attributeSort(sort));
-				rtn=pDb.getSort(sortKey);
-			}
-			else rtn=pDb.getValues();
-			rtn=rtn.map(r=>new objClass().fromJSON(r.fields));
-			signal.resolve(rtn);
-		},
-		"delete":function(signal,objClass,toDelete)
-		{
-			toDelete=this.db.values.filter(SC.eq.test({objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)}));
-			this.db.remove(toDelete);
-			signal.resolve(toDelete.map(d=>d.fields.ID));
+			this.state=AbstractWorker.states.CLOSE;
 		},
 		destroy:function()
 		{
-			if(this.db!==OCON.prototype.db)
-			{
-				this.db.clear();
-			}
+			this.worker.terminate();
+			this.state=AbstractWorker.states.CLOSE;
 			this.mega();
-		},
-		_getNextID:function(objectType)
-		{
-			let rtn=[],
-			tDb=this.db.getGroupPart("objectType",objectType);
-			if(!tDb)return [0];
-			let ids=Object.keys(tDb.getIndexMap("ID"));
-			let i=0;
-			for(;ids.length>0;i++)
-			{
-				let index=ids.indexOf(""+i);
-				if(index===-1) rtn.push(i);
-				else ids.splice(index,1);
-			}
-			rtn.push(i);
-			return rtn;
 		}
 	});
+	WORKER.defaults={
+		BASE_PATH:"js/",
+		SCRIPT:"Worker/BaseWorker.js",
+		WORKER_BASE_PATH:"../", //relative from path of loaded script
+		MORGAS_PATH:"Morgas.js", // relative from WORKER_BASE_PATH
+	};
 	
-	SMOD("ObjectConnector",OCON);
+	SMOD("Worker",WORKER);
+	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let NodePatch=GMOD("NodePatch");
+
+	//SC=SC({});
+
+	/**
+	 * @param {Any} root
+	 * @param {Function} compare - (a,b)=>Boolish
+	 * @param {String|Function} (childrenGetter)
+	 */
+	NodePatch.Compare=µ.Class(NodePatch.Basic,{
+		constructor:function(newNode,oldNode,compare=µ.constantFunctions.t)
+		{
+			this.mega();
+
+			this.newNode=newNode;
+			this.oldNode=oldNode;
+			this.compare=compare;
+		},
+		isNew:function(){return !this.oldNode},
+		isMissing:function(){return !this.newNode},
+		isCompareable:function(){return !this.isNew()&&!this.isMissing()},
+		isChanged:function(){return this.isCompareable()&&!this.compare(this.newNode,this.oldNode)},
+		isUnchanged:function(){return this.isCompareable()&&!this.isChanged()},
+		getNew:function(){return Array.from(this.children).filter(c=>c.isNew())},
+		getMissing:function(){return Array.from(this.children).filter(c=>c.isMissing())},
+		getChanged:function(){return Array.from(this.children).filter(c=>c.isCompareable()&&c.isChanged())},
+		getUnchanged:function(){return Array.from(this.children).filter(c=>c.isUnchanged())},
+
+		hasChanges:function()
+		{
+			return !this.isCompareable()||this.isChanged()||Array.from(this.children).some(c=>c.hasChanges());
+		}
+
+	});
+
+	NodePatch.Compare.create=function(newRoot,oldRoot,getId,compare,childrenGetter)
+	{
+		childrenGetter=NodePatch.normalizeChildrenGetter(childrenGetter);
+
+		let rtn=new NodePatch.Compare(newRoot,oldRoot,compare);
+		let todo=[rtn];
+
+		while(todo.length>0)
+		{
+			let parentCompare=todo.shift();
+			if(!parentCompare.isCompareable()) continue;
+
+			let oldChildren=new Map();
+			for(let child of childrenGetter(parentCompare.oldNode))
+			{
+				oldChildren.set(getId(child),child);
+			}
+
+			for (let child of childrenGetter(parentCompare.newNode))
+			{
+				let id=getId(child);
+				let oldNode=oldChildren.get(id)
+				let childCompare=new NodePatch.Compare(child,oldNode,compare);
+				parentCompare.addChild(childCompare);
+				if(oldNode)
+				{
+					todo.push(childCompare);
+					oldChildren.delete(id);
+				}
+			}
+			for (let child of oldChildren.values())
+			{
+				let childCompare=new NodePatch.Compare(null,child,compare);
+				parentCompare.addChild(childCompare);
+			}
+		}
+		return rtn;
+	};
+
+	SMOD("NodePatch.Compare",NodePatch.Compare);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+	
+	µ.util=µ.util||{};
+
+	SC=SC({
+		Promise:"Promise"
+	});
+	
+	let doRequest=function(signal,param)
+	{
+		if(param.urls.length==0) signal.reject(new µ.Warning("no Url"));
+		else
+		{
+			let url=param.urls.shift();
+			let req=new XMLHttpRequest();
+			req.open(param.method,url,true,param.user,param.password);
+			req.responseType=param.responseType;
+			req.onload=function()
+			{
+				if (req.status == 200)
+				{
+					signal.resolve(req.response);
+				}
+				else
+				{
+					if(param.urls.length==0) signal.reject({status:req.status,response:req.response,url:url,xhr:req});
+					else doRequest(signal,param);
+				}
+			};
+			req.onerror=function(error)
+			{
+				if(param.urls.length==0) signal.reject({url:url,xhr:req,error:error,response:error.message});
+				else doRequest(signal,param);
+			};
+			if(param.progress)
+			{
+				req.onprogress=param.progress;
+			}
+			signal.addAbort(function(){
+				param.urls.length=0;
+				req.abort();
+			});
+			req.send(param.data);
+		}
+	};
+	let parseParam=function(param)
+	{
+
+		let urls;
+		if(typeof param ==="string")
+		{
+			urls=[param];
+		}
+		else if (Array.isArray(param))
+		{
+			urls=param.slice();
+		}
+		else
+		{
+			urls=param.urls||[].concat(param.url);
+		}
+		
+		param={
+			method:param.method||(param.data?"POST":"GET"),
+			user:param.user,//||undefined
+			password:param.password,//||undefined
+			responseType:param.responseType||"",
+			withCredentials:param.withCredentials===true,
+			contentType:param.contentType,//||undefined
+			data:param.data,//||undefined
+			urls:urls
+		};
+		return param;
+	};
+	/**
+	 * 
+	 * @param {string|string[]|requestParam} param
+	 * @param {any} scope
+	 * @returns {Morgas.Promise}
+	 */
+	let REQ=µ.util.request=function Request_init(param,scope)
+	{
+		param=parseParam(param);
+		return new SC.Promise(doRequest,{args:param,scope:scope});
+	};
+	SMOD("request",REQ);
+
+	/**
+	 * use: Request(...).catch(Request.allowedStatuses([201,204])).then(...)
+	 *
+	 */
+	REQ.allowedStatuses=function(statuses=[])
+	{
+		return function(error)
+		{
+			if(statuses.includes(error.status))
+			{
+				return error.response;
+			}
+			return Promise.reject(error);
+		};
+	};
+
+	REQ.json=function Request_Json(param,scope)
+	{
+
+		param=parseParam(param);
+		param.responseType="json";
+		return REQ(param,scope);
+	};
+	SMOD("request.json",REQ.json);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let uMap=util.map=util.map||{};
+
+	//SC=SC({});
+
+	let mapGetCall=Map.prototype.get.call.bind(Map.prototype.get);
+
+	/**
+	 *
+	 * @param {Number} (stageCount=1) - count of generated stages
+	 * @param {Function} (mapType=WeakMap())
+	 * @param {Function} (defaultValue=()=>new mapType())
+	 */
+	let register=uMap.register=function(stageCount,mapType=Map,defaultValue=()=>new mapType())
+	{
+		stageCount=stageCount>1?stageCount:1;
+		let createMap=function(stageCount,keys=[])
+		{
+			let map=new mapType();
+			map.set=µ.constantFunctions.f;
+			map.get=function(key)
+			{
+				if(!this.has(key))
+				{
+					if (stageCount<=1)
+					{
+						if(defaultValue)mapType.prototype.set.call(this,key,defaultValue(keys.concat(key)));
+					}
+					else
+					{
+						mapType.prototype.set.call(this,key,createMap(stageCount-1,keys.concat(key)));
+					}
+				}
+				return mapType.prototype.get.call(this,key);
+			};
+			return map;
+		};
+		return createMap(stageCount);
+	};
+
+	SMOD("mapRegister",register);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let obj=util.object=util.object||{};
+
+	//SC=SC({});
+
+	/**
+	 * adopt attributes defined in [target] from [provider].
+	 * when [extend] is set to true all attributes from [provider] are adopted
+	 * @param {Object} target
+	 * @param {Object|Object[]} [provider=undefined]
+	 * @param {Boolean} [extend=false]
+	 */
+	obj.adopt=function(target,provider,extend)
+	{
+		if(provider)
+		{
+			let keys=Object.keys(extend ? provider : target);
+			for(let key of keys)
+			{
+				if(extend||key in provider)
+				{
+					target[key]=provider[key];
+				}
+			}
+		}
+		return target;
+	};
+	/**
+	 * creates a new object so that parameters are left unchanged
+	 *
+	 * @param {object} target
+	 * @param {object} [provider=undefined]
+	 * @param {boolean} [extend=false]
+	 */
+	obj.adopt.setDefaults=function(defaults,param,extend)
+	{
+		return obj.adopt(obj.adopt({},defaults,true),param,extend);
+	};
+	SMOD("adopt",obj.adopt);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let uObj=util.object=util.object||{};
+
+	//SC=SC({});
+
+	/**
+	 * @param {Any} obj
+	 * @param {Any} pattern
+	 * @Returns {Boolean}
+	 *
+	 * @summary Matches {obj} against {pattern}.
+	 * @description
+	 *	check order:
+	 *
+	 * 1. match strictly (===) and check NaN
+	 * 2 of pattern is null (or undefined): false
+	 * 3. if Pattern is a RegExp: pattern.test(obj)
+	 * 3.1 if object is instance of RegExp match string representation
+	 * 4. if Pattern is a Function and obj isn't: pattern(obj)
+	 * 5. if pattern is an Array: check if it includes obj then check every sub pattern
+	 * 6. if obj is null: false
+	 * 7. if obj has a .equals Function: obj.equals(pattern)
+	 * 8. if pattern is an Object: recurse for every key in pattern
+	 *
+	 */
+	uObj.equals=function(obj,pattern)
+	{
+		if(obj===pattern||(Number.isNaN(obj)&&Number.isNaN(pattern)))
+		{
+			return true;
+		}
+		if(pattern==null) return false;
+		if(pattern instanceof RegExp)
+		{
+			if( typeof obj==="string") return pattern.test(obj);
+			else if(obj instanceof RegExp) return obj.toString()==pattern.toString();
+			return false;
+		}
+		if(typeof pattern==="function")
+		{
+			if(typeof obj==="function") return false;
+			else return pattern(obj);
+		}
+		if(Array.isArray(pattern))
+		{
+			if(pattern.includes(obj))
+			{
+				return true;
+			}
+			return pattern.findIndex(p=>uObj.equals(obj,p))!=-1;
+		}
+		if(obj==null) return false;
+		if(typeof obj.equals==="function")
+        {
+            return obj.equals(pattern);
+        }
+		if(typeof pattern==="object")
+		{
+			for(let i in pattern)
+			{
+				if(!uObj.equals(obj[i],pattern[i]))
+					return false;
+			}
+			return true;
+		}
+		return false;
+	};
+	/**
+	 * creates a test for equals to pattern
+	 * @param pattern
+	 * @returns {Function}
+	 */
+	uObj.equals.test=function(pattern)
+	{
+		return function(obj)
+		{
+			return uObj.equals(obj,pattern);
+		}
+	};
+
+	// logic
+	uObj.equals["Number.NaN"]=()=>Number.NaN;
+	uObj.equals["Number.NEGATIVE_INFINITY"]=()=>Number.NEGATIVE_INFINITY;
+	uObj.equals["Number.POSITIVE_INFINITY"]=()=>Number.POSITIVE_INFINITY;
+	uObj.equals.unset=function()
+	{
+		let unset=function unset(value)
+		{
+			return value==null;
+		};
+		unset.toString=unset.toJSON=()=>"[unset]";
+		return unset;
+	};
+	uObj.equals.not=function(pattern)
+	{
+		let not=function not(value)
+		{
+			return !uObj.equals(value,pattern);
+		};
+		not.toString=not.toJSON=()=>"[not]"+uObj.equals.patternToString(pattern);
+		return not;
+	};
+	uObj.equals.greater=function(pattern)
+	{
+		let greater=function greater(value)
+		{
+			return value>pattern;
+		};
+		greater.toString=greater.toJSON=()=>"[greater]"+uObj.equals.patternToString(pattern);
+		return greater;
+	};
+	uObj.equals.greaterEqual=function(pattern)
+	{
+		let greaterEqual=function greaterEqual(value)
+		{
+			return value>=pattern;
+		};
+		greaterEqual.toString=greaterEqual.toJSON=()=>"[greaterEqual]"+uObj.equals.patternToString(pattern);
+		return greaterEqual;
+	};
+	uObj.equals.less=function(pattern)
+	{
+		let less=function less(value)
+		{
+			return value<pattern;
+		};
+		less.toString=less.toJSON=()=>"[less]"+uObj.equals.patternToString(pattern);
+		return less;
+	};
+	uObj.equals.lessEqual=function(pattern)
+	{
+		let lessEqual=function lessEqual(value)
+		{
+			return value<=pattern;
+		};
+		lessEqual.toString=lessEqual.toJSON=()=>"[lessEqual]"+uObj.equals.patternToString(pattern);
+		return lessEqual;
+	};
+	uObj.equals.between=function(min,max)
+	{
+		let pattern;
+		if(Array.isArray(min))
+		{
+			pattern=min;
+			min=pattern[0];
+			max=pattern[1];
+		}
+		else pattern=[min,max];
+		let between=function between(value)
+		{
+			return min<value&&value<max;
+		};
+		between.toString=between.toJSON=()=>"[between]"+uObj.equals.patternToString(pattern);
+		return between;
+	};
+	uObj.equals.betweenInclude=function(min,max)
+	{
+		let pattern;
+		if(Array.isArray(min))
+		{
+			pattern=min;
+			min=pattern[0];
+			max=pattern[1];
+		}
+		else pattern=[min,max];
+		let betweenInclude=function betweenInclude(value)
+		{
+			return min<=value&&value<=max;
+		};
+		betweenInclude.toString=betweenInclude.toJSON=()=>"[betweenInclude]"+uObj.equals.patternToString(pattern);
+		return betweenInclude;
+	};
+	uObj.equals.containsOrdered=function(iterablePattern)
+	{
+		let length=iterablePattern.size||iterablePattern.length||0;
+
+		let containsOrdered=function containsOrdered(value)
+		{
+			if(!value||!(Symbol.iterator in value)) return false;
+			let valueLength=value.size||value.length||0;
+			if(valueLength!=length) return false;
+			let iterator=value[Symbol.iterator]();
+			for(let pattern of iterablePattern)
+			{
+				let {done,value:entry}=iterator.next();
+				if(done||!uObj.equals(entry,pattern)) return false;
+			}
+			return true;
+		};
+		containsOrdered.toString=containsOrdered.toJSON=()=>"[containsOrdered]"+uObj.equals.patternToString(iterablePattern);
+		return containsOrdered;
+	};
+
+	let patternToJSON=function(pattern)
+	{
+		if (pattern==null) return pattern;
+		else if(Number.isNaN(pattern)) return "[Number.NaN]";
+		else if (pattern===Number.NEGATIVE_INFINITY) return "[Number.NEGATIVE_INFINITY]";
+		else if (pattern===Number.POSITIVE_INFINITY) return "[Number.POSITIVE_INFINITY]";
+		else if (Array.isArray(pattern)) return pattern.map(patternToJSON);
+		else
+		{
+			switch(typeof pattern)
+			{
+				case "function":
+					return pattern.toString();
+				case "object":
+					let rtn={};
+					for(let key in pattern) rtn[key]=patternToJSON(pattern[key]);
+					return rtn;
+				default:
+					return pattern;
+			}
+		}
+	};
+
+	uObj.equals.patternToString=function(pattern)
+	{
+		return JSON.stringify(patternToJSON(pattern,function(key,value)
+		{
+			if(value instanceof RegExp) return value.toString();
+			if(value instanceof Set) return Array.from(value);
+			return value;
+		}));
+	}
+	let parseRegex=/^\[([^\]]+)\](.*)/;
+	let patternFromJSON=function(pattern)
+	{
+		if(typeof pattern==="string")
+		{
+			let match=pattern.match(parseRegex);
+			if(match)
+			{
+				let fn=match[1],value=match[2];
+				if(value!=="")
+				{
+					value=JSON.parse(value);
+					if(parseRegex.test(value)) value=patternFromJSON(value);
+				}
+				if(fn in uObj.equals) return uObj.equals[fn](value);
+				else throw new SyntaxError("unknown equals function: "+fn);
+			}
+		}
+		else if (typeof pattern==="object")
+		{
+			if(pattern===null) return null;
+			else if (Array.isArray(pattern)) return pattern.map(patternFromJSON);
+			else
+			{
+				let rtn={};
+				for(let key in pattern) rtn[key]=patternFromJSON(pattern[key]);
+				return rtn;
+			}
+		}
+		return pattern;
+	};
+	uObj.equals.stringToPattern=function(patternString)
+	{
+		return patternFromJSON(JSON.parse(patternString));
+	};
+
+	SMOD("equals",uObj.equals);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
 
@@ -4207,1145 +4507,762 @@
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
 
+	let util=µ.util=µ.util||{};
+	let uObj=util.object=util.object||{};
+
+	let pathRegEx=/\[[^\]]+\]|\.?[^.\[]+/g;
+	let arrayRegEx=/^\[(\d+)\]$|^\]$/;
+	let trimRegEx=/^\.|^\["?|"?]$/g;
+
 	//SC=SC({});
 
-	let CONFIG=µ.Config=µ.Class({
-		[µ.Class.symbols.abstract]:true,
-		get:null,
-		set:null,// (key,value)=>{} // (value)=>{}
-		setDefault:function(def)
-		{
-			if(def!=null) this.default=def;
-			else this.default=null;
-		},
-		reset:null,
-		toJSON:null,
-		toDescription:null
-	});
-	CONFIG.parse=function(desc,value)
+	/** goPath
+	 * Goes the {path} from {obj} checking all but last step for existance.
+	 * 
+	 * goPath(obj,"path.to.target") === goPath(obj,["path","to","target"]) === obj.path.to.target
+	 * 
+	 * when creating is enabled use "foo[].n" or "foo[n]" instead of "foo.2" to create an array
+	 * 
+	 * @param {Any} obj
+	 * @param {String|string[]} path
+	 * @param {Boolean} (create=false) create missing structures
+	 * @param {Any} (defaultValue) set missing value
+	 */
+	uObj.goPath=function(obj,path,create,defaultValue)
 	{
-		if(typeof desc=="string") return new FIELD({type:desc},value);
-		else if (Array.isArray(desc)) return new ARRAY({model:desc[0]},value);
-		switch(desc.type)
-		{
-			case "object":
-			case undefined:
-				let defaults=desc.default;
-				if("model" in desc) desc=desc.model;
-				return new OBJECT(desc,defaults,value);
-				break;
-			case "map":
-				return new MAP(desc,value);
-				break;
-			case "array":
-				return new ARRAY(desc,value);
-			case "string":
-			case "boolean":
-			case "number":
-			case "select":
-				return new FIELD(desc,value);
-		}
-	}
-	SMOD("Config",CONFIG);
+		if(obj==null) return undefined;
+		if(typeof path=="string")path=path.match(pathRegEx);
 
-	let FIELD=CONFIG.Field=µ.Class(CONFIG,{
-		constructor:function(param,value)
+		for(let index=0; index<path.length;index++)
 		{
-			this.type=param.type;
-			this.setDefault(param.default);
-			this.pattern=null;
-			if(typeof param.pattern == "string")
+			if(path[index]==="]") continue;
+			let key=path[index].replace(trimRegEx,"");
+			if(!(key in obj))
 			{
-				let match=param.pattern.match(/^\/(.+)\/(.*)$/);
-				if(match) this.pattern=new RegExp(match[1],match[2])
-				else this.pattern=new RegExp(param.pattern);
-				this.pattern.toJSON=RegExp.prototype.toString;
-			}
-			else if (param.pattern) this.pattern=param.pattern;
-			this.validate=param.validate||null;
-			this.value=null;
-
-			switch(this.type)
-			{
-				case "select":
-					this.values=param.values;
-					this.multiple=param.multiple||false;
-					break;
-				case "number":
-					this.min=param.min;
-					this.step=param.step;
-					this.max=param.max;
-			}
-
-			if(value!==undefined) this.set(value);
-			else this.reset();
-		},
-		get:function()
-		{
-			return this.value;
-		},
-		set:function(value)
-		{
-			if(arguments.length==2) value=arguments[1];
-			let validity=this.isValid(value);
-			if(validity===true) this.value=value;
-			else return validity;
-			return true;
-		},
-		/**
-		 * checks value and returns a boolean or any error object from validate callback.
-		 * if you want to use validation messages check if isValid(value)===true
-		 * @param {*} value
-		 * @returns {boolean|*}
-		 */
-		isValid:function(value)
-		{
-			return (this.type=="select"
-				&& (
-					this.multiple
-					&& Array.isArray(value)
-					&& value.every(v=>this.values.indexOf(v)!=-1) //All select values are valid
-					||
-					this.values.indexOf(value)!=-1 //select value is valid
-				)
-			)
-			||
-			(
-				typeof value==this.type
-				&& (!this.pattern || this.pattern.test(value))
-				&& (this.type!="number"||(
-					(this.min==null||value>=this.min)
-					&& (this.max==null||value<=this.max)
-					&& (this.step==null||value%this.step==0)
-					)
-				)
-				&& (!this.validate|| this.validate(value,this.value)) // type, pattern and validator ok
-			);
-		},
-		reset:function()
-		{
-			this.value=null;
-			this.set(this.default);
-		},
-		toJSON:function()
-		{
-			return this.get();
-		},
-		toDescription:function()
-		{
-			let rtn={
-				type:this.type,
-				pattern:this.pattern,
-				validate:this.validate,
-				default:this.default
-			};
-			switch(this.type)
-			{
-				case "select":
-					rtn.values=this.values;
-					rtn.multiple=this.multiple;
-					break;
-				case "number":
-					rtn.min=this.min;
-					rtn.step=this.step;
-					rtn.max=this.max;
-			}
-			return rtn;
-		}
-	});
-	FIELD.TYPES=["string","boolean","number","select"];
-
-	let CONTAINER=CONFIG.Container=µ.Class(CONFIG,{
-		[µ.Class.symbols.abstract]:true,
-		[Symbol.iterator]:function()
-		{
-			return this.configs.entries();
-		},
-		setAll:function(values,create){throw "abstract"},
-		get:function(key){throw "abstract"},
-		set:function(key,value)
-		{
-			if(arguments.length==1&&typeof key=="object")
-			{
-				this.setAll(key,true);
-				return true;
-			}
-			if(!Array.isArray(key))key=[key];
-			for(let entry of this)
-			{
-				if(entry[0]==key[0])return entry[1].set(key.slice(1),value);
-			}
-			return false;
-		}
-	});
-
-	let OBJECT=CONTAINER.Object=µ.Class(CONTAINER,{
-		constructor:function(configs,defaults,value)
-		{
-			this.configs=new Map();
-			this.setDefault(defaults);
-			if(configs)
-			{
-				this.addAll(configs);
-			}
-
-			if(value!==undefined) this.setAll(value,true);
-		},
-		addAll:function(configs)
-		{
-			let rtn={};
-			for(let key in configs)
-			{
-				rtn[key]=this.add(key,configs[key]);
-			}
-			return rtn;
-		},
-		add:function(key,config)
-		{
-			if(!(config instanceof CONFIG))config=CONFIG.parse(config);
-			if(config)
-			{
-				if(this.configs.has(key))
+				if(create&&index+1<path.length)
 				{
-					µ.logger.warn(new µ.Warning(String.raw`overwriting config in Object under key ${key}`,{
-						old:this.configs.get(key),
-						new:config
-					}));
+					let value;
+					if(arrayRegEx.test(path[index+1])) value=[];
+					else value={};
+
+					obj=obj[key]=value;
+					continue;
 				}
-				if(this.default && key in this.default) config.setDefault(this.default[key]);
-				this.configs.set(key,config);
-				return config;
-			}
-			return false;
-		},
-		get:function(key)
-		{
-			if(key==null) return this.toJSON();
-			if(!Array.isArray(key)) return this.configs.get(key);
-			if(key.length==0) return this;
-
-			let config=this.configs.get(key[0]);
-			if(config)
-			{
-				if(key.length==1) return config;
-				return config.get(key.slice(1));
-			}
-
-			return undefined;
-		},
-		remove:function(key)
-		{
-			if(key instanceof CONFIG)
-			{
-				for(let entry of this.configs.entries)
+				if(index+1==path.length&&defaultValue!==undefined)
 				{
-					if(entry[1]==key)
-					{
-						key=entry[0];
-						break;
-					}
+					return obj[key]=defaultValue;
 				}
-			}
-			let rtn=this.configs.get(key);
-			this.configs.delete(key);
-			return rtn;
-		},
-		setAll:function(configs,create)
-		{
-			for(let key in configs)
-			{
-				if(this.configs.has(key))
-				{
-					if(this.configs.get(key) instanceof CONTAINER)
-					{
-						this.configs.get(key).setAll(configs[key],create);
-					}
-					else this.set(key,configs[key]);
-				}
-			}
-		},
-		reset:function()
-		{
-			for(let config of this.configs.values())
-			{
-				config.reset();
-			}
-		},
-		toJSON:function()
-		{
-			let rtn={};
-			for(let key of this.configs.keys())
-			{
-				rtn[key]=this.configs.get(key).toJSON();
-			}
-			return rtn;
-		},
-		toDescription:function()
-		{
-			let rtn={
-				type:"object",
-				model:{},
-				default:this.default
-			};
-			for(let key of this.configs.keys())
-			{
-				rtn.model[key]=this.configs.get(key).toDescription();
-			}
-			return rtn;
-		}
-	});
-
-	let ARRAY=CONTAINER.Array=µ.Class(CONTAINER,{
-		constructor:function(param,value)
-		{
-			this.model=param.model;
-			this.setDefault(param.default);
-			this.configs=[];
-			Object.defineProperty(this,"length",{
-				configurable:false,
-				enumerable:true,
-				get:()=>this.configs.length
-			});
-
-			if(value!==undefined) this.setAll(value,true);
-			else this.reset();
-		},
-		pushAll:function(configs)
-		{
-			return configs.map(config=>this.push(config));
-		},
-		push:function(config)
-		{
-			let model;
-			if(this.default&&this.default.length>this.configs.length)
-			{
-				if(typeof this.model=="string") model={type:this.model};
-				else model=Object.create(this.model);
-				model.default=this.default[this.configs.length];
-			}
-			else model=this.model;
-			let value=CONFIG.parse(model);
-			if(value&&(config===undefined||value.set(config)))
-			{
-				this.configs.push(value);
-				return value;
-			}
-			return false;
-		},
-		get:function(key)
-		{
-			if(key==null) return this.toJSON();
-			if(!Array.isArray(key))
-			{
-				if(key>=0&&key<this.configs.length) return this.configs[key];
 				return undefined;
 			}
-			if(key.length==0) return this;
-			if(key[0]>=0&&key[0]<this.configs.length)
-			{
-				let config=this.configs[key[0]];
-				if(key.length==1) return config;
-				return config.get(key.slice(1));
-			}
-			return undefined;
-		},
-		splice:function(index)
-		{
-			if(index instanceof CONFIG)
-			{
-				index=this.configs.indexOf(index);
-			}
-			return this.configs.splice(index,1)[0];
-		},
-		setAll:function(values,create)
-		{
-			if(create&&this.configs.length>values.length) this.configs.length=values.length
-			for(let index=0;index<values.length;index++)
-			{
-				if(create&&this.configs.length<=index) this.push(values[index]);
-				else this.set(index,values[index]);
-			}
-		},
-		reset:function()
-		{
-			this.configs.length=0;
-			if(this.default)
-			{
-				let _model;
-				if(typeof this.model=="string"||!("default" in this.model))_model=this.model;
-				else
-				{
-					_model=Object.create(this.model);
-					_model.default=undefined;
-				}
-				while (this.configs.length<this.default.length)
-				{
-					this.configs.push(CONFIG.parse(_model));
-				}
-				for(let i=0;i<this.configs.length;i++)
-				{
-					this.configs[i].setDefault(this.default[i]);
-					this.configs[i].reset();
-				}
-			}
-		},
-		toJSON:function()
-		{
-			return this.configs.map(f=>f.toJSON());
-		},
-		toDescription:function()
-		{
-			return {
-				type:"array",
-				model:this.model,
-				default:this.default
-			};
+			obj=obj[key];
 		}
-	});
-
-	let MAP=CONTAINER.Map=µ.Class(CONTAINER,{
-		constructor:function(param,value)
-		{
-			this.model=param.model;
-			this.setDefault(param.default);
-			this.configs=new Map();
-
-			if(value!==undefined) this.setAll(value,true);
-			else this.reset();
-		},
-		addAll:function(configs)
-		{
-			let rtn={};
-			for(let key in configs)
-			{
-				rtn[key]=this.add(key,configs[key]);
-			}
-			return rtn;
-		},
-		add:function(key,config)
-		{
-			let value=CONFIG.parse(this.model);
-			if(value&&key!==undefined&&(config===undefined||value.set(config)))
-			{
-				if(this.configs.has(key))
-				{
-					µ.logger.warn(`overwriting config in Object under key ${key}`);
-				}
-				this.configs.set(key,value);
-				return value;
-			}
-			return false;
-		},
-		get:function(key)
-		{
-			if(key==null) return this.toJSON();
-			if(!Array.isArray(key)) return this.configs.get(key);
-			if(key.length==0) return this;
-
-			let config=this.configs.get(key[0])
-			{
-				if(key.length==1) return config;
-				return config.get(key.slice(1));
-			}
-
-			return undefined;
-		},
-		remove:function(key)
-		{
-			if(key instanceof CONFIG)
-			{
-				for(let entry of this.configs.entries)
-				{
-					if(entry[1]==key)
-					{
-						key=entry[0];
-						break;
-					}
-				}
-			}
-			let rtn=this.configs.get(key);
-			this.configs.delete(key);
-			return rtn;
-		},
-		setAll:function(values,create)
-		{
-			if(create)
-			{
-				for(let key of this.configs.keys())
-				{
-					if(!(key in values))
-					{
-						this.configs.delete(key);
-					}
-				}
-			}
-			for(let key in values)
-			{
-				if(create&&!this.configs.has(key)) this.add(key,values[key]);
-				else this.set(key,values[key]);
-			}
-		},
-		reset:function()
-		{
-			this.configs.clear();
-			if(this.default)
-			{
-				let _model;
-				if(typeof this.model=="string"||!("default" in this.model))_model=this.model;
-				else
-				{
-					_model=Object.create(this.model);
-					_model.default=undefined;
-				}
-				for(let key in this.default)
-				{
-					let config=CONFIG.parse(_model);
-					this.configs.set(key,config);
-					config.setDefault(this.default[key]);
-					config.reset();
-				}
-			}
-		},
-		toJSON:function()
-		{
-			let rtn={};
-			for(let key of this.configs.keys())
-			{
-				rtn[key]=this.configs.get(key).toJSON();
-			}
-			return rtn;
-		},
-		toDescription:function()
-		{
-			return {
-				type:"map",
-				model:this.model,
-				default:this.default
-			};
-		},
-		keys:function()
-		{
-			return Array.from(this.configs.keys());
-		}
-	});
-
+		return obj;
+	};
+	uObj.goPath.guide=function(...args)
+	{
+		return function(obj){return uObj.goPath(obj,...args)};
+	};
+	SMOD("goPath",uObj.goPath);
+	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	let Patch=GMOD("Patch");
+	let SortedArray=GMOD("SortedArray");
 
 	SC=SC({
-		removeIf:"array.removeIf"
+		eq:"equals",
+		goPath:"goPath",
+		proxy:"proxy"
 	});
-
-	let globalScope=this;
-
-	let cSym=µ.Class.symbols;
-
-	let eventNamePattern=/^[a-z_][a-zA-Z_.:\-@#]+$/;
-	let abstractImplementor=function(name)
-	{
-		if(typeof name==="string")
+	 
+	let ORG=µ.Organizer=µ.Class(SortedArray,{
+		constructor:function(values)
 		{
-			name={name:name};
-		}
-		return name;
-	};
 
-	let eventClassesMap=new Map();
+			this.filters=new Map();
+			SC.proxy(this.filters,{
+				"has":"hasFilter",
+			},this);
 
-	µ.Event=µ.Class({
-		[cSym.onExtend]:function(sub)
-		{
-			let sProt=sub.prototype;
-			if(!sProt.hasOwnProperty("name")||!sProt.name) throw new SyntaxError("#Event:001 Event has no name");
-			if(!sProt.name.match(eventNamePattern)) throw new RangeError("#Event:002 Event name does not match pattern "+eventNamePattern);
-			if(eventClassesMap.has(sProt.name)) throw new RangeError("#Event:003 Event name must be unique");
+			this.maps=new Map();
+			SC.proxy(this.maps,{
+				"has":"hasMap",
+				"delete":"removeMap"
+			},this);
 
-			sub.name=sProt.name;
+			this.groups=new Map();
+			SC.proxy(this.groups,{
+				"has":"hasGroup"
+			},this);
 
-			eventClassesMap.set(sProt.name,sProt.constructor);
+			this.mega(values);
+			
 		},
-		[cSym.abstract]:abstractImplementor,
-		constructor:function Event(){}
-	});
-	SMOD("Event",µ.Event);
-
-
-
-	µ.Event.StateEvent=µ.Class(µ.Event,{
-		[cSym.abstract]:abstractImplementor,
-		constructor:function StateEvent(state)
+		getSort:SortedArray.prototype.get,
+		getIndexSort:SortedArray.prototype.getIndexes,
+		filter:function(filterName,filterFn,createFn)
 		{
-			this.state=state;
-		}
-	});
-	SMOD("StateEvent",µ.Event.StateEvent);
-
-
-
-	µ.Event.CancelEvent=µ.Class(µ.Event,{
-		[cSym.abstract]:abstractImplementor,
-		constructor:function CancelEvent()
-		{
-			//will also be set in reporter
-			this.phase=CancelEvent.phases.CHECK;
-		}
-	});
-	µ.Event.CancelEvent.phases={
-		CHECK:"check",
-		DONE:"done"
-	};
-	SMOD("CancelEvent",µ.Event.CancelEvent);
-
-
-
-	µ.Event.ErrorEvent=µ.Class(µ.Event,{
-		name:"error",
-		constructor:function(reason,cause)
-		{
-			//                                  ErrorEvent is undefined in nodeJs
-			if(reason instanceof Error||(typeof ErrorEvent!=="undefined"&&reason instanceof ErrorEvent))
+			switch(typeof filterFn)
 			{
-				cause=reason;
-				reason=reason.message;
+				case "string":
+					filterFn=SC.goPath.guide(filterFn);
+					break;
+				case "object":
+					filterFn=SC.eq.test(filterFn);
+					break;
 			}
-			this.reason=reason;
-			this.cause=cause;
-		},
-		toString()
-		{
-			return this.reason+"\n"+this.cause;
-		}
-	});
-	SMOD("ErrorEvent",µ.Event.ErrorEvent);
-	
-
-
-	let getListenerPatch=function(scope)
-	{
-		return Patch.getPatches(scope,ListenerPatch)[0];
-	};
-	let checkListenerPatch=function(scope,reporter)
-	{
-		if(scope&&globalScope!==scope)
-		{
-			let listenerPatch=getListenerPatch(scope);
-			if(!listenerPatch)
+			let filter=this.filters.get(filterName);
+			if(!filter)
 			{
-				listenerPatch=new ListenerPatch(scope);
-			}
-			listenerPatch.add(reporter);
-		}
-	};
-
-	let EventRegister=µ.Class({
-		constructor:function()
-		{
-			this.listeners=[];
-		},
-		add(scope=null,fn)
-		{
-			this.listeners.push([scope,fn]);
-		},
-		has(scope=null)
-		{
-			return this.listeners.findIndex(([s])=>s===scope)!==-1;
-		},
-		remove(scope,fn)
-		{
-			SC.removeIf(this.listeners,([s,f])=>s===scope&&(!fn||fn===f),true);
-		},
-		report:function(event)
-		{
-			for(let [scope,fn] of this.listeners) fn.call(scope,event);
-		},
-		destroy()
-		{
-			this.listeners.length=0;
-			this.mega();
-		},
-		getScopes()
-		{
-			return this.listeners.map(a=>a[0]);
-		}
-	});
-	
-	
-	
-	let StateEventRegister=µ.Class(EventRegister,{
-		constructor:function()
-		{
-			this.mega();
-			this.lastState=null;
-		},
-		add(scope=null,fn)
-		{
-			this.mega(scope,fn)
-			if(this.lastState) fn.call(scope,this.lastState);
-		},
-		report(event)
-		{
-			this.mega(event);
-			this.lastState=event;
-		}
-	});
-	
-	
-	let CancelEventRegister=µ.Class(EventRegister,{
-		constructor:function()
-		{
-			this.mega();
-			this.checkListeners=[];
-		},
-		add(scope=null,fn,checkPhase)
-		{
-			if(checkPhase)
-			{
-				this.checkListeners.push([scope,fn]);
+				let child=new ORG();
+				child.library=this.library||this.values;
+				filter={
+					child:child,
+					fn:filterFn
+				};
 			}
 			else
 			{
-				this.mega(scope,fn);
+				filter.fn=filterFn;
+				filter.child.clear();
 			}
-		},
-		has(scope=null)
-		{
-			return this.mega(scope)&&this.checkListeners.findIndex(([s])=>s===scope)!==-1;
-		},
-		remove(scope,fn,phase)
-		{
-			if(phase) SC.removeIf(this.checkListeners,([s,f])=>s===scope&&(!fn||fn===f),true);
-			else this.mega(scope);
-		},
-		report(event,fn)
-		{
-			event.phase=µ.Event.CancelEvent.phases.CHECK;
-			for(let [scope,fn] of this.checkListeners)
-			{
-				if(fn.call(scope,event)===false)
-				{
-					return;
-				}
-			}
-			fn(event);
-			event.phase=µ.Event.CancelEvent.phases.DONE;
-			this.mega(event);
-		},
-		destroy()
-		{
-			this.checkListeners.length=0;
-			this.mega();
-		},
-		getScopes()
-		{
-			let scopes=this.mega();
-			this.checkListeners.forEach(a=>scopes.push(a[0]));
-			return scopes;
-		}
-	});
-	
-	
+			this.filters.set(filterName,filter);
 
-	let ReporterPatch=µ.Event.ReporterPatch=µ.Class(Patch,{
-		patch(eventClasses=[],keys=ReporterPatch.defaultKeys)
-		{
-			this.eventMap=new Map();
-			for(let eventClass of eventClasses) this.introduce(eventClass);
-			this.composeInstance(keys);
-		},
-		composeKeys:["introduce","add","remove","report"],
-		introduce(eventClass)
-		{
-			if(!(eventClass.prototype instanceof µ.Event)) throw new TypeError("#ReporterPatch:001 'eventClass' does not derive from Event class");
-			if(!this.eventMap.has(eventClass))
-			{
-				let eventRegister;
-				if(eventClass.prototype instanceof µ.Event.StateEvent)
-				{
-					eventRegister=new StateEventRegister(this);
-				}
-				else if(eventClass.prototype instanceof µ.Event.CancelEvent)
-				{
-					eventRegister=new CancelEventRegister(this);
-				}
-				else
-				{
-					eventRegister=new EventRegister(this);
-				}
+			if(createFn) createFn(filter.child);
 
-				this.eventMap.set(eventClass.prototype.constructor,eventRegister);
+			for(let i=0;i<this.values.length;i++)
+			{
+				this._filter(filter,this.values[i],i);
 			}
 			return this;
 		},
-		add(eventName,scope=null,fn,checkPhase)
+		_filter:function(filter,value,index)
 		{
-			let eventClass=eventClassesMap.get(eventName);
-			if(!eventClass) throw new ReferenceError(`#ReporterPatch:001 Event class with name ${eventName} does not exist`);
-			if(!this.eventMap.has(eventClass)) throw new ReferenceError(`#ReporterPatch:002 Event ${eventName} is not introduced`);
-			if(typeof fn!=="function") throw new TypeError("#ReporterPatch:003 fn is not a function");
-			this.eventMap.get(eventClass).add(scope,fn,checkPhase);
-
-			if(scope!=null&&scope!=globalScope) checkListenerPatch(scope,this);
-		},
-		remove(eventName,scope,fn,checkPhase)
-		{
-			let eventClass=eventClassesMap.get(eventName);
-			if(!eventClass||!this.eventMap.has(eventClass)) return;
-			this.eventMap.get(eventClass).remove(scope,fn,checkPhase);
-			if(scope!=null&&scope!=globalScope)
-			{// removed && not global
-				for(let eventRegister of this.eventMap.values()) if (eventRegister.has(scope)) return ;
-				
-				let listenerPatch=getListenerPatch(scope);
-				listenerPatch.remove(this);
-			}
-		},
-		removeScope:function(scope)
-		{
-			for(let eventRegister of this.eventMap.values())
+			if(this.library)
 			{
-				eventRegister.remove(scope);
+				index=value;
+				value=this.library[index];
 			}
+			if(filter.fn(value)) filter.child.add(index);
 		},
-		report(event,fn)
+		getFilter:function(filterName)
 		{
-			if(!this.eventMap.has(event.constructor)) throw new ReferenceError(`#ReporterPatch:004 tried to report unintroduced Event ${event.name}`);
-			this.eventMap.get(event.constructor).report(event,fn);
-			return event.phase!==µ.Event.CancelEvent.phases.CHECK;
-		},
-		destroy()
-		{
-			let scopes=new Set();
-			for(let eventRegister of this.eventMap.values())
+			if(this.hasFilter(filterName))
 			{
-				eventRegister.getScopes().forEach(s=>scopes.add(s));
-				eventRegister.destroy();
+				return this.filters.get(filterName).child;
 			}
-			scopes.delete(null);
-			scopes.delete(globalScope);
-			scopes.forEach(scope=>getListenerPatch(scope).remove(this));
-			this.mega();
-		}
-	});
-	ReporterPatch.defaultKeys={
-		add:"addEventListener",
-		remove:"removeEventListener",
-		report:"reportEvent"
-	};
-	SMOD("EventReporterPatch",ReporterPatch);
-
-
-
-	let ListenerPatch=µ.Event.ListenerPatch=µ.Class(Patch,{
-		patch()
-		{
-			this.reporters=new Set();
+			return null;
 		},
-		add(reporter)
+		removeFilter:function(filterName)
 		{
-			this.reporters.add(reporter);
+			if(this.hasFilter(filterName))
+			{
+				this.filters.get(filterName).child.destroy();
+				this.filters.delete(filterName);
+			}
 		},
-		remove(reporter)
+		map:function(mapName,mapFn)
 		{
-			this.reporters.delete(reporter);
+			if(typeof mapFn==="string") mapFn=SC.goPath.guide(mapFn);
+			let map={mapFn:mapFn,values:{}};
+			if(this.hasMap(mapName)) this.removeMap(mapName);
+			this.maps.set(mapName,map);
+			for(let i=0;i<this.values.length;i++)
+			{
+				this._map(map,this.values[i],i);
+			}
+			return this;
 		},
-		destroy()
+		_map:function(map,value,index)
 		{
-			for(let reporter of this.reporters) reporter.removeScope(this.instance);
-			this.reporters.clear();
-			this.mega();
-		}
-	});
-	SMOD("EventListenerPatch",ListenerPatch);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	SC=SC({
-		Event:"Event",
-		Reporter:"EventReporterPatch",
-		ErrorEvent:"ErrorEvent",
-		StateEvent:"StateEvent",
-		Promise:"Promise"
-	});
-
-	let ID_COUNTER=0;
-	let REQUEST_COUNTER=0;
-
-	let AbstractWorker=µ.AbstractWorker=µ.Class({
-		[µ.Class.symbols.abstract]:true,
-		[µ.Class.symbols.onExtend]:function(sub)
-		{
-			if(typeof sub.prototype._send!="function") throw new SyntaxError("#AbstractWorker:001 _send() is not defined");
-			if(typeof sub.prototype._start!="function") throw new SyntaxError("#AbstractWorker:002 _start() is not defined");
+			if(this.library){
+				index=value;
+				value=this.library[index];
+			}
+			let key=""+map.mapFn(value);
+			map.values[key]=index;
 		},
-		constructor:function({startTimeout,loadScripts,autoStart=true}={})
+		getIndexMap:function(mapName)
 		{
-			this.requestMap=new Map();
-			this.id=ID_COUNTER++;
-			this.ready=null;
-			this.onFeedback=null;
-
-			let reporter=new SC.Reporter(this,[WorkerStateEvent,WorkerMessageEvent,SC.ErrorEvent]);
-
-
-			let state;
-			Object.defineProperty(this,"state",{
-				enumerable:true,
-				configurable:true,
-				get:function()
+			if(this.hasMap(mapName))return Object.assign({},this.maps.get(mapName).values);
+			return null;
+		},
+		getMap:function(mapName)
+		{
+			if(this.hasMap(mapName))
+			{
+				let rtn={};
+				for(let [key,index] of Object.entries(this.maps.get(mapName).values))
 				{
-					return state;
+					if(this.library) rtn[key]=this.library[index];
+					else rtn[key]=this.values[index];
+				}
+				return rtn;
+			}
+			else return null;
+		},
+		group:function(groupName,groupFn,createFn)
+		{
+			if(typeof groupFn==="string") groupFn=SC.goPath.guide(groupFn);
+			let group={children:{},groupFn:groupFn,createFn:createFn};
+			if(this.hasGroup(groupName))this.removeGroup(groupName);
+			this.groups.set(groupName,group);
+			for(let i=0;i<this.values.length;i++)
+			{
+				this._group(group,this.values[i],i);
+			}
+			return this;
+		},
+		_group:function(group,value,index)
+		{
+			if(this.library){
+				index=value;
+				value=this.library[index];
+			}
+			let gKeys=[].concat(group.groupFn(value));
+			for(let gKey of gKeys)
+			{
+				if(!(gKey in group.children))
+				{
+					let child=new ORG();
+					child.library=this.library||this.values;
+					if(group.createFn)group.createFn(child,gKey);
+					group.children[gKey]=child;
+				}
+				group.children[gKey].add(index);
+			}
+		},
+		getGroup:function(groupName)
+		{
+			if(this.hasGroup(groupName))
+			{
+				return Object.assign({},this.groups.get(groupName).children);
+			}
+			else return undefined;
+		},
+		getGroupPart:function(groupName,partName)
+		{
+			if(this.hasGroup(groupName))
+			{
+				return this.groups.get(groupName).children[partName];
+			}
+			else return undefined;
+		},
+		getGroupValues:function(groupName)
+		{
+			if(this.hasGroup(groupName))
+			{
+				let _g=this.getGroup(groupName);
+				let rtn={};
+				for(let i in _g)rtn[i]=_g[i].getValues();
+				return rtn;
+			}
+			else return undefined;
+		},
+		removeGroup:function(groupName)
+		{
+			if(this.hasGroup(groupName))
+			{
+				let gs=this.getGroup(groupName);
+				for(let g in gs)
+				{
+					gs[g].destroy();
+				}
+				this.groups.delete(groupName);
+			}
+			return this;
+		},
+		add:function(value)
+		{
+			let index=this.mega(value);
+			this._add(index);
+			return index;
+		},
+		_add:function(index)
+		{
+			let value=this.values[index];
+			for(let filter of this.filters.values()) this._filter(filter,value,index);
+			for(let map of this.maps.values()) this._map(map,value,index);
+			for(let group of this.groups.values()) this._group(group,value,index);
+		},
+		remove:function(values)
+		{
+			let indexes=this.mega(values);
+			if(indexes)
+			{
+				this._remove(indexes);
+				return indexes;
+			}
+			return indexes;
+		},
+		_remove:function(indexes)
+		{
+			for(let filter of this.filters.values()) filter.child.remove(indexes);
+			for(let map of this.maps.values())
+			{
+				for(let m in map.values)
+				{
+					if(indexes.indexOf(map.values[m])!==-1) delete map.values[m];
+				}
+			}
+			for(let group of this.groups.values())
+			{
+				for(let child of Object.values(group.children))
+				{
+					child.remove(indexes);
+				}
+			}
+		},
+		update:function(values)
+		{
+			let indexes=this.mega(values);
+			if(indexes)
+			{
+				this._remove(indexes);
+				for(let index of indexes) this._add(index);
+			}
+		},
+		clear:function()
+		{
+			this.mega();
+			for(let filter of this.filters.values()) filter.child.clear();
+			for(let map of this.maps.values()) map.values={};
+			for(let group of this.groups.values())
+			{
+				for(let child in Object.values(group.children))
+				{
+					child.clear();
+				}
+			}
+			return this;
+		},
+		/**
+		 * @param {Boolean} (some=false) - collect values that are anywhere included ( false = everywhere )
+		 * @param {String} (sort) - name of sort
+		 */
+		combine:function(some,sort)
+		{
+			some=!!some;
+			let indexes=this.hasSort(sort)?this.getIndexSort(sort):(this.library ? this.values.slice() : this.values.map((a,i)=>i));
+			let inside=some?[]:indexes;
+			let outside=some?indexes:[];
+			let _doCombine=list=>
+			{
+				let i=inside,o=outside;
+				if(some)i=outside,o=inside;
+
+				i.forEach((value,index)=>
+				{
+					if((list.indexOf(value)!==-1)==some)// in list XOR collecting those in some lists
+					{
+						o[index]=value;
+						delete i[index];
+					}
+				});
+			};
+			let rtn={
+				getIndexes:outer=>(outer?outside:inside).filter(i=>i!=undefined),
+				get:outer=>rtn.getIndexes(outer).map(i=>(this.library?this.library:this.values)[i]),
+				filter:name=>
+				{
+					if(this.hasFilter(name))_doCombine(this.getFilter(name).values);
+					return rtn;
 				},
-				set:(newState)=>
+				group:(name,part)=>
 				{
-					state=newState;
-					if(newState===AbstractWorker.states.CLOSE)
+					part=this.getGroupPart(name,part);
+					if(part)_doCombine(part.values);
+					return rtn;
+				},
+				combine:c=>
+				{
+					if(c._getOrigin()===this||c._getOrigin().library===this.library)
 					{
-						this.ready=new SC.Promise.reject("closed",this);
-						this.ready.catch(µ.constantFunctions.pass); //suppress uncaught promise/exception
+						_doCombine(c.getIndexes());
 					}
-					reporter.report(new WorkerStateEvent(newState));
-				}
-			});
-			this.state=AbstractWorker.states.CLOSE;
-
-			if(autoStart) this.restart(startTimeout,loadScripts);
-		},
-//		_send:function(payload){},
-//		_start:function(){}, // propagate id and other parameters to actual worker
-		_onMessage(message)
-		{
-			if("request" in message)
-			{
-				if(!this.requestMap.has(message.request))
-				{
-					this.reportEvent(new SC.ErrorEvent("no such request",`request ${message.request} is not known`));
-				}
-				else
-				{
-					if(message.error) this.requestMap.get(message.request).reject(message.error);
-					else this.requestMap.get(message.request).resolve(message.data);
-				}
-			}
-			else if("feedback" in message)
-			{
-				if(!this.onFeedback)
-				{
-					this._send({feedback:message.feedback,error:"no feedback handler"});
-				}
-				else
-				{
-					let feedbackPromise=null;
-					try
-					{
-						feedbackPromise=Promise.resolve(this.onFeedback(message.data))
-						.catch(function(error)
-						{
-							if(error instanceof Error) error=error.message+"\n"+error.stack;
-							return Promise.reject(error);
-						});
-					}
-					catch(e)
-					{
-						feedbackPromise=Promise.reject(e.message+"\n"+e.stack);
-					}
-
-					feedbackPromise.then(
-						result=>this._send({feedback:message.feedback,data:result}),
-						error=>this._send({feedback:message.feedback,error:error})
-					)
-					.catch(µ.logger.error);
-				}
-			}
-			else if ("error" in message)
-			{
-				if(this.requestMap.has("init"))this.requestMap.get("init").reject(message.error);
-				else this.reportEvent(new SC.ErrorEvent(message.error));
-			}
-			else
-			{
-				this.reportEvent(new WorkerMessageEvent(message));
-			}
-		},
-		send(method,args=[])
-		{
-			if(this.state!==AbstractWorker.states.OPEN) throw new Error("#AbstractWorker:003 worker is not open");
-
-			this._send({method:method,args:args});
-			return this;
-		},
-		request(method,args=[],timeout=AbstractWorker.defaults.TIMEOUT)
-		{
-			if(this.state!==AbstractWorker.states.OPEN) return SC.Promise.reject(new Error("#AbstractWorker:004 worker is not open"),this);
-
-			let requestData={
-				request:REQUEST_COUNTER++,
-				method:method,
-				args:args
+					return rtn;
+				},
+				_getOrigin:()=>this
 			};
-			let timer;
-			let promise=new SC.Promise(function(signal)
-			{
-				this.requestMap.set(requestData.request,signal);
-				timer=setTimeout(function()
-				{
-					signal.reject("timeout");
-				},timeout);
-				this._send(requestData);
-				signal.addAbort(function()
-				{
-					this._send({
-						request:requestData.request,
-						method:"_abort"
-					});
-				})
-			},{scope:this});
-			promise.always(function()
-			{
-				this.requestMap.delete(requestData.request);
-				clearTimeout(timer);
-			});
-			return promise;
-		},
-		stop(timeout)
-		{
-			return this.request("stop",[],timeout);
-		},
-		restart(timeout=AbstractWorker.defaults.TIMEOUT,loadScripts)
-		{
-			if(this.state!==AbstractWorker.states.CLOSE) throw SC.Promise.reject(new Error("#AbstractWorker:005 worker is already open"),this);
-			let timer;
-			this.state=AbstractWorker.states.START;
-			this.ready=new SC.Promise(function(signal)
-			{
-				this.requestMap.set("init",signal);
-				timer=setTimeout(function()
-				{
-					signal.reject("timeout");
-				},timeout);
-			},{scope:this});
-
-			this._start();
-
-			this.ready.always(function()
-			{
-				this.requestMap.delete("init");
-				clearTimeout(timer);
-			});
-
-			this.ready.then(function()
-			{
-				this.state=AbstractWorker.states.OPEN;
-			},
-			function()
-			{
-				this.state=AbstractWorker.states.CLOSE;
-			});
-
-			if(loadScripts)
-			{
-				this.ready=this.ready.then(initParam=>
-					this.request("loadScripts",[loadScripts])
-					.then(()=>initParam)
-				);
-			}
-
-			return this.ready;
-		},
-		destroy()
-		{
-			if(this.state!==AbstractWorker.states.CLOSE)
-			{
-				this.state=AbstractWorker.states.CLOSE; // trigger workerState Event
-				this.stop();
-			}
-			this.mega();
-		}
-	});
-	AbstractWorker.states={
-		START:"start",
-		OPEN:"open",
-		CLOSE:"close",
-	};
-	AbstractWorker.defaults={
-		TIMEOUT:60000
-	};
-	SMOD("AbstractWorker",AbstractWorker);
-
-	let WorkerMessageEvent=AbstractWorker.WorkerMessageEvent=µ.Class(SC.Event,{
-		name:"workerMessage",
-		constructor:function(message)
-		{
-			this.data=message.data;
-			this.time=new Date();
-			this.raw=message;
-		}
-	});
-
-	let WorkerStateEvent=AbstractWorker.WorkerStateEvent=SC.StateEvent.implement("workerState");
-
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	let AbstractWorker=GMOD("AbstractWorker");
-
-	//SC=SC({});
-	
-	let WORKER=µ.Worker=µ.Class(AbstractWorker,{
-		constructor:function(param={})
-		{
-			({
-				basePath:this.basePath=WORKER.defaults.BASE_PATH,
-				workerScript:this.workerScript=WORKER.defaults.SCRIPT,
-				workerBasePath:this.workerBasePath=WORKER.defaults.WORKER_BASE_PATH, //relative from path of loaded script
-				morgasPath:this.morgasPath=WORKER.defaults.MORGAS_PATH, // relative from workerBasePath
-			}=param);
-
-			this.mega(param);
-		},
-		_start:function()
-		{
-			this.worker=new Worker(this.basePath+this.workerScript);
-			this.worker.onmessage = msg=>this._onMessage(msg.data);
-			this.worker.onerror = error=>this._onMessage({error:error});
-
-			this._send({
-				id:this.id,
-				basePath:this.workerBasePath,
-				morgasPath:this.morgasPath
-			});
-		},
-		_send(payload)
-		{
-			this.worker.postMessage(payload);
-		},
-		stop:function()
-		{
-			this.mega();
-			this.state=AbstractWorker.states.CLOSE;
+			return rtn;
 		},
 		destroy:function()
 		{
-			this.worker.terminate();
-			this.state=AbstractWorker.states.CLOSE;
+			for (let filter of this.filters.values())
+			{
+				filter.child.destroy();
+			}
+			this.filters.clear();
+			this.maps.clear();
+			for (let group of this.groups.values())
+			{
+				for(let child of Object.values(group.children))
+				{
+					child.destroy();
+				}
+			}
+			this.groups.clear();
+
 			this.mega();
 		}
 	});
-	WORKER.defaults={
-		BASE_PATH:"js/",
-		SCRIPT:"Worker/BaseWorker.js",
-		WORKER_BASE_PATH:"../", //relative from path of loaded script
-		MORGAS_PATH:"Morgas.js", // relative from WORKER_BASE_PATH
+	ORG.naturalOrder=SortedArray.naturalOrder;
+	ORG.orderBy=SortedArray.orderBy;
+	
+	/**
+	 * sort by multiple attributes
+	 * @param {string[]} paths array of paths to attributes for sorting
+	 * @param {boolean} (DESC=false)
+	 * @return function
+	 */
+	ORG.attributeSort=function(paths,DESC)
+	{
+		return function(obj,obj2)
+		{
+			let rtn=0,a,b;
+			for(let i=0;i<paths.length&&rtn===0;i++)
+			{
+				a=SC.goPath(obj,paths[i]);
+				b=SC.goPath(obj2,paths[i]);
+				rtn=(DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0)
+			}
+			return rtn;
+		}
 	};
 	
-	SMOD("Worker",WORKER);
+	SMOD("Organizer",ORG);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let DBC=GMOD("DBConn");
+	let ORG=GMOD("Organizer");
+	
+	SC=SC({
+		eq:"equals",
+	});
+	
+	let getDb=function()
+	{
+		return new ORG().group("objectType","objectType",function(tDb)
+		{
+			tDb.map("ID","fields.ID");
+		});
+	};
+	
+	let OCON=DBC.ObjectConnector=µ.Class(DBC,
+	{
+		constructor:function(global)
+		{
+			this.mega();
+			this.db=getDb();
+		},
+		save:function(signal,objs)
+		{
+			objs=[].concat(objs);
+			let sortedObjs=DBC.sortObjs(objs);
+			
+			for(let objectType in sortedObjs.fresh)
+			{
+				let objs=sortedObjs.fresh[objectType],
+				ids=this._getNextID(objectType);
+				for(let i=0;i<objs.length;i++)
+				{
+					let id=(i<ids.length?ids[i]:ids[ids.length-1]+i-ids.length+1);
+					objs[i].ID=id;
+					this.db.add({objectType:objs[i].objectType,fields:objs[i].toJSON()});
+				}
+			}
+			
+			let updates=[];
+			for(let objectType in sortedObjs.preserved)
+			{
+				let objs=sortedObjs.preserved[objectType],
+				ids=this.db.getGroupPart("objectType",objectType).getMap("ID");
+				for(let i=0;i<objs.length;i++)
+				{
+					let found=ids[objs[i].ID];
+					if(found)
+					{
+						found.fields=objs[i].toJSON();
+						updates.push(found)
+					}
+				}
+			}
+			this.db.update(updates);
+
+			for(let objectType in sortedObjs.friend)
+			{
+				let objs=sortedObjs.friend[objectType],
+					tDb=this.db.getGroupPart("objectType",objectType),
+					tDbValues=tDb ? tDb.getValues():null,
+					newFriends=[];
+
+				for(let i=0;i<objs.length;i++)
+				{
+					let json={fields:objs[i].toJSON()};
+					if(!tDbValues||tDbValues.findIndex(SC.eq.test(json))==-1)
+					{
+						json.objectType=objs[i].objectType;
+						newFriends.push(json);
+					}
+				}
+				this.db.addAll(newFriends);
+			}
+			signal.resolve();
+		},
+		load:function(signal,objClass,pattern,sort)
+		{
+			let tDb=this.db.getGroupPart("objectType",objClass.prototype.objectType);
+			if(!tDb) return signal.resolve([]);
+
+			let pDb;
+			if(pattern!=null)
+			{
+				pattern={fields:pattern};
+				let patternKey=SC.eq.patternToString(pattern);
+				if(!tDb.hasFilter(patternKey)) tDb.filter(patternKey,pattern);
+				pDb=tDb.getFilter(patternKey);
+			}
+			else pDb=tDb;
+			let rtn;
+			if(sort)
+			{
+				sort=[].concat(sort).map(s=>"fields."+s);
+				let sortKey=JSON.stringify(sort);
+				if(!pDb.hasSort(sortKey)) pDb.sort(sortKey,ORG.attributeSort(sort));
+				rtn=pDb.getSort(sortKey);
+			}
+			else rtn=pDb.getValues();
+			rtn=rtn.map(r=>new objClass().fromJSON(r.fields));
+			signal.resolve(rtn);
+		},
+		"delete":function(signal,objClass,toDelete)
+		{
+			toDelete=this.db.values.filter(SC.eq.test({objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)}));
+			this.db.remove(toDelete);
+			signal.resolve(toDelete.map(d=>d.fields.ID));
+		},
+		destroy:function()
+		{
+			if(this.db!==OCON.prototype.db)
+			{
+				this.db.clear();
+			}
+			this.mega();
+		},
+		_getNextID:function(objectType)
+		{
+			let rtn=[],
+			tDb=this.db.getGroupPart("objectType",objectType);
+			if(!tDb)return [0];
+			let ids=Object.keys(tDb.getIndexMap("ID"));
+			let i=0;
+			for(;ids.length>0;i++)
+			{
+				let index=ids.indexOf(""+i);
+				if(index===-1) rtn.push(i);
+				else ids.splice(index,1);
+			}
+			rtn.push(i);
+			return rtn;
+		}
+	});
+	
+	SMOD("ObjectConnector",OCON);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let obj=util.object=util.object||{};
+	
+	SC=SC({
+		goPath:"goPath"
+	});
+
+	let getPath=function(input)
+	{
+		let path="";
+		if(input.dataset.path)
+		{
+			path=input.dataset.path;
+			if(!input.name.startsWith("["))
+			{
+				path+=".";
+			}
+		}
+		path+=input.name;
+		return path;
+	}
+	
+	/**
+	 * set input values from object
+	 * path in object is defined by data-path attribute
+	 * key in object is defined by data-field attribute
+	 * @param inputs[] input Nodes
+	 * @param {object} source
+	 */
+	obj.setInputValues=function(inputs,source)
+	{
+		for(let input of inputs)
+		{
+			let path=getPath(input);
+			let value=SC.goPath(source, path);
+			if(value!==undefined)
+			{
+				if(input.type==="checkbox")
+				{
+					input.checked=!!value;
+				}
+				if(input.tagName==="SELECT"&&input.multiple&&Array.isArray(value))
+				{
+					for(let option of input.options)
+					{
+						option.selected=value.includes(option.value)
+					}
+				}
+				else
+				{
+					input.value=value;
+				}
+			}
+		}
+	};
+
+	/**
+	 * collect input values into object
+	 * path in object is defined by data-path attribute
+	 * key in object is defined by data-field attribute
+	 * @param inputs[] input Nodes
+	 * @param {object} target
+	 */
+	obj.getInputValues=function(inputs,target,create)
+	{
+		if(!target)
+		{
+			target={};
+			create=true;
+		}
+		for(let input of inputs)
+		{
+			let t=target;
+			if(input.dataset.path)
+			{
+				t=SC.goPath(t, input.dataset.path,create,(create?{}:undefined));
+			}
+			if(t&&(input.name in t||create))
+			{
+				let value;
+				if(input.type==="checkbox")
+				{
+					value=input.checked;
+				}
+				else if(input.tagName==="SELECT"&&input.multiple)
+				{
+					value=[];
+					for(let option of input.selectedOptions)
+					{
+						value.push(option.value);
+					}
+				}
+				else
+				{
+					value=input.valueAsDate||input.valueAsNumber||input.value;
+				}
+				t[input.name]=value;
+			}
+		}
+		return target;
+	};
+	
+	SMOD("setInputValues",obj.setInputValues);
+	SMOD("getInputValues",obj.getInputValues);
+	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let uObj=util.object=util.object||{};
+
+	//SC=SC({});
+
+	/**
+	 *
+	 * @param {Number} (stageCount=1) - count of generated stages
+	 * @param {Function} (lastType=Object())
+	 * @param {Function} (defaultValue=Function returning empty Object]
+	 */
+	let register=uObj.register=function(stageCount,defaultValue=()=>({}))
+	{
+		stageCount=stageCount>1?stageCount:1;
+		let createProxy=function(stageCount,keys=[])
+		{
+			return new Proxy({},{
+				get:function(storage,key,receiver)
+				{
+					if(key==="toJSON") return undefined; // called by JSON.stringify
+					if(!(key in storage))
+					{
+						if (stageCount<=1)
+						{
+							if(defaultValue) storage[key]=defaultValue(keys.concat(key));
+						}
+						else
+						{
+							storage[key]=createProxy(stageCount-1,keys.concat(key));
+						}
+					}
+					return storage[key];
+				},
+				set:µ.constantFunctions.f
+			});
+		};
+		return createProxy(stageCount);
+	};
+
+	SMOD("register",register);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let obj=util.object=util.object||{};
+
+	//SC=SC({});
+
+	/** uniquify
+	 * Creates a copy of {arr} without duplicates.
+	 * Generates an ID via {fn}(value)
+	 */
+	obj.uniquify=function(arr,fn)
+	{
+		let values;
+		if(fn)
+		{
+			let idMap=new Map();
+			for(let i=0;i<arr.length;i++)
+			{
+				let id=arr[i];
+				if(fn)
+				{
+					id=fn(arr[i]);
+				}
+				idMap.set(id,arr[i]);
+			}
+			values=idMap.values();
+		}
+		else
+		{
+			values=new Set(arr);
+		}
+		return Array.from(values);
+	};
+	SMOD("uniquify",obj.uniquify);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 //# sourceMappingURL=Morgas-0.8.8.js.map

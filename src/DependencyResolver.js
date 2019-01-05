@@ -1,16 +1,17 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	SC=SC({
-		remove:"array.remove",
-		uniquify:"uniquify",
-		flatten:"flatten"
-	});
+	//SC=SC({});
 
-	let applyPrefix=function(arr,prefix)
+	let applyPrefix=function(arr=[],prefix)
 	{
-		return (arr||[]).map(function(a){return prefix+a});
+		return arr.map(function(a){return prefix+a});
 	};
 
+	/**
+	 * holds configuration of dependencies and resolves them.
+	 * A configuration consists of deps[] (direct dependencies) and uses[] (indirect dependencies).
+	 * Indirect (or async) dependencies are (normaly) allowed to form cycles as they are not needed immediately (can cause problems!).
+	 */
 	µ.DependencyResolver=µ.Class({
 		constructor:function(config,prefix)
 		{
@@ -19,38 +20,40 @@
 		},
 		addConfig:function(obj,prefix="",overwrite)
 		{
+			let overwritten=[];
 			if(typeof obj==="object")
 			{
 				let keys=Object.keys(obj);
 				for(let l=keys.length,i=0;i<l;i++)
 				{
 					let k=keys[i];
-					if(this.config[prefix+k]===undefined||overwrite)//TODO overwrite message
+
+					if(this.config[prefix+k]===undefined||overwrite)
 					{
+						if(this.config[prefix+k]!==undefined) overwritten.push(prefix+k);
 						let v=null;
-                        if(typeof obj[k]==="string")
-                        {
-                            v={deps:[prefix+obj[k]],uses:[]};
-                        }
-                        else if (Array.isArray(obj[k]))
-                        {
-                            v={deps:applyPrefix(obj[k],prefix),uses:[]};
-                        }
-                        else if (obj[k]!==true)
-                        {
-                            v={deps:applyPrefix(obj[k].deps,prefix),uses:applyPrefix(obj[k].uses,prefix)}
-                        }
-                        else
-                        {
-                            v={deps:[],uses:[]};
-                        }
+						if(typeof obj[k]==="string")
+						{
+							v={deps:[prefix+obj[k]],uses:[]};
+						}
+						else if (Array.isArray(obj[k]))
+						{
+							v={deps:applyPrefix(obj[k],prefix),uses:[]};
+						}
+						else if (obj[k]!==true)
+						{
+							v={deps:applyPrefix(obj[k].deps,prefix),uses:applyPrefix(obj[k].uses,prefix)}
+						}
+						else
+						{
+							v={deps:[],uses:[]};
+						}
 						this.config[prefix+k]=v;
 					}
 				}
-				return true;
 			}
-			µ.logger.error(new TypeError("#DependencyResolver:001 DependencyResolver.addConfig: obj is not an object"));
-			return false;
+			else throw new TypeError("#DependencyResolver:001 DependencyResolver.addConfig: obj is not an object");
+			return overwritten;
 		},
 		getConfig:function(item)
 		{
@@ -58,157 +61,73 @@
 			if(!config) throw new ReferenceError("#DependencyResolver:002 "+item+" is not in config");
 			return config;
 		},
-		resolve:function(list,allowUsesCycles=false)
+		resolve:function(list,allowUsesAsync=true)
 		{
-			let resolved=new Map();
-			let todo=[].concat(list).map(s=>({
-				name:s,
-				from:[]
-			}));
+			if(typeof list==="string") list=[list];
+			// all items to resolve
+			let allList=new Set(list);
+			let todo=Array.from(allList);
+			let order=new Set();
+			let fulfilledDeps=new Set();
 
-			for(let entry of todo)
+			while (true)
 			{
-				let config=this.getConfig(entry.name);
-				if(!resolved.has(entry.name))
+				for(let i=0;i<todo.length;i++)
 				{
-					resolved.set(entry.name,{
-						name:entry.name,
-						from:[]
-					});
-				}
-				let item=resolved.get(entry.name);
-				if(entry.from.length!=0)
-				{
-					item.from.push(entry.from);
-				}
-
-				for(let next of config.deps.concat(config.uses))
-				{
-					let index=entry.from.indexOf(next);
-					if(index!=-1)//cycle detected
+					let name=todo[i];
+					let config=this.getConfig(name);
+					if(config.deps.every(order.has,order)) fulfilledDeps.add(name);
+					if(fulfilledDeps.has(name)&config.uses.every(order.has,order))
 					{
-						let cycle=entry.from.slice(index).concat(entry.name);
-						resolved.get(next).from.push(entry.from.slice().concat(entry.name,next));
-						if(allowUsesCycles&&(!config.deps.includes(next)||cycle.some(this._containsUses)))
-						{
-							continue;
-						}
-						throw new Error("#DependencyResolver:003 cyclic dependency ["+cycle.join(" <-> ")+"]");
+						order.add(name);
+						todo.splice(i,1);
+						fulfilledDeps.delete(name);
+						i=-1; //reset
 					}
 					else
 					{
-						todo.push({
-							name:next,
-							from:entry.from.concat(entry.name)
-						});
-					}
-				}
-			}
-
-			for (let item of resolved.values()) item.from=SC.uniquify(item.from,a=>a.join(","));
-
-			this._breakCycles(resolved);
-			let resolvedArr=Array.from(resolved.values());
-			return this._sort(resolvedArr);
-		},
-		_containsUses:function(dependPath)
-		{
-			return dependPath.some((key,index,array)=>
-			{
-				return index+1<array.length&&!this.getConfig(key).deps.includes(array[index+1]);
-			});
-		},
-		_breakCycles:function(resolved)
-		{
-			for (let item of resolved.values())
-			{
-				for(let index=0;index<item.from.length;index++)
-				{
-					let path=item.from[index];
-					if(path[path.length-1]!==item.name) continue;
-
-					let cycle=path.slice(path.indexOf(item.name),-1);
-					item.from.splice(index--,1);
-					path=path.slice(0,path.length-1-cycle.length);
-
-					let cycleParts=this._getCycleParts(cycle);
-					if(cycleParts===null) continue
-
-					for(let c=0;c<cycle.length;c++)
-					{
-						let name=cycle[c];
-						let cyclePath=path.concat(cycle.slice(0,c));
-						let replacePath=path.concat(cycleParts.get(name));
-						let searchPath=cyclePath.join(",");
-						let cycleItem=resolved.get(name);
-						for(let i=0;i<cycleItem.from.length;i++)
+						for(let dependency of config.deps.concat(config.uses))
 						{
-							if(cycleItem.from[i].join(",")===searchPath)
+							if(!allList.has(dependency))
 							{
-								cycleItem.from[i]=replacePath;
-								break;
+								allList.add(dependency);
+								todo.push(dependency);
 							}
 						}
 					}
 				}
-			}
-		},
-		_getCycleParts:function(cycle)
-		{
-			let isUseDependent=(name,index,arr)=>
-			{
-				return index+1<arr.length&&!this.getConfig(name).deps.includes(arr[index+1]);
-			};
-
-			let useIndex=cycle.findIndex(isUseDependent);
-
-			if(useIndex==-1) return null; //only use is already solved
-
-			let sortedCycle=cycle.slice(useIndex+1).concat(cycle.slice(0,useIndex+1));
-
-			let useIndexes=sortedCycle.reduce((arr,name,i)=>
-			{
-				if(isUseDependent(name,i,sortedCycle)) arr.push(i+1);
-				return arr;
-			},[0]);
-
-			useIndexes.push(sortedCycle.length);
-
-			let parts=new Map();
-			useIndexes.reduceRight((to,from)=>
-			{
-				for(;from<to;to--)
+				if(todo.length!=0)
 				{
-					parts.set(sortedCycle[to-1],sortedCycle.slice(from,to-1));
+					if(allowUsesAsync)
+					{
+						if(fulfilledDeps.size==0) throw new RangeError("#DependencyResolver:003 can not resolve ["+todo+"] (cyclic dependencies)")
+						let wanted=[];
+						for(let fulfilledName of fulfilledDeps.values())
+						{
+							let wantedCount=todo.reduce((count,name)=>
+							{
+								if(name===fulfilledName) return count;
+								let config=this.getConfig(name);
+								if(config.deps.includes(fulfilledName)||config.uses.includes(fulfilledName)) count++;
+								return count;
+							},0);
+							wanted.push({count:wantedCount,name:fulfilledName});
+						}
+						let mostWanted=wanted.reduce((a,b)=>a.count>b.count?a:b).name;
+
+						order.add(mostWanted);
+						todo.splice(todo.indexOf(mostWanted),1);
+						fulfilledDeps.delete(mostWanted);
+						//try again
+					}
+					else
+					{
+						throw new RangeError("#DependencyResolver:004 can not resolve "+todo+" without async uses");
+					}
 				}
-				return from;
-			});
-
-			return parts;
-		},
-		_sort:function(resolvedArr)
-		{
-			let rtn=[];
-			for(let item of resolvedArr)
-			{
-				let allFrom=SC.uniquify(SC.flatten(item.from));
-				let firstIndex=Math.min(...allFrom.map(f=>rtn.indexOf(f)).filter(i=>i!=-1));
-
-				if(firstIndex==Infinity)
-				{
-					let config=this.getConfig(item.name);
-					let allDeps=config.deps.concat(item.uses);
-					let lastIndex=Math.max(...allDeps.map(d=>rtn.lastIndexOf(d)),-1);
-
-					if(lastIndex==-1) rtn.unshift(item.name);
-					else rtn.splice(lastIndex+1,0,item.name);
-				}
-				else
-			 	{
-			 		rtn.splice(firstIndex,0,item.name);
-			 	}
+				else break;
 			}
-			return rtn;
+			return Array.from(order);
 		},
         clone:function(prefix)
         {

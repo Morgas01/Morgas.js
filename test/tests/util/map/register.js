@@ -2,7 +2,7 @@ QUnit.module("util.map.register",function()
 {
 	QUnit.test("simple",function(assert)
 	{
-		let r=µ.util.map.register(1,Object,Map);
+		let r=µ.util.map.register(1,Map,()=>({}));
 		assert.deepEqual(Array.from(r.keys()),[]);
 		r.get("foo").bar="foobar";
 		assert.deepEqual(Array.from(r.keys()),["foo"]);
@@ -16,7 +16,7 @@ QUnit.module("util.map.register",function()
 
 	QUnit.test("stages",function(assert)
 	{
-		let r=µ.util.map.register(2,Map,Map);
+		let r=µ.util.map.register(2);
 		let inst={id:Math.random()};
 		r.get("foo").get(inst).set("foobar","bazz");
 		r.get(inst).get("second").set(inst,3);
@@ -43,7 +43,7 @@ QUnit.module("util.map.register",function()
 
 	QUnit.test("lastType",function(assert)
 	{
-		let r=µ.util.map.register(1,Array,Map);
+		let r=µ.util.map.register(1,Map,()=>[]);
 		r.get("foo").push("bar");
 
 		r.toJSON=mapToJSON;

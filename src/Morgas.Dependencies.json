@@ -18,11 +18,7 @@
 	},
 	"DependencyResolver.js": {
 		"deps": [],
-		"uses": [
-			"util/array/remove.js",
-			"util/object/uniquify.js",
-			"util/array/flatten.js"
-		]
+		"uses": []
 	},
 	"Event.js": {
 		"deps": [

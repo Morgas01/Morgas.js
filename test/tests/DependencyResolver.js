@@ -11,7 +11,7 @@ QUnit.module("DependencyResolver",function()
      	});
 
 		assert.deepEqual(dr.resolve("aa"),["a","aa"],"single");
-		assert.deepEqual(dr.resolve(["aa","ab","ba"]),["a","b","ba","ab","aa"],"multiple");
+		assert.deepEqual(dr.resolve(["aa","ab","ba"]),["a","aa","b","ab","ba"],"multiple");
 	});
 	QUnit.test("cycle",function(assert)
 	{
@@ -29,7 +29,7 @@ QUnit.module("DependencyResolver",function()
 		{
 			return (error instanceof Error) &&
 			error.message.startsWith("#DependencyResolver:003 ") &&
-			error.message.indexOf("[c <-> a <-> b]")!=-1;
+			error.message.indexOf("[c,a,b]")!=-1;
 		},
 		"throws");
 
@@ -39,7 +39,7 @@ QUnit.module("DependencyResolver",function()
 		},
 		function(error)
 		{
-			return error.message.indexOf("[a <-> b <-> c]")!=-1;
+			return error.message.indexOf("[a,b,c]")!=-1;
 		},
 		"cycle message");
 	});
@@ -53,17 +53,17 @@ QUnit.module("DependencyResolver",function()
 			d:{deps:[],uses:["a"]}
 		});
 
-		assert.deepEqual(dr.resolve("a",true),["d","c","b","a"],"single");
-		assert.deepEqual(dr.resolve("c",true),["b","a","d","c"],"single 2");
+		assert.deepEqual(dr.resolve("a"),["d","c","b","a"],"single");
+		assert.deepEqual(dr.resolve("c"),["b","a","d","c"],"single 2");
 
 		assert.throws(function()
 		{
-			dr.resolve("c");
+			dr.resolve("c",false);
 		},
-		function(error){return (error instanceof Error)&&error.message.startsWith("#DependencyResolver:003 ")},
+		function(error){return (error instanceof Error)&&error.message.startsWith("#DependencyResolver:004 ")},
 		"strict");
 
-		assert.deepEqual(dr.resolve(["a","c"],true),["d","c","b","a"],"multiple");
+		assert.deepEqual(dr.resolve(["a","c"]),["d","c","b","a"],"multiple");
 	});
 
 	QUnit.test("added",function(assert)

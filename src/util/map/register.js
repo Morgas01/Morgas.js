@@ -10,13 +10,13 @@
 	/**
 	 *
 	 * @param {Number} (stageCount=1) - count of generated stages
-	 * @param {Function} (lastType=WeakMap())
 	 * @param {Function} (mapType=WeakMap())
+	 * @param {Function} (defaultValue=()=>new mapType())
 	 */
-	let register=uMap.register=function(stageCount,lastType=WeakMap,mapType=WeakMap)
+	let register=uMap.register=function(stageCount,mapType=Map,defaultValue=()=>new mapType())
 	{
 		stageCount=stageCount>1?stageCount:1;
-		let createMap=function(stageCount)
+		let createMap=function(stageCount,keys=[])
 		{
 			let map=new mapType();
 			map.set=µ.constantFunctions.f;
@@ -24,16 +24,14 @@
 			{
 				if(!this.has(key))
 				{
-					let value;
 					if (stageCount<=1)
 					{
-						value=new lastType();
+						if(defaultValue)mapType.prototype.set.call(this,key,defaultValue(keys.concat(key)));
 					}
 					else
 					{
-						value=createMap(stageCount-1);
+						mapType.prototype.set.call(this,key,createMap(stageCount-1,keys.concat(key)));
 					}
-					mapType.prototype.set.call(this,key,value);
 				}
 				return mapType.prototype.get.call(this,key);
 			};

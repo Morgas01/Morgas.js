@@ -45,19 +45,11 @@
 	},
 	"DependencyResolver": {
 		"deps": [],
-		"uses": [
-			"array.remove",
-			"uniquify",
-			"flatten"
-		]
+		"uses": []
 	},
 	"DepRes": {
 		"deps": [],
-		"uses": [
-			"array.remove",
-			"uniquify",
-			"flatten"
-		]
+		"uses": []
 	},
 	"Event": {
 		"deps": [
