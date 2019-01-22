@@ -235,6 +235,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"group": {
+		"deps": [],
+		"uses": []
+	},
 	"proxy": {
 		"deps": [],
 		"uses": []

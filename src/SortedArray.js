@@ -60,7 +60,7 @@
 			if(this.library)
 			{
 				index=value;
-				value=this.library[value];
+				value=this.library[index];
 				source=this.library;
 			}
 			orderIndex=SA.getOrderIndex(value,source,sort.fn,sort.indexes);
@@ -186,7 +186,7 @@
 
 	
 	/**
-	 * @summary Get index of the {item} in the {source} or {order} defined by {sort}
+	 * @summary Get index of the {item} in the {source}(actual values) or {order}(ordered indexes) defined by {sort}
 	 * @description Finds the index of {item} in {source}.
 	 * The order is defined by the sort function (like Array.sort()).
 	 * If {Source} is not sorted, you must supply {order} as an Array of indexes in the right order.
@@ -225,8 +225,10 @@
 	 */
 	SA.naturalOrder=function(DESC)
 	{
-		return function(a,b){return (DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0)};
+		return DESC ? SA.naturalOrder.DESC : SA.naturalOrder.ASC;
 	};
+		SA.naturalOrder.ASC=(a,b)=>(a>b) ? 1 : (a<b) ? -1 : 0;
+	SA.naturalOrder.DESC=(a,b)=>(a>b) ? -1 : (a<b) ? 1 : 0;
 
 	/**
 	 * sort the values returned by getter simply by using > or < 
@@ -235,10 +237,11 @@
 	 */
 	SA.orderBy=function(getter,DESC)
 	{
+		let sort=SA.naturalOrder(DESC)
 		return function(_a,_b)
 		{
 			let a=getter(_a),b=getter(_b);
-			return (DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0);
+			return sort(a,b);
 		};
 	};
 	

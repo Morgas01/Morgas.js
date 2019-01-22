@@ -33,6 +33,10 @@
 		},
 		getSort:SortedArray.prototype.get,
 		getIndexSort:SortedArray.prototype.getIndexes,
+		getIndexes()
+		{
+			return this.library ? this.values.slice() : this.values.map((a,i)=>i);
+		},
 		filter:function(filterName,filterFn,createFn)
 		{
 			switch(typeof filterFn)
@@ -270,13 +274,13 @@
 			return this;
 		},
 		/**
-		 * @param {Boolean} (some=false) - collect values that are anywhere included ( false = everywhere )
+		 * @param {Boolean} (some=false) - collect values that matches some filters ( false = every filter )
 		 * @param {String} (sort) - name of sort
 		 */
 		combine:function(some,sort)
 		{
 			some=!!some;
-			let indexes=this.hasSort(sort)?this.getIndexSort(sort):(this.library ? this.values.slice() : this.values.map((a,i)=>i));
+			let indexes=this.hasSort(sort)?this.getIndexSort(sort):this.getIndexes();
 			let inside=some?[]:indexes;
 			let outside=some?indexes:[];
 			let _doCombine=list=>

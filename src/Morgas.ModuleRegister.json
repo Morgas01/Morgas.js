@@ -38,6 +38,7 @@
 	"array.repeat": "util/array/repeat.js",
 	"CSV": "util/converter/csv.js",
 	"metricUnit": "util/converter/metricUnit.js",
+	"group": "util/function/group.js",
 	"proxy": "util/function/proxy.js",
 	"rescope": "util/function/rescope.js",
 	"mapRegister": "util/map/register.js",

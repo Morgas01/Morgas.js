@@ -141,6 +141,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"util/function/group.js": {
+		"deps": [],
+		"uses": []
+	},
 	"util/function/proxy.js": {
 		"deps": [],
 		"uses": []

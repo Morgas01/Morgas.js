@@ -1054,7 +1054,7 @@
 			if(this.library)
 			{
 				index=value;
-				value=this.library[value];
+				value=this.library[index];
 				source=this.library;
 			}
 			orderIndex=SA.getOrderIndex(value,source,sort.fn,sort.indexes);
@@ -1180,7 +1180,7 @@
 
 	
 	/**
-	 * @summary Get index of the {item} in the {source} or {order} defined by {sort}
+	 * @summary Get index of the {item} in the {source}(actual values) or {order}(ordered indexes) defined by {sort}
 	 * @description Finds the index of {item} in {source}.
 	 * The order is defined by the sort function (like Array.sort()).
 	 * If {Source} is not sorted, you must supply {order} as an Array of indexes in the right order.
@@ -1219,8 +1219,10 @@
 	 */
 	SA.naturalOrder=function(DESC)
 	{
-		return function(a,b){return (DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0)};
+		return DESC ? SA.naturalOrder.DESC : SA.naturalOrder.ASC;
 	};
+		SA.naturalOrder.ASC=(a,b)=>(a>b) ? 1 : (a<b) ? -1 : 0;
+	SA.naturalOrder.DESC=(a,b)=>(a>b) ? -1 : (a<b) ? 1 : 0;
 
 	/**
 	 * sort the values returned by getter simply by using > or < 
@@ -1229,10 +1231,11 @@
 	 */
 	SA.orderBy=function(getter,DESC)
 	{
+		let sort=SA.naturalOrder(DESC)
 		return function(_a,_b)
 		{
 			let a=getter(_a),b=getter(_b);
-			return (DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0);
+			return sort(a,b);
 		};
 	};
 	
@@ -1781,6 +1784,53 @@
 
 	SMOD("metricUnit",uCon.metricUnit);
 
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+	
+	let util=µ.util=µ.util||{};
+	let uFn=util.function=util.function||{};
+
+	//SC=SC({});
+	
+	/** group
+	 * groups function calls together to prevent clogging.
+	 * every call to a grouped function starts/resets the delay timer to gather additional calls.
+	 *
+	 * @param {Function} fn
+	 * @param {Number} (delay=50) - time to group calls in ms
+	 * @param {Number} (maxDelay) - max time to group calls in ms
+	 */
+	uFn.group=function(fn,delay=50,maxDelay)
+	{
+		let timer=null;
+		let maxTimer=null;
+		let callArgs=[];
+
+		let doCall=function groupedCall()
+		{
+			fn(callArgs);
+			callArgs=[];
+
+			clearTimeout(timer);
+			timer=null;
+			clearTimeout(maxTimer);
+			maxTimer=null
+		}
+
+		return function grouped()
+		{
+			callArgs.push({scope:this,arguments});
+			clearTimeout(timer);
+			timer=setTimeout(doCall,delay);
+			if(maxTimer===null&&maxDelay)
+			{
+				maxTimer=setTimeout(doCall,maxDelay);
+			}
+		}
+	}
+	SMOD("group",uFn.group);
+	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
@@ -4601,6 +4651,10 @@
 		},
 		getSort:SortedArray.prototype.get,
 		getIndexSort:SortedArray.prototype.getIndexes,
+		getIndexes()
+		{
+			return this.library ? this.values.slice() : this.values.map((a,i)=>i);
+		},
 		filter:function(filterName,filterFn,createFn)
 		{
 			switch(typeof filterFn)
@@ -4838,13 +4892,13 @@
 			return this;
 		},
 		/**
-		 * @param {Boolean} (some=false) - collect values that are anywhere included ( false = everywhere )
+		 * @param {Boolean} (some=false) - collect values that matches some filters ( false = every filter )
 		 * @param {String} (sort) - name of sort
 		 */
 		combine:function(some,sort)
 		{
 			some=!!some;
-			let indexes=this.hasSort(sort)?this.getIndexSort(sort):(this.library ? this.values.slice() : this.values.map((a,i)=>i));
+			let indexes=this.hasSort(sort)?this.getIndexSort(sort):this.getIndexes();
 			let inside=some?[]:indexes;
 			let outside=some?indexes:[];
 			let _doCombine=list=>
