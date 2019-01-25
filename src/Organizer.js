@@ -177,6 +177,14 @@
 			}
 			else return undefined;
 		},
+		getGroupParts:function(groupName)
+		{
+			if(this.hasGroup(groupName))
+			{
+				return Object.keys(this.groups.get(groupName).children);
+			}
+			else return undefined;
+		},
 		getGroupPart:function(groupName,partName)
 		{
 			if(this.hasGroup(groupName))
