@@ -31,6 +31,7 @@
 	"queryParam": "util/queryParam.js",
 	"request": "util/request.js",
 	"request.json": "util/request.js",
+	"encase": "util/array/encase.js",
 	"array.equal": "util/array/equal.js",
 	"flatten": "util/array/flatten.js",
 	"array.remove": "util/array/remove.js",

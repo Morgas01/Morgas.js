@@ -112,7 +112,8 @@
 		"uses": [
 			"equals",
 			"goPath",
-			"proxy"
+			"proxy",
+			"encase"
 		]
 	},
 	"Patch": {
@@ -206,6 +207,10 @@
 		"uses": [
 			"Promise"
 		]
+	},
+	"encase": {
+		"deps": [],
+		"uses": []
 	},
 	"array.equal": {
 		"deps": [],

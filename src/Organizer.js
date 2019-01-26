@@ -5,7 +5,8 @@
 	SC=SC({
 		eq:"equals",
 		goPath:"goPath",
-		proxy:"proxy"
+		proxy:"proxy",
+		encase:"encase"
 	});
 	 
 	let ORG=µ.Organizer=µ.Class(SortedArray,{
@@ -30,6 +31,11 @@
 
 			this.mega(values);
 			
+		},
+		sort(sortName,sortFn)
+		{
+			if(typeof sortFn==="string") sortFn=ORG.orderBy(SC.goPath.guide(sortFn));
+			return this.mega(sortName,sortFn);
 		},
 		getSort:SortedArray.prototype.get,
 		getIndexSort:SortedArray.prototype.getIndexes,
@@ -156,7 +162,7 @@
 				index=value;
 				value=this.library[index];
 			}
-			let gKeys=[].concat(group.groupFn(value));
+			let gKeys=SC.encase(group.groupFn(value));
 			for(let gKey of gKeys)
 			{
 				if(!(gKey in group.children))
@@ -316,7 +322,7 @@
 				group:(name,part)=>
 				{
 					part=this.getGroupPart(name,part);
-					if(part)_doCombine(part.values);
+					_doCombine(part?part.values:[]);
 					return rtn;
 				},
 				combine:c=>
@@ -356,12 +362,13 @@
 	
 	/**
 	 * sort by multiple attributes
-	 * @param {string[]} paths array of paths to attributes for sorting
+	 * @param {string|string[]} paths array of paths to attributes for sorting
 	 * @param {boolean} (DESC=false)
 	 * @return function
 	 */
 	ORG.attributeSort=function(paths,DESC)
 	{
+		paths=SC.encase(paths);
 		return function(obj,obj2)
 		{
 			let rtn=0,a,b;

@@ -325,7 +325,7 @@
 	});
 	CONFIG.parse=function(desc,value)
 	{
-		if(typeof desc=="string") return new FIELD({type:desc},value);
+		if(FIELD.TYPES.includes(typeof desc)) return new FIELD({type:typeof desc,default:desc},value);
 		else if (Array.isArray(desc)) return new ARRAY({model:desc[0]},value);
 		switch(desc.type)
 		{
@@ -1525,6 +1525,24 @@
     })(decodeURI(window.location.search));
 
     SMOD("queryParam",util.queryParam);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	var util=µ.util=µ.util||{};
+	var array=util.array=util.array||{};
+
+	//SC=SC({});
+
+	array.encase=function(value)
+	{
+		if(Array.isArray(value)) return value;
+		if(value==null) return [];
+		return [value];
+	}
+
+	SMOD("encase",array.encase);
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
@@ -4623,7 +4641,8 @@
 	SC=SC({
 		eq:"equals",
 		goPath:"goPath",
-		proxy:"proxy"
+		proxy:"proxy",
+		encase:"encase"
 	});
 	 
 	let ORG=µ.Organizer=µ.Class(SortedArray,{
@@ -4648,6 +4667,11 @@
 
 			this.mega(values);
 			
+		},
+		sort(sortName,sortFn)
+		{
+			if(typeof sortFn==="string") sortFn=ORG.orderBy(SC.goPath.guide(sortFn));
+			return this.mega(sortName,sortFn);
 		},
 		getSort:SortedArray.prototype.get,
 		getIndexSort:SortedArray.prototype.getIndexes,
@@ -4774,7 +4798,7 @@
 				index=value;
 				value=this.library[index];
 			}
-			let gKeys=[].concat(group.groupFn(value));
+			let gKeys=SC.encase(group.groupFn(value));
 			for(let gKey of gKeys)
 			{
 				if(!(gKey in group.children))
@@ -4792,6 +4816,14 @@
 			if(this.hasGroup(groupName))
 			{
 				return Object.assign({},this.groups.get(groupName).children);
+			}
+			else return undefined;
+		},
+		getGroupParts:function(groupName)
+		{
+			if(this.hasGroup(groupName))
+			{
+				return Object.keys(this.groups.get(groupName).children);
 			}
 			else return undefined;
 		},
@@ -4926,7 +4958,7 @@
 				group:(name,part)=>
 				{
 					part=this.getGroupPart(name,part);
-					if(part)_doCombine(part.values);
+					_doCombine(part?part.values:[]);
 					return rtn;
 				},
 				combine:c=>
@@ -4966,12 +4998,13 @@
 	
 	/**
 	 * sort by multiple attributes
-	 * @param {string[]} paths array of paths to attributes for sorting
+	 * @param {string|string[]} paths array of paths to attributes for sorting
 	 * @param {boolean} (DESC=false)
 	 * @return function
 	 */
 	ORG.attributeSort=function(paths,DESC)
 	{
+		paths=SC.encase(paths);
 		return function(obj,obj2)
 		{
 			let rtn=0,a,b;

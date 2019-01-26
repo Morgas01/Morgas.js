@@ -41,7 +41,8 @@
 		"uses": [
 			"util/object/equals.js",
 			"util/object/goPath.js",
-			"util/function/proxy.js"
+			"util/function/proxy.js",
+			"util/array/encase.js"
 		]
 	},
 	"Patch.js": {
@@ -116,6 +117,10 @@
 		"uses": [
 			"Promise.js"
 		]
+	},
+	"util/array/encase.js": {
+		"deps": [],
+		"uses": []
 	},
 	"util/array/equal.js": {
 		"deps": [],

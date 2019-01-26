@@ -17,7 +17,7 @@
 	});
 	CONFIG.parse=function(desc,value)
 	{
-		if(typeof desc=="string") return new FIELD({type:desc},value);
+		if(FIELD.TYPES.includes(typeof desc)) return new FIELD({type:typeof desc,default:desc},value);
 		else if (Array.isArray(desc)) return new ARRAY({model:desc[0]},value);
 		switch(desc.type)
 		{
