@@ -223,18 +223,21 @@
 			}
 			return this;
 		},
-		add:function(value)
+		add:function(values)
 		{
-			let index=this.mega(value);
-			this._add(index);
-			return index;
+			let indexes=this.mega(values);
+			this._add(indexes);
+			return indexes;
 		},
-		_add:function(index)
+		_add:function(indexes)
 		{
-			let value=this.values[index];
-			for(let filter of this.filters.values()) this._filter(filter,value,index);
-			for(let map of this.maps.values()) this._map(map,value,index);
-			for(let group of this.groups.values()) this._group(group,value,index);
+			for(let index of indexes)
+			{
+				let value=this.values[index];
+				for(let filter of this.filters.values()) this._filter(filter,value,index);
+				for(let map of this.maps.values()) this._map(map,value,index);
+				for(let group of this.groups.values()) this._group(group,value,index);
+			}
 		},
 		remove:function(values)
 		{
@@ -270,7 +273,7 @@
 			if(indexes)
 			{
 				this._remove(indexes);
-				for(let index of indexes) this._add(index);
+				this._add(indexes);
 			}
 		},
 		clear:function()
@@ -280,7 +283,7 @@
 			for(let map of this.maps.values()) map.values={};
 			for(let group of this.groups.values())
 			{
-				for(let child in Object.values(group.children))
+				for(let child of Object.values(group.children))
 				{
 					child.clear();
 				}

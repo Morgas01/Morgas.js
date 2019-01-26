@@ -1,6 +1,8 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
-	//SC=SC({});
+	SC=SC({
+		encase:"encase"
+	});
 
 	/**
 	 * Holds values and sorted arrays of their indexes.
@@ -19,22 +21,25 @@
 
 			if(values)this.addAll(values);
 		},
-		add:function(value)
+		add:function(values)
 		{
-			let index=this.values.freeIndexes.shift();
-			if(index===undefined)index=this.values.length;
-			this.values[index]=value;
-			for (let sort of this.sorts.values())
+			return SC.encase(values)
+			.map(value=>
 			{
-				this._addToSort(sort,value,index);
-			};
-			return index;
+				let index=this.values.freeIndexes.shift();
+				if(index===undefined)index=this.values.length;
+				this.values[index]=value;
+				for (let sort of this.sorts.values())
+				{
+					this._addToSort(sort,value,index);
+				};
+				return index;
+			});
 		},
+		/** @deprecated */
 		addAll(values)
 		{
-			let indexes=[];
-			for(let value of values) indexes.push(this.add(value));
-			return indexes;
+			return this.add(values)
 		},
 		hasSort:function(sortName){return this.sorts.has(sortName)},
 		sort:function(sortName,sortFn)
@@ -68,7 +73,7 @@
 		},
 		remove:function(values)
 		{
-			if(values==null) return null;
+			values=SC.encase(values);
 			let indexes=[];
 			for (let item of values)
 			{
@@ -97,7 +102,8 @@
 		},
 		update:function(values)
 		{
-			if(!values)
+			values=SC.encase(values);
+			if(values.length==0)
 			{//all
 				values=this.values.slice();
 				this.clear();

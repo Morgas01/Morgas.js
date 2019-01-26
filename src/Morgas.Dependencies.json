@@ -64,7 +64,9 @@
 	},
 	"SortedArray.js": {
 		"deps": [],
-		"uses": []
+		"uses": [
+			"util/array/encase.js"
+		]
 	},
 	"Worker.js": {
 		"deps": [
