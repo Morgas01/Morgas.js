@@ -1,14 +1,14 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
 	SC=SC({
-		encase:"encase"
+		flatten:"flatten"
 	});
 
 	/**
 	 * Holds values and sorted arrays of their indexes.
 	 * If values are already indexes use library.
 	 *
-	 * @param {any} (values=null) - values or indexes of library
+	 * @param {Array|Any} (values=null) - values or indexes of library
 	 * @param {Object} (library=null} - map of index to real values
 	 */
 	let SA=µ.SortedArray=µ.Class({
@@ -19,11 +19,11 @@
 			this.values.freeIndexes=[];
 			this.library=library;
 
-			if(values)this.addAll(values);
+			if(values)this.add(values);
 		},
-		add:function(values)
+		add(...values)
 		{
-			return SC.encase(values)
+			return SC.flatten(values)
 			.map(value=>
 			{
 				let index=this.values.freeIndexes.shift();
@@ -71,9 +71,9 @@
 			orderIndex=SA.getOrderIndex(value,source,sort.fn,sort.indexes);
 			sort.indexes.splice(orderIndex,0,index);
 		},
-		remove:function(values)
+		remove(...values)
 		{
-			values=SC.encase(values);
+			values=SC.flatten(values);
 			let indexes=[];
 			for (let item of values)
 			{
@@ -100,9 +100,9 @@
 			}
 			return indexes;
 		},
-		update:function(values)
+		update(...values)
 		{
-			values=SC.encase(values);
+			values=SC.flatten(values);
 			if(values.length==0)
 			{//all
 				values=this.values.slice();

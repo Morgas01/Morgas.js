@@ -32,7 +32,7 @@
 			{path:"util/object/inputValues.js",nodeJs:false,web:true},
 			{path:"util/map/register.js",nodeJs:true,web:true},
 			{path:"util/request.js",nodeJs:false,web:true},
-			{path:"util/converter/csv.js",nodeJs:false,web:true}, // remove request module from test for nodeJs
+			{path:"util/converter/csv.js",nodeJs:false,web:true}, //TODO remove request module from test for nodeJs
 			{path:"util/converter/metricUnit.js",nodeJs:true,web:true},
 			{path:"SortedArray.js",nodeJs:true,web:true},
 			{path:"Organizer.js",nodeJs:true,web:true},

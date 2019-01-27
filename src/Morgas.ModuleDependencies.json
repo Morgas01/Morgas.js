@@ -136,7 +136,7 @@
 	"SortedArray": {
 		"deps": [],
 		"uses": [
-			"encase"
+			"flatten"
 		]
 	},
 	"Worker": {

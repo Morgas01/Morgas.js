@@ -1297,16 +1297,61 @@
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
+
+	var util=µ.util=µ.util||{};
+	var utilArray=util.array=util.array||{};
+
+	//SC=SC({});
+
+	/**
+	 * Compares each value of the arrays for equality ( like a[n]===b[n] , where n>=0 && n<=length)
+	 * Arrays of different length are not equal
+	 *
+	 * @param {Any[]} a
+	 * @param {Any[]} b
+	 */
+	utilArray.equal=function(a,b)
+	{
+		if(!a!=!b) return false;
+		if(!a) return true; // both null
+		if(a.length!=b.length) return false;
+		for (let i=0;i<a.length;i++)
+		{
+			if(a[i]!==b[i]) return false;
+		}
+		return true;
+	};
+	SMOD("array.equal",utilArray.equal);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	var util=µ.util=µ.util||{};
+	var array=util.array=util.array||{};
+
+	//SC=SC({});
+
+	var flattenAll=Array.prototype.concat.bind(Array.prototype);
+
+	array.flatten=flattenAll.apply.bind(flattenAll,null);
+	array.flatten.all=flattenAll;
+
+	SMOD("flatten",array.flatten);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
 	
 	SC=SC({
-		encase:"encase"
+		flatten:"flatten"
 	});
 
 	/**
 	 * Holds values and sorted arrays of their indexes.
 	 * If values are already indexes use library.
 	 *
-	 * @param {any} (values=null) - values or indexes of library
+	 * @param {Array|Any} (values=null) - values or indexes of library
 	 * @param {Object} (library=null} - map of index to real values
 	 */
 	let SA=µ.SortedArray=µ.Class({
@@ -1317,11 +1362,11 @@
 			this.values.freeIndexes=[];
 			this.library=library;
 
-			if(values)this.addAll(values);
+			if(values)this.add(values);
 		},
-		add:function(values)
+		add(...values)
 		{
-			return SC.encase(values)
+			return SC.flatten(values)
 			.map(value=>
 			{
 				let index=this.values.freeIndexes.shift();
@@ -1369,9 +1414,9 @@
 			orderIndex=SA.getOrderIndex(value,source,sort.fn,sort.indexes);
 			sort.indexes.splice(orderIndex,0,index);
 		},
-		remove:function(values)
+		remove(...values)
 		{
-			values=SC.encase(values);
+			values=SC.flatten(values);
 			let indexes=[];
 			for (let item of values)
 			{
@@ -1398,9 +1443,9 @@
 			}
 			return indexes;
 		},
-		update:function(values)
+		update(...values)
 		{
-			values=SC.encase(values);
+			values=SC.flatten(values);
 			if(values.length==0)
 			{//all
 				values=this.values.slice();
@@ -1550,51 +1595,6 @@
 	};
 	
 	SMOD("SortedArray",SA);
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	var util=µ.util=µ.util||{};
-	var utilArray=util.array=util.array||{};
-
-	//SC=SC({});
-
-	/**
-	 * Compares each value of the arrays for equality ( like a[n]===b[n] , where n>=0 && n<=length)
-	 * Arrays of different length are not equal
-	 *
-	 * @param {Any[]} a
-	 * @param {Any[]} b
-	 */
-	utilArray.equal=function(a,b)
-	{
-		if(!a!=!b) return false;
-		if(!a) return true; // both null
-		if(a.length!=b.length) return false;
-		for (let i=0;i<a.length;i++)
-		{
-			if(a[i]!==b[i]) return false;
-		}
-		return true;
-	};
-	SMOD("array.equal",utilArray.equal);
-
-})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
-/********************/
-(function(µ,SMOD,GMOD,HMOD,SC){
-
-	var util=µ.util=µ.util||{};
-	var array=util.array=util.array||{};
-
-	//SC=SC({});
-
-	var flattenAll=Array.prototype.concat.bind(Array.prototype);
-
-	array.flatten=flattenAll.apply.bind(flattenAll,null);
-	array.flatten.all=flattenAll;
-
-	SMOD("flatten",array.flatten);
-
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
