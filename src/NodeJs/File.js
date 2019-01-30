@@ -183,8 +183,9 @@
 				return copyFile(signal.scope,this);
 			}).then(signal.resolve,signal.reject);
 		},
-		copyTo:function(dir,overwrite)
+		copyToDir:function(dir,overwrite)
 		{
+			dir=FILE.fileToString(dir);
 			return this.copy(PATH.join(dir,PATH.basename(this.filePath)),overwrite);
 		},
 		clone:function()

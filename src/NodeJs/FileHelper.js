@@ -246,6 +246,23 @@
 				return p;
 			});
 		},
+		copyToDir:function(dir,progress)
+		{
+			let target=this.file.clone().changePath(dir);
+			return SC.util.enshureDir(target)
+			.then(()=>
+				SC.prom.chain(this.selected.slice(),filename=>
+					this.file.clone()
+					.changePath(filename)
+					.copyToDir(target)
+					.then(function()
+					{
+						progress("copied "+this.getName());
+						return this.filePath;
+					})
+				)
+			);
+		},
 		//TODO fix dot between numbers
 		cleanNames:function()
 		{

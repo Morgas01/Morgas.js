@@ -77,18 +77,12 @@
 					}
 				}
 			}
-			if(SC.Promise.isThenable(rtn))
+			Promise.resolve(rtn).then(result=>[result,line],function(e)
 			{
-				rtn.then(result=>[result,line],function(e)
-				{
-					µ.logger.error(SC.es(e));
-					return [[],line];
-				}).then(r=>callback(null,r));
-			}
-			else
-			{
-				callback(null,[rtn.sort(),line]);
-			}
+				µ.logger.error(SC.es(e));
+				return [[],line];
+			})
+			.then(r=>callback(null,r));
 		},
 		onLine(line)
 		{

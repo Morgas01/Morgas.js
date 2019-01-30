@@ -30,16 +30,31 @@
 	{
 		return fileNameKeywords.concat(this.fh.selected).filter(function(a){return a.indexOf(line)==0});
 	};
-	let pathCompleter=function(line)
+	let pathCompleter=async function(line)
 	{
-		let addition=PATH.join(line+"dirt","..");
-		if(addition!==".")line=line.substr(addition.length+1);
-		else addition="";
-		let root=this.fh.file.filePath;
-		return this.fh.ls(addition).then(r=>r
-			.filter(a=>a.indexOf(line)==0&&FS.statSync(PATH.resolve(root,addition,a)).isDirectory())
-			.map(a=>PATH.join(addition,a)+PATH.sep)
-		);
+		let parsedPath=PATH.parse(line);
+		let addition=parsedPath.dir;
+		line=parsedPath.base;
+		let fileNames=await this.fh.ls(addition);
+		let dirNames=[]
+		await Promise.all(fileNames.map(async a=>
+		{
+			if(a.indexOf(line)!=0) return false;
+			try
+			{
+				if((await this.fh.file.clone().changePath(addition,a).stat()).isDirectory())
+				{
+					dirNames.push(a);
+				}
+			}
+			catch (e)
+			{
+				µ.logger.error(a,e);
+				return false;
+			}
+		}))
+
+		return dirNames.map(a=>PATH.join(addition,a)+PATH.sep);
 	};
 	
 	let FileCommands=CommandPackage.file=µ.Class(CommandPackage,
@@ -108,6 +123,10 @@
 			),
 			moveToDir:CommandPackage.createCommand(
 				function(dir){return this.fh.moveToDir(dir).then(o=>o.join("\n"))},
+				pathCompleter
+			),
+			copyToDir:CommandPackage.createCommand(
+				function(dir){return this.fh.copyToDir(dir).then(o=>o.join("\n"))},
 				pathCompleter
 			),
 			cleanNames:function()
