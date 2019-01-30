@@ -51,14 +51,18 @@
 			SC.rs.all(this,["progressOutput"]);
 			this.fh=new SC.FH();
 		},
-		prompt:">>",
+		_setCommander(commander)
+		{
+			this.mega(commander);
+			this.commander.prompt=this.getAbsolutePath()+">>";
+		},
 		commands: {
 			ls:function(addition){return this.fh.ls(addition).then(o=>o.join("\n"))},
 			cd:CommandPackage.createCommand(
 				function(dir)
 				{
 					return this.fh.changeDirectory(dir)
-					.then(()=>{this.instance.prompt=this.getAbsolutePath()+">>";})
+					.then(()=>{this.commander.prompt=this.getAbsolutePath()+">>"})
 				},
 				pathCompleter
 			),
