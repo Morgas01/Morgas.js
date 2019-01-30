@@ -1,12 +1,11 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
-	let COM=GMOD("Commander");
+	let CommandPackage=GMOD("CommandPackage");
 	
 	SC=SC({
 		File:"File",
 		util:"File/util",
-		Patch:"Patch",
-		FileCmd:"CommandPackage.file"
+		FileCmd:"CommandPackage/file"
 	});
 
 	let URL=require("url");
@@ -18,7 +17,7 @@
 		if(addition!==".")
 		{
 			line=line.substr(addition.length+1).toLowerCase();
-			return fh.ls(addition).then(r=>r.filter(function(a){return a.toLowerCase().indexOf(line)==0}).map(function(a){return PATH.join(addition,a)}));
+			return fh.ls(addition).then(r=>r.filter(a=>a.toLowerCase().indexOf(line)==0).map(a=>PATH.join(addition,a)));
 		}
 		else
 		{
@@ -63,54 +62,59 @@
 		});
 	}
 
-	let download=µ.Class(COM.CommandPackage,
+	let download=µ.Class(CommandPackage,
 	{
-		patch:function()
-		{
-			this.mega();
-			let fileCmd=this.getFileCmd();
-			if(fileCmd)
-			{
-				let completer=function(line)
-				{
-					return fileNameCompleter(fileCmd.fh,line);
-				}
-				this.commands.download.completer=completer;
-				this.commands.downloadList.completer=completer;
-			}
-		},
+		name:"download",
 		commands: {
-			download:function(line)
-			{
-				let match=line.match(/(\S+)(?:\s+(\S.+))?/);
-				if(!match)this.out('download URL <filename>');
-				else
+			download:CommandPackage.createCommand(
+				function(line)
+				{
+					let match=line.match(/(\S+)(?:\s+(\S.+))?/);
+					if(!match)this.out('download URL <filename>');
+					else
+					{
+
+						this.pause();
+						this.download(match[1],match[2])
+						.catch(µ.constantFunctions.pass)
+						.then(result=>
+						{
+							this.out(result);
+							this.resume();
+						});
+					}
+				},
+				function(line)
 				{
 
+					let fileCmd=this.getFileCmd();
+					if(!fileCmd) return [];
+					return fileNameCompleter(fileCmd.fh,line);
+				}
+			),
+			downloadList:CommandPackage.createCommand(
+				function(source)
+				{
 					this.pause();
-					this.download(match[1],match[2])
+					(async ()=>
+					{
+						return this.downloadList(source);
+					})()
 					.catch(µ.constantFunctions.pass)
 					.then(result=>
 					{
 						this.out(result);
 						this.resume();
 					});
+				},
+				function(line)
+				{
+
+					let fileCmd=this.getFileCmd();
+					if(!fileCmd) return [];
+					return fileNameCompleter(fileCmd.fh,line);
 				}
-			},
-			downloadList:function(source)
-			{
-				this.pause();
-				(async ()=>
-				{
-					return this.downloadList(source);
-				})()
-				.catch(µ.constantFunctions.pass)
-				.then(result=>
-				{
-					this.out(result);
-					this.resume();
-				});
-			}
+			)
 		},
 		download:async function(url,filename)
 		{
@@ -220,9 +224,7 @@
 		},
 		getFileCmd:function()
 		{
-			let patches=SC.Patch.getPatches(this.instance,SC.FileCmd);
-			if(patches.length>0) return patches[0];
-			return null;
+			return this.commander.getPackage(SC.FileCmd.name);
 		},
 		getCWD:function()
 		{
@@ -231,6 +233,7 @@
 			return process.cwd();
 		}
 	});
-	SMOD("CommandPackage.download",download);
+	SMOD("CommandPackage/download",download);
+	module.exports=download;
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

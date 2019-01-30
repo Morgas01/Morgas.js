@@ -78,7 +78,7 @@
 			}
 			else
 			{
-				let doFilter=function(files)
+				let doFilter=(files)=>
 				{
 					if(pattern==="all")					return files;
 					else if(pattern==="noCRC")			return files.filter((a)=>!a.match(extractChecksum));
@@ -110,8 +110,8 @@
 		},
 		isEmpty:function(fileName)
 		{
-			return this.File.clone().changePath(fileName).stat()
-			.then(stat=> stat.size==0,µ.constantFunctions.t);
+			return this.file.clone().changePath(fileName).stat()
+			.then(stat=> stat.size==0&&!stat.isDirectory(),µ.constantFunctions.t);
 		},
 		select:function(pattern)
 		{
