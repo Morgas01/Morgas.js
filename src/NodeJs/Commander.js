@@ -20,7 +20,7 @@
 			output=process.stdout
 		})
 		{
-			this.packages={};
+			this.packages=new Map();
 			this.commandRegister=SC.register(1,()=>[]);
 
 			this.prompt=prompt;
@@ -64,7 +64,7 @@
 					}
 					else
 					{
-						let package=this.packages[packages[0]];
+						let package=this.packages.get(packages[0]);
 						try
 						{
 							rtn=package.completeCommand(commandName,argumentString);
@@ -98,7 +98,7 @@
 					this.out(`command ${commandName} is not unique:`,packages.map(p=>p+":"+commandName).sort());
 					return;
 				}
-				let package=this.packages[packages[0]];
+				let package=this.packages.get(packages[0]);
 				this.pause();
 				new SC.Promise(package.executeCommand,{scope:package,args:[commandName,argumentString],simple:true})
 				.catch(e=>
@@ -138,12 +138,12 @@
 		{
 			for(let package of packages)
 			{
-				if(this.packages[package.name])
+				if(this.packages.has(package.name))
 				{
 					µ.logger.warn("#Commander:001 "+package.name+" already ind this commander");
 					continue
 				}
-				this.packages[package.name]=package;
+				this.packages.set(package.name,package);
 				package._setCommander(this);
 
 				for(let command of package.getCommands())
@@ -158,7 +158,7 @@
 		},
 		getCommandPackage(name)
 		{
-			return this.packages[name];
+			return this.packages.get(name);
 		},
 		setPrompt(prompt=this.prompt)
 		{

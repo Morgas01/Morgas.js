@@ -194,7 +194,7 @@
 			let list=JSON.parse(await source.read());
 			let stop=false;
 			let stopFn=()=>stop=true;
-			this.instance.rl.on("SIGINT",stopFn);
+			this.commander.rl.on("SIGINT",stopFn);
 			for(let i=0;!stop&&i<list.length;i++)
 			{
 				let entry=list[i];
@@ -212,19 +212,19 @@
 				this.out(`${i+1}/${list.length}	${url}	${filename||""}`);
 				this.out(await this.download(url,filename));
 			}
-			this.instance.rl.removeListener("SIGINT",stopFn);
+			this.commander.rl.removeListener("SIGINT",stopFn);
 			return getTimeString(new Date(Date.now()-startTime))+(stop?" stopped":" all complete");
 		},
 		progressOutput:function(message)
 		{
-			this.instance.rl.output.cursorTo(0);
-			this.instance.rl.write(message);
-			this.instance.rl.clearLine(1);
-			this.instance.rl.output.moveCursor(0,-1);
+			this.commander.rl.output.cursorTo(0);
+			this.commander.rl.write(message);
+			this.commander.rl.clearLine(1);
+			this.commander.rl.output.moveCursor(0,-1);
 		},
 		getFileCmd:function()
 		{
-			return this.commander.getPackage(SC.FileCmd.name);
+			return this.commander.getCommandPackage(SC.FileCmd.prototype.name);
 		},
 		getCWD:function()
 		{
