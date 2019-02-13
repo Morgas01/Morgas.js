@@ -16,31 +16,36 @@
 	"DBConn": {
 		"deps": [],
 		"uses": [
-			"Promise"
+			"Promise",
+			"converter/date"
 		]
 	},
 	"DBObj": {
 		"deps": [],
 		"uses": [
-			"Promise"
+			"Promise",
+			"converter/date"
 		]
 	},
 	"DBFriend": {
 		"deps": [],
 		"uses": [
-			"Promise"
+			"Promise",
+			"converter/date"
 		]
 	},
 	"DBRel": {
 		"deps": [],
 		"uses": [
-			"Promise"
+			"Promise",
+			"converter/date"
 		]
 	},
 	"DBField": {
 		"deps": [],
 		"uses": [
-			"Promise"
+			"Promise",
+			"converter/date"
 		]
 	},
 	"DependencyResolver": {
@@ -176,6 +181,15 @@
 			"equals"
 		]
 	},
+	"Task": {
+		"deps": [
+			"DBObj",
+			"DBField"
+		],
+		"uses": [
+			"converter/date"
+		]
+	},
 	"NodePatch.Compare": {
 		"deps": [
 			"NodePatch"
@@ -238,7 +252,15 @@
 		"deps": [],
 		"uses": []
 	},
+	"converter/date": {
+		"deps": [],
+		"uses": []
+	},
 	"metricUnit": {
+		"deps": [],
+		"uses": []
+	},
+	"caught": {
 		"deps": [],
 		"uses": []
 	},

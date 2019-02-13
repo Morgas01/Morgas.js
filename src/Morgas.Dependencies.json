@@ -13,7 +13,8 @@
 	"DB.js": {
 		"deps": [],
 		"uses": [
-			"Promise.js"
+			"Promise.js",
+			"util/converter/date.js"
 		]
 	},
 	"DependencyResolver.js": {
@@ -92,6 +93,14 @@
 			"util/object/equals.js"
 		]
 	},
+	"DB/Task.js": {
+		"deps": [
+			"DB.js"
+		],
+		"uses": [
+			"util/converter/date.js"
+		]
+	},
 	"NodePatch/Compare.js": {
 		"deps": [
 			"NodePatch.js"
@@ -144,7 +153,15 @@
 		"deps": [],
 		"uses": []
 	},
+	"util/converter/date.js": {
+		"deps": [],
+		"uses": []
+	},
 	"util/converter/metricUnit.js": {
+		"deps": [],
+		"uses": []
+	},
+	"util/function/cought.js": {
 		"deps": [],
 		"uses": []
 	},

@@ -74,7 +74,10 @@
 		},
 		verbose:30,
 		getLevel:function(){return µ.logger.verbose},
-		setLevel:function(level){µ.logger.verbose=level},
+		setLevel:function(level)
+		{
+			if(!isNaN(level))µ.logger.verbose=parseFloat(level)
+		},
 		/**
 		 * @param {Number}	verbose
 		 * @param {Array}	msgs
@@ -1753,6 +1756,28 @@
 
 	//SC=SC({});
 
+	uCon.date={
+		to(date)
+		{
+			return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds()
+		},
+		from(dateString)
+		{
+			return new Date(Date.UTC.apply(Date,jsonObj.split(",")));
+		}
+	};
+
+	SMOD("converter/date",uCon.date);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+    let uCon=util.converter=util.converter||{};
+
+	//SC=SC({});
+
 	let stages=["y","z","a","f","p","n","µ","m","","K","M","G","T","P","E","Z","Y"];
 
 	let getRegex=function(base)
@@ -1807,6 +1832,33 @@
 	};
 
 	SMOD("metricUnit",uCon.metricUnit);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let uFn=util.function=util.function||{};
+
+	//SC=SC({});
+
+	/**
+	 * catches and logs exception on fn execution
+	 * @param {Function} fn
+	 */
+	uFn.caught=function(fn)
+	{
+		try
+		{
+			return fn();
+		}
+		catch(e)
+		{
+			µ.logger.error(e);
+		}
+	};
+
+	SMOD("caught",uFn.caught);
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
@@ -2391,7 +2443,7 @@
 
 	let NODE=µ.NodePatch=µ.Class(Patch,{
 		[Patch.symbols.multiple]:true,
-		composeKeys:["parent","children","addChild","removeChild","setParent","remove","isChildOf","hasChild"],
+		composeKeys:["parent","children","addChild","removeChild","setParent","remove","contains"],
 		patch:function(name,composeKeys=NODE.prototype.composeKeys)
 		{
 			this.name=name;
@@ -2482,6 +2534,29 @@
 		{
 			return this.setParent(null,...args);
 		},
+
+		/**
+		 * check if item is related to this instance
+		 * @param {Object} item - NodePatched object
+		 * @returns {Number} 0 = not related, 1 = instance contains item, -1 = item contains instance
+		 */
+		contains(item)
+		{
+			let inst=this.instance;
+
+			let it=item
+			let me=inst;
+			while (item!=null&&me!=null)
+			{
+				if(it==inst) return 1
+				else if (me==item) return -1;
+				it=this._getNode(it).parent;
+				me=this._getNode(me).parent;
+			}
+
+			return 0;
+		},
+
 		destroy:function()
 		{
 			this.remove();
@@ -3035,7 +3110,8 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	SC=SC({
-		prom:"Promise"
+		prom:"Promise",
+		dateConvert:"converter/date"
 	});
 	
 	let DB=µ.DB=µ.DB||{};
@@ -3574,7 +3650,7 @@
 				case FIELD.TYPES.DATE:
 					let date=this.getValue();
 					if(date instanceof Date)
-						return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds();
+						return SC.dateConvert.to(date);
 					break;
 				default:
 					return this.getValue();
@@ -3585,7 +3661,7 @@
 			switch(this.type)
 			{
 				case FIELD.TYPES.DATE:
-					this.value=new Date(Date.UTC.apply(Date,jsonObj.split(",")));
+					this.value=SC.dateConvert.from(jsonObj);
 					break;
 				//TODO other conversions e.g. number from string
 				default:
@@ -3595,29 +3671,6 @@
 		toString:function()
 		{
 			return JSON.stringify(this);
-		},
-		fromString:function(val)
-		{
-			switch(this.type)
-			{
-				case FIELD.TYPES.BOOL:
-					this.value=!!(~~val);
-					break;
-				case FIELD.TYPES.INT:
-					this.value=~~val;
-					break;
-				case FIELD.TYPES.DOUBLE:
-					this.value=1*val;
-					break;
-				case FIELD.TYPES.DATE:
-				case FIELD.TYPES.STRING:
-				    this.value=val;
-				    break;
-				case FIELD.TYPES.JSON:
-				default:
-					this.fromJSON(JSON.parse(val));
-					break;
-			}
 		}
 	});
 	FIELD.TYPES={
@@ -3702,6 +3755,98 @@
 	
 	SMOD("Worker",WORKER);
 	
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let DBObj=GMOD("DBObj"),
+		FIELD=GMOD("DBField");
+
+	SC=SC({
+		dateConvert:"converter/date"
+	});
+
+	let Task=µ.Class(DBObj,{
+		objectType:"Task",
+		constructor:function({
+			ID,
+			name,
+			state=Task.states.PENDING,
+			messages=[],
+			creationDate=new Date(),
+			progress=0,
+			progressDate=creationDate,
+			progressMax=100,
+			//modifiedDate=creationDate,
+			startDate=creationDate,
+            startProgress=progress
+		}={})
+		{
+
+			this.mega({ID});
+
+			this.addField("name",			FIELD.TYPES.STRING	,name);
+			this.addField("state",			FIELD.TYPES.STRING	,state);
+			this.addField("messages",		FIELD.TYPES.JSON	,messages);
+			this.addField("progress",		FIELD.TYPES.INT		,progress);
+			this.addField("progressDate",	FIELD.TYPES.DATE	,progressDate);
+			this.addField("progressMax",	FIELD.TYPES.INT		,progressMax);
+			//this.addField("modifiedDate",	FIELD.TYPES.DATE	,modifiedDate);
+			this.addField("creationDate",	FIELD.TYPES.DATE	,creationDate);
+
+			// progressing fields
+			this.addField("startDate",			FIELD.TYPES.DATE	,startDate);
+			this.addField("startProgress",		FIELD.TYPES.INT		,startProgress);
+			this.addField("lastProgressDate",	FIELD.TYPES.DATE);
+			this.addField("lastProgress",		FIELD.TYPES.INT);
+		},
+		addMessage(message)
+		{
+			this.messages.push({message,time:SC.dateConvert.to(new Date())});
+		},
+		setState(state)
+		{
+			if(state===Task.states.RUNNING)
+			{
+				this.startDate=new Date();
+				this.startProgress=this.progress;
+				this.setProgress(this.progress)
+			}
+			this.state=state;
+		},
+		setProgress(value)
+		{
+			this.lastProgress=this.progress;
+			this.lastProgressDate=this.progressDate;
+
+			this.progress=value;
+			this.progressDate=new Date();
+		},
+		modified()
+		{
+			this.modifiedDate=new Date();
+		},
+		getRemainingTime()
+		{
+			return 	(this.progress - this.startProgress)/(this.progressDate - this.startDate);
+		},
+		getCurrentRemainingTime()
+		{
+			return 	(this.progress - this.lastProgress)/(this.progressDate - this.lastProgressDate);
+		}
+	});
+
+	Task.states={
+		DISABLED:"disabled",
+		PENDING:"pending",
+		RUNNING:"running",
+		PAUSED:"paused",
+		DONE:"done",
+		FAILED:"failed"
+	};
+
+	SMOD("Task",Task);
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
