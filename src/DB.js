@@ -1,7 +1,8 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	SC=SC({
-		prom:"Promise"
+		prom:"Promise",
+		dateConvert:"converter/date"
 	});
 	
 	let DB=µ.DB=µ.DB||{};
@@ -540,7 +541,7 @@
 				case FIELD.TYPES.DATE:
 					let date=this.getValue();
 					if(date instanceof Date)
-						return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds();
+						return SC.dateConvert.to(date);
 					break;
 				default:
 					return this.getValue();
@@ -551,7 +552,7 @@
 			switch(this.type)
 			{
 				case FIELD.TYPES.DATE:
-					this.value=new Date(Date.UTC.apply(Date,jsonObj.split(",")));
+					this.value=SC.dateConvert.from(jsonObj);
 					break;
 				//TODO other conversions e.g. number from string
 				default:
@@ -561,29 +562,6 @@
 		toString:function()
 		{
 			return JSON.stringify(this);
-		},
-		fromString:function(val)
-		{
-			switch(this.type)
-			{
-				case FIELD.TYPES.BOOL:
-					this.value=!!(~~val);
-					break;
-				case FIELD.TYPES.INT:
-					this.value=~~val;
-					break;
-				case FIELD.TYPES.DOUBLE:
-					this.value=1*val;
-					break;
-				case FIELD.TYPES.DATE:
-				case FIELD.TYPES.STRING:
-				    this.value=val;
-				    break;
-				case FIELD.TYPES.JSON:
-				default:
-					this.fromJSON(JSON.parse(val));
-					break;
-			}
 		}
 	});
 	FIELD.TYPES={
