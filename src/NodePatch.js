@@ -6,7 +6,7 @@
 
 	let NODE=µ.NodePatch=µ.Class(Patch,{
 		[Patch.symbols.multiple]:true,
-		composeKeys:["parent","children","addChild","removeChild","setParent","remove","isChildOf","hasChild"],
+		composeKeys:["parent","children","addChild","removeChild","setParent","remove","contains"],
 		patch:function(name,composeKeys=NODE.prototype.composeKeys)
 		{
 			this.name=name;
@@ -97,6 +97,29 @@
 		{
 			return this.setParent(null,...args);
 		},
+
+		/**
+		 * check if item is related to this instance
+		 * @param {Object} item - NodePatched object
+		 * @returns {Number} 0 = not related, 1 = instance contains item, -1 = item contains instance
+		 */
+		contains(item)
+		{
+			let inst=this.instance;
+
+			let it=item
+			let me=inst;
+			while (item!=null&&me!=null)
+			{
+				if(it==inst) return 1
+				else if (me==item) return -1;
+				it=this._getNode(it).parent;
+				me=this._getNode(me).parent;
+			}
+
+			return 0;
+		},
+
 		destroy:function()
 		{
 			this.remove();
