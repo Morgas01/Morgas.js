@@ -9,7 +9,11 @@
 			return {
 				name:error.name,
 				message:error.message,
-				stack:error.stack
+				stack:error.stack,
+				toString()
+				{
+					return JSON.stringify(this,null,"\t");
+				}
 			};
 		return error
 	};
