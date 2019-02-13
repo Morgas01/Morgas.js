@@ -74,7 +74,10 @@
 		},
 		verbose:30,
 		getLevel:function(){return µ.logger.verbose},
-		setLevel:function(level){µ.logger.verbose=level},
+		setLevel:function(level)
+		{
+			if(!isNaN(level))µ.logger.verbose=parseFloat(level)
+		},
 		/**
 		 * @param {Number}	verbose
 		 * @param {Array}	msgs
