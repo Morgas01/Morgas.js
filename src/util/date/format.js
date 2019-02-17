@@ -43,7 +43,7 @@
                 case "s":
                 	return leftPad(date.getSeconds(),2);
                 case "t":
-                	return leftPad(date.getMilliseconds(),2);
+                	return leftPad(date.getMilliseconds(),3);
                 case "z":
                 	return date.getTimezoneOffset()/60;
 			}

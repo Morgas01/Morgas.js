@@ -60,10 +60,10 @@
 		{
 			return PATH.parse(this.filePath).ext;
 		},
-		changePath:function(path)
+		changePath:function(...path)
 		{
 			if(path instanceof FILE) path=path.getAbsolutePath();
-			this.filePath=PATH.resolve(this.filePath,path);
+			this.filePath=PATH.resolve(this.filePath,...path);
 			return this;
 		},
 		getAbsolutePath:function()
