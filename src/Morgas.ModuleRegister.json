@@ -41,6 +41,7 @@
 	"CSV": "util/converter/csv.js",
 	"converter/date": "util/converter/date.js",
 	"metricUnit": "util/converter/metricUnit.js",
+	"date/format": "util/date/format.js",
 	"caught": "util/function/cought.js",
 	"group": "util/function/group.js",
 	"proxy": "util/function/proxy.js",

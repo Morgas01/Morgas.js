@@ -12,7 +12,7 @@
 		},
 		from(dateString)
 		{
-			return new Date(Date.UTC.apply(Date,jsonObj.split(",")));
+			return new Date(Date.UTC.apply(Date,dateString.split(",")));
 		}
 	};
 

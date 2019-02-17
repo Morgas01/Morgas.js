@@ -161,6 +161,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"util/date/format.js": {
+		"deps": [],
+		"uses": []
+	},
 	"util/function/cought.js": {
 		"deps": [],
 		"uses": []

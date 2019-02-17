@@ -260,6 +260,10 @@
 		"deps": [],
 		"uses": []
 	},
+	"date/format": {
+		"deps": [],
+		"uses": []
+	},
 	"caught": {
 		"deps": [],
 		"uses": []

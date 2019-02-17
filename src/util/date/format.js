@@ -4,6 +4,14 @@
 	let uDate=util.date=util.date||{};
 
 	//SC=SC({});
+
+	let leftPad=function(string,minLength,char="0")
+	{
+		string=""+string;
+		if(string.length>=minLength) return string;
+		return char.repeat(minLength-string.length)+string;
+	};
+
 	/**
 	 * Y = year
 	 * M = month
@@ -16,7 +24,7 @@
 	 * @param {Date} date
 	 * @param {String} format
 	 */
-	uDate.format=(date,format)
+	uDate.format=function(date,format)
 	{
 		return format.replace(/([YMDhmstz])/g,function(match, group)
 		{
@@ -25,23 +33,25 @@
 				case "Y":
 					return date.getFullYear();
                 case "M":
-                	return date.getMonth();
+                	return leftPad(date.getMonth()+1,2);
                 case "D":
-                	return date.getDate();
+                	return leftPad(date.getDate(),2);
                 case "h":
-                	return date.getHours();
+                	return leftPad(date.getHours(),2);
                 case "m":
-                	return date.getMinutes();
+                	return leftPad(date.getMinutes(),2);
                 case "s":
-                	return date.getSeconds();
+                	return leftPad(date.getSeconds(),2);
                 case "t":
-                	return date.getMilliseconds();
+                	return leftPad(date.getMilliseconds(),2);
                 case "z":
                 	return date.getTimezoneOffset()/60;
 			}
-		})
-		return date.getUTCFullYear()+","+date.getUTCMonth()+","+date.getUTCDate()+","+date.getUTCHours()+","+date.getUTCMinutes()+","+date.getUTCSeconds()+","+date.getUTCMilliseconds()
+		});
 	};
+	uDate.format.time="h:m:s";
+	uDate.format.exactTime="h:m:s.t";
+	uDate.format.date="D.M.Y";
 
 	SMOD("date/format",uDate.format);
 
