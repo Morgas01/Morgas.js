@@ -1,10 +1,6 @@
 Morgas.js:
 	- loadedModules
-	- onExtend symbol for classes ?
 
-µ.Listeners
-	- remove .created statelistener
-	- change attachListeners to patch
 build:
 	- docs (jsDocs ?)
 
@@ -28,18 +24,10 @@ build:
 µ.DB.Connector.IndexedDBConnector:
 	- custom upgrade sequence ( like liquibase )
 
-Morgas.util.object.inputValues.js: (deprecated?)
-	- array support
-	- dynamic option (object with getter & setter)
-	- subscribers? (zb: slider + input)
-
 NodeJs/Commander:
 	- help command
 	- command in new process (multithread patch ?)
 	- command options ( -c )
-
-File/FileHelper:
-	- move (copy) to other devices (drives)
 
 
 NEW:
@@ -49,3 +37,4 @@ NEW:
 	- service worker - resource handler (server push?)
 	- translations
 	- translated resources
+	- object.util.sort
