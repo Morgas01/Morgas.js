@@ -192,7 +192,7 @@
 		return todo[0].siblingResults[0];
 	};
 
-	NODE.traverseTo=function(root,path,childrenGetter)
+	NODE.traverseTo=function(root,path,{childrenGetter}={})
 	{
 		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
 		if(typeof path=="string") path=path.split(".");
