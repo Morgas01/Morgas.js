@@ -11,9 +11,9 @@
 	 *
 	 * @param {Function} fn
 	 * @param {Number} (delay=50) - time to group calls in ms
-	 * @param {Number} (maxDelay) - max time to group calls in ms
+	 * @param {Number} (maxDelay=delay*3) - max time to group calls in ms
 	 */
-	uFn.group=function(fn,delay=50,maxDelay)
+	uFn.group=function(fn,delay=50,maxDelay=delay*3)
 	{
 		let timer=null;
 		let maxTimer=null;

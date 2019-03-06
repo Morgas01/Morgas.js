@@ -12,17 +12,17 @@
 	var path=require("path");
 
 	var NODEWORKER=µ.NodeJs.Worker=µ.Class(AbstractWorker,{
-		constructor:function(param={})
+		constructor:function(argParam={})
 		{
 			({
 				script:this.script=NODEWORKER.defaults.SCRIPT,
 				cwd:this.cwd=path.dirname(this.script),
 				param:this.param
-			}=param);
+			}=argParam);
 
 			SC.Promise.pledgeAll(this,["stop"]);
 
-			this.mega(param);
+			this.mega(argParam);
 		},
 		_start:function()
 		{
