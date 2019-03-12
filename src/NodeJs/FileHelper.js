@@ -209,13 +209,13 @@
 				return args;
 			});
 		},
-		calcHash(algorithm="md5",cb,progress)
+		calcHash(algorithm="md5",progress)
 		{
 			return SC.prom.chain(this.selected,filename=>
 			{
 				let calcFile=this.file.clone().changePath(filename);
-				return SC.util.calcHash(algorithm,calcFile,progress)
-				.then(hash=>cb([filename,hash]),e=>cb([filename,e]));
+				return SC.util.calcHash(calcFile,algorithm,progress)
+				.then(hash=>[filename,hash],e=>[filename,e]);
 			});
 		},
 		"delete":function()

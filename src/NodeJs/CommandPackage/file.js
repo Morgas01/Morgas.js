@@ -1,5 +1,7 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	
+
+	let CRYPTO=require("crypto");
+
 	let CommandPackage=GMOD("CommandPackage");
 	
 	SC=SC({
@@ -52,9 +54,13 @@
 				µ.logger.error(a,e);
 				return false;
 			}
-		}))
+		}));
 
 		return dirNames.map(a=>PATH.join(addition,a)+PATH.sep);
+	};
+	let hashCompleter=function(line)
+	{
+		return CRYPTO.getHashes().filter(function(a){return a.indexOf(line)==0});
 	};
 	
 	let FileCommands=CommandPackage.file=µ.Class(CommandPackage,
@@ -117,6 +123,14 @@
 			{
 				return this.fh.appendCRC(a=>this.out(a.join("\t=>\t")),this.progressOutput).then(o=>"");
 			},
+			calcHash:CommandPackage.createCommand(
+				function(line)
+				{
+					let algorithm=line.trim()||undefined;
+					return this.fh.calcHash(algorithm,this.progressOutput).then(o=>o.map(r=>r.join("\t")).join("\n"))
+				},
+				hashCompleter
+			),
 			"delete":CommandPackage.createCommand(
 				function(pattern){return this.fh["delete"]().then(o=>o.map(r=>r.join("\t")).join("\n"))},
 				fileNameCompleter,

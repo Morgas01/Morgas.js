@@ -160,7 +160,7 @@
 		async calcHash(file,algorithm="md5",progress)
 		{
 			let stat=await file.stat();
-			let stream=await calcFile.readStream();
+			let stream=await file.readStream();
 			return new Promise((resolve,reject)=>
 			{
 				let hash=CRYPTO.createHash(algorithm);
