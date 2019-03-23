@@ -43,6 +43,7 @@
 			{path:"DB.js",nodeJs:true,web:true},
 			{path:"DB/ObjectConnector.js",nodeJs:true,web:true},
 			{path:"DB/IndexedDBConnector.js",nodeJs:false,web:true},
+			{path:"Transmuter.js",nodeJs:true,web:true},
 
 			{path:"NodeJs/nodeWorker.js",nodeJs:true,web:false}
 		]

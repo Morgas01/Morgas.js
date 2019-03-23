@@ -1,5 +1,5 @@
 require("..")//morgas
-QUnit=require("qunitjs");
+QUnit=require("qunit");
 QUnit.dump.multiline=false;
 require("qunit-tap")(QUnit,console.log);
 
