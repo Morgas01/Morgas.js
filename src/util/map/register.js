@@ -10,7 +10,7 @@
 	/**
 	 *
 	 * @param {Number} (stageCount=1) - count of generated stages
-	 * @param {Function} (mapType=WeakMap())
+	 * @param {Function} (mapType=Map())
 	 * @param {Function} (defaultValue=()=>new mapType())
 	 */
 	let register=uMap.register=function(stageCount,mapType=Map,defaultValue=()=>new mapType())
