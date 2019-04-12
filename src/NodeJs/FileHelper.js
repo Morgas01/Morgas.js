@@ -2,13 +2,12 @@
 
 	µ.NodeJs=µ.NodeJs||{};
 
-	let FS=require("fs");
 	let PATH=require("path");
 	
 	SC=SC({
 		prom:"Promise",
 		File:"File",
-		util:"File.util",
+		util:"File/util",
 		crc:"util.crc32",
 		uni:"uniquify"
 	});
@@ -79,7 +78,7 @@
 			}
 			else
 			{
-				let doFilter=function(files)
+				let doFilter=(files)=>
 				{
 					if(pattern==="all")					return files;
 					else if(pattern==="noCRC")			return files.filter((a)=>!a.match(extractChecksum));
@@ -111,8 +110,8 @@
 		},
 		isEmpty:function(fileName)
 		{
-			return this.File.clone().changePath(fileName).stat()
-			.then(stat=> stat.size==0,µ.constantFunctions.t);
+			return this.file.clone().changePath(fileName).stat()
+			.then(stat=> stat.size==0&&!stat.isDirectory(),µ.constantFunctions.t);
 		},
 		select:function(pattern)
 		{
@@ -210,6 +209,15 @@
 				return args;
 			});
 		},
+		calcHash(algorithm="md5",progress)
+		{
+			return SC.prom.chain(this.selected,filename=>
+			{
+				let calcFile=this.file.clone().changePath(filename);
+				return SC.util.calcHash(calcFile,algorithm,progress)
+				.then(hash=>[filename,hash],e=>[filename,e]);
+			});
+		},
 		"delete":function()
 		{
 			let promise=SC.prom.chain(this.selected.slice(),filename=>this.file.clone()
@@ -227,7 +235,7 @@
 		},
 		moveToDir:function(dir)
 		{
-			let target=this.file.clone().changePath(dir)
+			let target=this.file.clone().changePath(dir);
 			return SC.util.enshureDir(target)
 			.then(()=>
 			{
@@ -237,6 +245,23 @@
 				this.selected.length=0;
 				return p;
 			});
+		},
+		copyToDir:function(dir,progress)
+		{
+			let target=this.file.clone().changePath(dir);
+			return SC.util.enshureDir(target)
+			.then(()=>
+				SC.prom.chain(this.selected.slice(),filename=>
+					this.file.clone()
+					.changePath(filename)
+					.copyToDir(target)
+					.then(function()
+					{
+						progress("copied "+this.getName());
+						return this.filePath;
+					})
+				)
+			);
 		},
 		//TODO fix dot between numbers
 		cleanNames:function()
@@ -277,7 +302,7 @@
 							this.file.clone().changePath(aPart).readStream({encoding:"binary"})
 							.then(stream=>{return{name:aPart,stream:stream}})
 						,null,this)
-						.then(function(args)
+						.then(args=>
 						{
 							let target=part[1]+"."+part[3];
 							return this.file.clone().changePath(target).writeStream({encoding:"binary"})
@@ -292,7 +317,7 @@
 							});
 						})
 						.then(data=>
-							SC.prom.chain(data.read,read=>
+							SC.prom.chain(data.read,(read,i)=>
 								new SC.prom(signal=>{
 
 									if(cb)cb("\tstart\t"+read.name+"\t"+(i+1)+"/"+data.read.length);

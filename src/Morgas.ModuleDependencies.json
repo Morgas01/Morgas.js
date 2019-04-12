@@ -13,21 +13,48 @@
 		"deps": [],
 		"uses": []
 	},
-	"DependencyResolver": {
+	"DBConn": {
 		"deps": [],
 		"uses": [
-			"array.remove",
-			"uniquify",
-			"flatten"
+			"Promise",
+			"converter/date"
 		]
+	},
+	"DBObj": {
+		"deps": [],
+		"uses": [
+			"Promise",
+			"converter/date"
+		]
+	},
+	"DBFriend": {
+		"deps": [],
+		"uses": [
+			"Promise",
+			"converter/date"
+		]
+	},
+	"DBRel": {
+		"deps": [],
+		"uses": [
+			"Promise",
+			"converter/date"
+		]
+	},
+	"DBField": {
+		"deps": [],
+		"uses": [
+			"Promise",
+			"converter/date"
+		]
+	},
+	"DependencyResolver": {
+		"deps": [],
+		"uses": []
 	},
 	"DepRes": {
 		"deps": [],
-		"uses": [
-			"array.remove",
-			"uniquify",
-			"flatten"
-		]
+		"uses": []
 	},
 	"Event": {
 		"deps": [
@@ -77,12 +104,6 @@
 			"array.removeIf"
 		]
 	},
-	"NodePatch.Compare": {
-		"deps": [
-			"NodePatch"
-		],
-		"uses": []
-	},
 	"NodePatch": {
 		"deps": [
 			"Patch"
@@ -96,7 +117,8 @@
 		"uses": [
 			"equals",
 			"goPath",
-			"proxy"
+			"proxy",
+			"encase"
 		]
 	},
 	"Patch": {
@@ -118,6 +140,92 @@
 	},
 	"SortedArray": {
 		"deps": [],
+		"uses": [
+			"flatten"
+		]
+	},
+	"Worker": {
+		"deps": [
+			"AbstractWorker"
+		],
+		"uses": []
+	},
+	"IndexedDBConnector": {
+		"deps": [
+			"DBConn"
+		],
+		"uses": [
+			"Promise",
+			"equals",
+			"DBObj",
+			"DBFriend"
+		]
+	},
+	"IDBConn": {
+		"deps": [
+			"DBConn"
+		],
+		"uses": [
+			"Promise",
+			"equals",
+			"DBObj",
+			"DBFriend"
+		]
+	},
+	"ObjectConnector": {
+		"deps": [
+			"DBConn",
+			"Organizer"
+		],
+		"uses": [
+			"equals"
+		]
+	},
+	"Task": {
+		"deps": [
+			"DBObj",
+			"DBField"
+		],
+		"uses": [
+			"converter/date"
+		]
+	},
+	"NodePatch.Compare": {
+		"deps": [
+			"NodePatch"
+		],
+		"uses": []
+	},
+	"util.crc32": {
+		"deps": [],
+		"uses": []
+	},
+	"download": {
+		"deps": [],
+		"uses": []
+	},
+	"fuzzySearch": {
+		"deps": [],
+		"uses": []
+	},
+	"queryParam": {
+		"deps": [],
+		"uses": []
+	},
+	"request": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"request.json": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
+	},
+	"encase": {
+		"deps": [],
 		"uses": []
 	},
 	"array.equal": {
@@ -136,7 +244,15 @@
 		"deps": [],
 		"uses": []
 	},
+	"array.repeat": {
+		"deps": [],
+		"uses": []
+	},
 	"CSV": {
+		"deps": [],
+		"uses": []
+	},
+	"converter/date": {
 		"deps": [],
 		"uses": []
 	},
@@ -144,11 +260,15 @@
 		"deps": [],
 		"uses": []
 	},
-	"util.crc32": {
+	"date/format": {
 		"deps": [],
 		"uses": []
 	},
-	"download": {
+	"caught": {
+		"deps": [],
+		"uses": []
+	},
+	"group": {
 		"deps": [],
 		"uses": []
 	},
@@ -157,10 +277,6 @@
 		"uses": []
 	},
 	"rescope": {
-		"deps": [],
-		"uses": []
-	},
-	"fuzzySearch": {
 		"deps": [],
 		"uses": []
 	},
@@ -196,95 +312,8 @@
 		"deps": [],
 		"uses": []
 	},
-	"registerMap": {
-		"deps": [],
-		"uses": []
-	},
 	"uniquify": {
 		"deps": [],
 		"uses": []
-	},
-	"queryParam": {
-		"deps": [],
-		"uses": []
-	},
-	"request": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"request.json": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"Worker": {
-		"deps": [
-			"AbstractWorker"
-		],
-		"uses": []
-	},
-	"IndexedDBConnector": {
-		"deps": [
-			"DBConn"
-		],
-		"uses": [
-			"Promise",
-			"equals",
-			"DBObj",
-			"DBFriend"
-		]
-	},
-	"IDBConn": {
-		"deps": [
-			"DBConn"
-		],
-		"uses": [
-			"Promise",
-			"equals",
-			"DBObj",
-			"DBFriend"
-		]
-	},
-	"DBConn": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBObj": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBFriend": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBRel": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"DBField": {
-		"deps": [],
-		"uses": [
-			"Promise"
-		]
-	},
-	"ObjectConnector": {
-		"deps": [
-			"DBConn",
-			"Organizer"
-		],
-		"uses": [
-			"equals"
-		]
 	}
 }

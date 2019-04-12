@@ -1,146 +1,202 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 	
 	µ.NodeJs=µ.NodeJs||{};
-	
-	let PATCH=GMOD("Patch");
+
 	let readline = require('readline');
-	
+	let UTIL = require('util');
+
 	SC=SC({
-		prom:"Promise"
+		Promise:"Promise",
+		register:"register",
+		es:"errorSerializer"
 	});
 	
 	let COM=µ.NodeJs.Commander=µ.Class({
-		constructor:function(commandPackages)
+		constructor:function({
+			commandModules=["CommandPackage/exit"],
+			commandPackages=[],
+			prompt=">",
+			input=process.stdin,
+			output=process.stdout
+		})
 		{
-			commandPackages=commandPackages||[];
-			commandPackages.unshift("exit");
-			
-			this.commands={};
-			this.prompt=">";
+			this.packages=new Map();
+			this.commandRegister=SC.register(1,()=>[]);
+
+			this.prompt=prompt;
+			this.isClosed=false;
+			this.isPaused=false;
 			this.rl = readline.createInterface({
-				input: process.stdin,
-				output: process.stdout,
-				completer:(line,cb)=>
-				{
-					if(line.length===0)cb(null,[Object.keys(this.commands).sort(),line]);
-					else
-					{
-						let rtn=[];
-						let match=line.match(/((\S+)\s+)(.*)/);
-						if(!match)
-						{
-							rtn=Object.keys(this.commands).filter(function(a){return a.indexOf(line)==0})
-							.map(function(a){return a+" ";}).sort();
-						}
-						else if ([match[2]] in this.commands&&"completer" in this.commands[match[2]])
-						{
-							let cmd=this.commands[match[2]];
-							rtn=cmd.completer.call(cmd.scope,match[3])//.map(function(a){return match[1]+a});
-							line=match[3];
-						}
-						if(SC.prom.isThenable(rtn))
-						{
-							rtn.then(result=>[result,line],function(e)
-							{
-								µ.logger.error(e);
-								return [[],line];
-							}).then(r=>cb(null,r));
-						}
-						else cb(null,[rtn,line]);
-					}
-				}
+				input: input,
+				output: output,
+				completer:this.completeLine.bind(this)
 			});
-			let closed=false;
-			this.rl.on("line",line=>
+			this.rl.on("line",this.onLine.bind(this))
+			.on("close",()=>this.isClosed=true)
+			.on("pause",()=>this.isPaused=true)
+			.on("resume",()=>this.isPaused=false);
+			
+			this.addCommandPackage(...commandPackages);
+			this.loadCommandModule(...commandModules);
+
+			this.resume();
+		},
+		completeLine(line,callback)
+		{
+			let rtn=[];
+			if(line.length===0)rtn=Object.keys(this.commandRegister).map(a=>a+" ").sort();
+			else
 			{
-				let match=line.match(/(\S+)\s*(.*)/);
-				if(match&&match[1] in this.commands)
+				let match=line.match(/((\S+)\s+)(.*)/);
+				if(!match)
 				{
-					let cmd=this.commands[match[1]];
-					try
-					{
-						cmd.call(cmd.scope,match[2]);
-					}
-					catch (e)
-					{
-						µ.logger.error(e.message);
-						µ.logger.error(e.stack);
-					}
-					if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
+					rtn=Object.keys(this.commandRegister).filter(function(a){return a.indexOf(line)==0})
+					.map(a=>a+" ");
 				}
 				else
 				{
-					//TODO
-					let cmd=match&&match[1]||line;
-					µ.logger.log("unknown command "+cmd);
-					if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
-				}
-			})
-			.on("close",function(){closed=true})
-			.on("pause",function(){closed=true})
-			.on("resume",function(){closed=false});
-			
-			for(let i=0;i<commandPackages.length;i++)
-			{
-				if(HMOD("CommandPackage."+commandPackages[i]))
-				{
-					let pack=GMOD("CommandPackage."+commandPackages[i]);
-					new pack(this);
+					let commandName=match[2];
+					let argumentString=match[3];
+					let packages=this.commandRegister[commandName];
+					if(packages.length>1)
+					{
+						this.out(`command ${commandName} is not unique:`,packages.map(p=>p+":"+commandName).sort());
+					}
+					else
+					{
+						let package=this.packages.get(packages[0]);
+						try
+						{
+							rtn=package.completeCommand(commandName,argumentString);
+							line=argumentString;
+						}
+						catch (e)
+						{
+							µ.logger.error(SC.es(e));
+						}
+					}
 				}
 			}
-			if(!closed){this.rl.setPrompt(this.prompt);this.rl.prompt()};
+			Promise.resolve(rtn).then(result=>[result,line],function(e)
+			{
+				µ.logger.error(SC.es(e));
+				return [[],line];
+			})
+			.then(r=>callback(null,r));
 		},
-		subCommander:function(name,commander)
+		onLine(line)
 		{
-			//TODO
+			let match=line.match(/(\S+)\s*(.*)/);
+			if(match&&match[1] in this.commandRegister)
+			{
+				let commandName=match[1];
+				let argumentString=match[2];
+				//TODO explicit package notation:  "package:command args"
+				let packages=this.commandRegister[commandName];
+				if(packages.length>1)
+				{
+					this.out(`command ${commandName} is not unique:`,packages.map(p=>p+":"+commandName).sort());
+					return;
+				}
+				let package=this.packages.get(packages[0]);
+				this.pause();
+				new SC.Promise(package.executeCommand,{scope:package,args:[commandName,argumentString],simple:true})
+				.catch(e=>
+				{
+					µ.logger.error(SC.es(e));
+				})
+				.then(result=>
+				{
+					if(result!=null) this.out(result);
+					this.resume();
+				});
+			}
+			else
+			{
+				//TODO
+				let cmd=match&&match[1]||line;
+				this.out("unknown command "+cmd);
+				if(!(this.isClosed&&!this.isPaused)){this.rl.setPrompt(this.prompt);this.rl.prompt()};
+			}
+		},
+		loadCommandModule(...modules)
+		{
+			for(let module of modules)
+			{
+				if(HMOD(module))
+				{
+					let commandPackage=GMOD(module);
+					this.addCommandPackage(new commandPackage());
+				}
+				else
+				{
+					µ.logger.error(`could not load CommandModule ${module}`);
+				}
+			}
+		},
+		addCommandPackage(...packages)
+		{
+			for(let package of packages)
+			{
+				if(this.packages.has(package.name))
+				{
+					µ.logger.warn("#Commander:001 "+package.name+" already ind this commander");
+					continue
+				}
+				this.packages.set(package.name,package);
+				package._setCommander(this);
+
+				for(let command of package.getCommands())
+				{
+					if(command.includes(":"))
+					{
+						µ.logger.error(`#Commander:002 commmand "${command}" contains invalid character ":"`);
+					}
+					this.commandRegister[command].push(package.name);
+				}
+			}
+		},
+		getCommandPackage(name)
+		{
+			return this.packages.get(name);
+		},
+		setPrompt(prompt=this.prompt)
+		{
+			this.prompt=prompt
+			if(!this.isClosed&&!this.isPaused)this.rl.setPrompt(this.prompt);
+		},
+		out(...msg)
+		{
+			/* TODO
+			this.rl.write(UTIL.inspect(msg,{
+				compact:false,
+				colors:true,
+				depth:5,
+			})+"\n");
+			this.rl.prompt();
+			/*/
+			console.log(...msg);
+			//*/
+		},
+		pause()
+		{
+			this.rl.pause();
+		},
+		resume:function()
+		{
+			if(!this.isClosed)
+			{
+				this.rl.resume();
+				this.rl.setPrompt(this.prompt);
+				this.rl.prompt()
+			}
+		},
+		close()
+		{
+			this.rl.close();
 		}
 	});
 	COM.Packages={};
 	SMOD("Commander",COM);
-	
-	COM.CommandPackage=µ.Class(PATCH,{
-		//patchID:"CommandPackageName",		//abstract CommandPackage
-		commands:{},
-		patch:function()
-		{
-			for(let c in this.commands)
-			{
-				this.commands[c].scope=this;
-				if(c in this.instance.commands) µ.logger.warn("command name "+c+" is already used");
-				else this.instance.commands[c]=this.commands[c];
-			}
-		},
-		out:function(msg)
-		{
-			/* TODO
-			this.instance.rl.write(msg+"\n");
-			this.instance.rl.prompt();
-			*/
-			console.log(msg);
-		},
-		pause:function()
-		{
-			this.instance.rl.pause();
-		},
-		resume:function()
-		{
-			this.instance.rl.resume();
-			this.instance.rl.setPrompt(this.instance.prompt);
-			this.instance.rl.prompt()
-		}
-	});
-	SMOD("CommandPackage",COM.CommandPackage);
-	
-	let EXIT=µ.Class(COM.CommandPackage,
-	{
-		patchID:"exit",
-		commands:{
-			exit:function(line)
-			{
-				this.instance.rl.close();
-			}
-		}
-	});
-	SMOD("CommandPackage.exit",EXIT);
 	
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

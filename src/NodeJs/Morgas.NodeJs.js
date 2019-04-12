@@ -86,8 +86,4 @@
 		}
 		return oldGetModule(key);
 	};
-
-	/* polyfills */
-
-	//Array.slice=Array.prototype.slice.call.bind(Array.slice);
 })();
