@@ -1,18 +1,12 @@
 QUnit.module("util.converter.csv",function()
 {
-	
-	let SC=µ.shortcut({
-		prom:"Promise",
-		rq:"request"
-	});
 
 	let csvSymbols=µ.util.converter.csv.symbols;
 
 	QUnit.module("csv",{
 		before:function()
 		{
-			return SC.rq("resources/csv.csv")
-			.then(csvData=>this.data=csvData);
+			this.data='field1,field2,field3,\n1,2,3\n\n4,5,6,7,8\n9,"""special"", \ncharacters",10';
 		}
 	},function()
 	{
@@ -56,8 +50,7 @@ QUnit.module("util.converter.csv",function()
 	QUnit.module("tsv",{
 		before:function()
 		{
-			return SC.rq("resources/tsv.tsv")
-			.then(tsvData=>this.data=tsvData);
+			this.data='1\t2\t3\n\n4\t5\t6\t7\t8\n9\t"""special""\t\ncharacters"\t10';
 		}
 	},function()
 	{

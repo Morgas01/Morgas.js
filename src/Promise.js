@@ -165,6 +165,7 @@
 			return new PROM(fn,{args:vArgs,scope:scope});
 		}
 	};
+	/** wraps thenable and provides the µ.Promise API */
 	PROM.pledgeAll=function(scope,keys)
 	{
 		keys=keys||Object.keys(scope);
