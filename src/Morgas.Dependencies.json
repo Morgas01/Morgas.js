@@ -69,6 +69,10 @@
 			"util/array/flatten.js"
 		]
 	},
+	"Transmuter.js": {
+		"deps": [],
+		"uses": []
+	},
 	"Worker.js": {
 		"deps": [
 			"AbstractWorker.js"

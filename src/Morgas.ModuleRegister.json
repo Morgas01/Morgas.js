@@ -20,6 +20,7 @@
 	"Promise": "Promise.js",
 	"signature": "signature.js",
 	"SortedArray": "SortedArray.js",
+	"Transmuter": "Transmuter.js",
 	"Worker": "Worker.js",
 	"IndexedDBConnector": "DB/IndexedDBConnector.js",
 	"IDBConn": "DB/IndexedDBConnector.js",
