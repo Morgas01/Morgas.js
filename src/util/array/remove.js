@@ -1,13 +1,13 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var utilArray=util.array=util.array||{};
+	let util=µ.util=µ.util||{};
+	let utilArray=util.array=util.array||{};
 
 	//SC=SC({});
 
 	utilArray.remove=function(array,item)
 	{
-		var index=array.indexOf(item);
+		let index=array.indexOf(item);
 		if(index!=-1) array.splice(index,1);
 		return index;
 	};
@@ -18,7 +18,7 @@
 		let count=0;
 		if(all)
 		{
-			for(var i=array.length-1;i>=0;i--)
+			for(let i=array.length-1;i>=0;i--)
 			{
 				if(predicate.call(scope,array[i],i,array))
 				{
@@ -29,7 +29,7 @@
 		}
 		else
 		{
-			var index=array.findIndex(predicate,scope);
+			let index=array.findIndex(predicate,scope);
 			if(index!=-1)
 			{
 				array.splice(index,1);

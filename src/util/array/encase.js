@@ -5,12 +5,17 @@
 
 	//SC=SC({});
 
+	/**
+	 * ensures that 'value' is an array
+	 * @param {*|Array.<*>}value
+	 * @return {Array.<*>}
+	 */
 	array.encase=function(value)
 	{
 		if(Array.isArray(value)) return value;
 		if(value==null) return [];
 		return [value];
-	}
+	};
 
 	SMOD("encase",array.encase);
 
