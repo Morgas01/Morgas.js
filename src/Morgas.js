@@ -18,7 +18,8 @@
 		"es":function(){return ""},
 		"boolean":function(val){return !!val},
 		"pass":function(a){return a},
-		"scope":function(){return this}
+		"scope":function(){return this},
+		"same":function (a,b){return a===b}
 	};
 
 	/** Modules
