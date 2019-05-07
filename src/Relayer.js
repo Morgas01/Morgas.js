@@ -2,174 +2,104 @@
 
 	//SC=SC({});
 
-	let getIterator=function(iterable)
-	{
-		if("next" in iterable && typeof iterable.next === "function") return iterable;
-		return iterator=iterable[Symbol.iterator];
-	};
-	let toArray=function(iterators)
-	{
-		let rtn=[];
-		for(let it of iterators)
-		{
-			let step;
-			while(!(step=it.next()).done)
-			{
-				rtn.push(step.value);
-			}
-		}
-		return rtn;
-	};
-	let hasResult=Symbol("hasResult");
-	let noResult={[hasResult]:false};
 	/**
 	 * relays asynchronous operations for more behaviour control
 	 */
 	µ.Relayer=µ.Class({
-		constructor:function(iterable, {parallel=false}={})
+		constructor:function(iterable)
 		{
-			this.parallelMode=parallel;
-			this.actions=[{type:"init",iterators:[getIterator(iterable)],parallel}];
+			this.inputIterator=µ.Relayer.refillableIterator(iterable);
+			this.actionIterator=this.inputIterator;
 		},
 		/** itrrator protocol */
 		async next()
 		{
-			let index=this.actions.length-1;
-			findEntry:while (!foundValue)
-			{
-				if(index<0) return {value:undefined,done:true};
-				if(action.iterators.length==0)
-				{
-					index--;
-					continue;
-				}
-				let action=this.actions[index];
-				let step=await action.iterators[0].next();
-				if(step.done)
-				{
-					action.iterators.shift();
-				}
-				else
-				{
-					let value=await this._doActions(index+1,step.value);
-					return {value,done:false};
-				}
-			}
+			return this.actionIterator.next();
 		},
-		async _doAction(action,value)
-		{
-			let nextValue=await action.fn(value);
-			switch(action.type)
-			{
-				case "flatMap":
-					return nextValue;
-				case "filter":
-					if(!nextValue) return [];
-				default:
-					return [nextValue];
-			}
-		},
-		async _doSeparateActions(index,value)
-		{
-			for(let i=0;i<this.actions.length;i++)
-			{
-				let action=this.actions[i];
-				let nextValue=await this._doAction(action,value);
-				if(nextValue.length==0) return nextValue;
-				else if (nextValue.length>1)
-				{
-					if(this.actions.length<i+1)
-					{
-						promises.push(this._doParallelActions(i+1,nextValue.slice(1)));
-						action.iterators.unshift(getIterator(nextValue.slice(1)));
-						nextValue.length=1;
-					}
-					else
-					{
-						nextValue=[nextValue];
-					}
-				}
-				value=nextValue[0];
-			}
-			return [value];
-		},
-		async _doParallelActions(index,values,promises=[])
-		{
-			let values=[startValue,...toArray(this.actions[index].iterators];
-
-			values.forEach((value)=>
-			{
-				for(let i=0;i<this.actions.length;i++)
-				{
-					let action=this.actions[i];
-					let nextValue=await this._doAction(action,value);
-					if(nextValue.length==0) return nextValue;
-					else if (nextValue.length>1)
-					{
-						if(this.actions.length<i+1)
-						{
-							if(this.actions[i+1].parallel)
-							{
-								promises.push(this._doParallelActions(i+1,nextValue.slice(1)));
-							}
-							else
-							{
-								action.iterators.unshift(raceGenerator(nextValue.slice(1)));
-							}
-							nextValue.length=1;
-						}
-						else
-						{
-							nextValue=[nextValue];
-						}
-					}
-					value=nextValue[0];
-				}
-				return ?
-			});
-			return {[hasResult]:true,result:value};
-		},
-		/** sets parallel mode for next actions */
-		parallel(force=true)
-		{
-			this.parallelMode=force;
+		[Symbol.asyncIterator](){
 			return this;
-		},
-		/** resets parallel mode for next actions */
-		separate()
-		{
-			this.parallelMode=false;
-		},
-		_addAction(type,fn)
-		{
-			this.actions.push({
-				type,
-				fn,
-				iterators:[],
-				parallel:this.parallelMode
-			});
 		},
 		/** peforms a asynchronous operation on an entry */
 		map(fn)
 		{
-			this._addAction("map",fn);
+			this.actionIterator=µ.Relayer.actions.map(this.actionIterator,fn);
 			return this;
 		},
 		/** all results of the operation become new entries */
 		flatMap(fn)
 		{
-			this._addAction("flatMap",fn);
+			this.actionIterator=µ.Relayer.actions.flatMap(this.actionIterator,fn);
 			return this;
 		},
-		filter(predicate)
+		filter(fn)
 		{
-			this._addAction("flatMap",predicate);
+			this.actionIterator=µ.Relayer.actions.filter(this.actionIterator,fn);
 			return this;
 		},
+		refill(...data)
+		{
+			this.inputIterator.refill(...data);
+		}
 
 		//split(){},
 		//join(){}
 	});
+
+	µ.Relayer.actions={
+		map(iterator,fn)
+		{
+			return {
+				async next()
+				{
+					let input=await iterator.next();
+					if(input.done) return input;
+					return {value:await fn(input.value),done:false};
+				}
+			};
+		},
+		filter(iterator,fn)
+		{
+			return {
+				async next()
+				{
+					while(true)
+					{
+						let input=await iterator.next();
+						if(input.done||fn(input.value)) return input;
+					}
+				}
+			}
+		},
+		flatMap(iterator,fn)
+		{
+			let results=[];
+			return {
+				async next()
+				{
+					while(true)
+					{
+						if(results.length>0) return {value:results.shift(),done:false};
+						let input=await iterator.next();
+						if(input.done) return input;
+						results.push(...await fn(input.value));
+					}
+				}
+			}
+		}
+	};
+
+	µ.Relayer.refillableIterator=function(input)
+	{
+		input=Array.from(input); //dereference and normalize parameter
+		return {
+			next()
+			{
+				if(input.length<=0) return {value:undefined,done:true};
+				return {value:input.shift(),done:false};
+			},
+			refill:input.push.bind(input)
+		};
+	}
 
 	SMOD("Relayer",µ.Relayer);
 
