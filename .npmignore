@@ -2,12 +2,14 @@
 .settings/*.*
 .project
 *.iml
+.gitignore
 .idea/
 out/
 target/
 node_modules/
 *.log
 package-lock.json
+ToDoList.txt
 
 build/
 test/

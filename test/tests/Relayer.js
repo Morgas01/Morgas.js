@@ -94,5 +94,44 @@ QUnit.module("Relayer",function()
 
 		assert.verifySteps(arr);
 	});
+	QUnit.test("cascade",async function(assert)
+	{
+		let arr=[1,2,3,4];
+		let subRelayer=new µ.Relayer().map(a=>a*a);
+		let relayer=new µ.Relayer(arr).flatMap(a=>{
+			if(a%2==0) return subRelayer.refill(a);
+			return [a,a+1];
+		});
+
+		for await (let value of relayer)
+		{
+			assert.step(""+value);
+		}
+
+		assert.verifySteps(["1","2","4","3","4","16"]);
+	});
+	QUnit.test("fibronacci",async function(assert)
+	{
+		let arr=[1,1];
+		let lastValue=null
+		let relayer=new µ.Relayer(arr).filter(a=>{
+			if(!lastValue)
+			{
+				lastValue=a;
+				return true;
+			}
+			let nextValue=lastValue+a;
+			lastValue=a;
+			relayer.refill(nextValue);
+			return true;
+		});
+
+		for (let i=0;i<8;i++)
+		{
+			assert.step(""+(await relayer.next()).value);
+		}
+
+		assert.verifySteps(["1","1","2","3","5","8","13","21"]);
+	});
 
 });

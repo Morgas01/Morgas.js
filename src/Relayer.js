@@ -1,17 +1,28 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	//SC=SC({});
+	
+	let getAsyncIterator=async function*(iterable)
+	{
+		yield* iterable;
+	};
 
 	/**
-	 * relays asynchronous operations for more behaviour control
+	 * relays asynchronous operations for a reversion of control
+	 * Instead of calculating every entry and iterating over results
+	 * on every iteration the value will be calculated on demand.
+	 *
+	 * Relayer is also an asyncIterator.
+	 *
+	 * @param {Iterable} (iterable=[])
 	 */
 	µ.Relayer=µ.Class({
-		constructor:function(iterable)
+		constructor:function(iterable=[])
 		{
 			this.inputIterator=µ.Relayer.refillableIterator(iterable);
 			this.actionIterator=this.inputIterator;
 		},
-		/** itrrator protocol */
+		/** iterator protocol */
 		async next()
 		{
 			return this.actionIterator.next();
@@ -39,10 +50,8 @@
 		refill(...data)
 		{
 			this.inputIterator.refill(...data);
+			return this;
 		}
-
-		//split(){},
-		//join(){}
 	});
 
 	µ.Relayer.actions={
@@ -72,23 +81,34 @@
 		},
 		flatMap(iterator,fn)
 		{
-			let results=[];
+			let resultIterator=null;
 			return {
 				async next()
 				{
 					while(true)
 					{
-						if(results.length>0) return {value:results.shift(),done:false};
-						let input=await iterator.next();
-						if(input.done) return input;
-						results.push(...await fn(input.value));
+						if(!resultIterator)
+						{
+							let input=await iterator.next();
+							if(input.done) return input;
+							resultIterator=getAsyncIterator(await fn(input.value));
+						}
+						let result=await resultIterator.next();
+						if(result.done)
+						{
+							resultIterator=null;
+						}
+						else
+						{
+							return result;
+						}
 					}
 				}
 			}
 		}
 	};
 
-	µ.Relayer.refillableIterator=function(input)
+	µ.Relayer.refillableIterator=function(input=[])
 	{
 		input=Array.from(input); //dereference and normalize parameter
 		return {
