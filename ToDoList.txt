@@ -1,6 +1,9 @@
 Morgas.js:
 	- loadedModules
 
+rename metricUnit into symentricUnit
+create asymetricUnit
+
 build:
 	- docs (jsDocs ?)
 

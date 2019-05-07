@@ -134,6 +134,10 @@
 			"rescope"
 		]
 	},
+	"Relayer": {
+		"deps": [],
+		"uses": []
+	},
 	"signature": {
 		"deps": [],
 		"uses": []
@@ -279,6 +283,12 @@
 	"proxy": {
 		"deps": [],
 		"uses": []
+	},
+	"queue": {
+		"deps": [],
+		"uses": [
+			"Promise"
+		]
 	},
 	"rescope": {
 		"deps": [],

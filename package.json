@@ -22,5 +22,8 @@
 		"qunit-tap": "^1.5.1",
 		"tap-difflet": "^0.7.1",
 		"uglify-js": "^3.4.9"
+	},
+	"engines": {
+		"node": ">=10.15.3"
 	}
 }

@@ -18,7 +18,8 @@
 		"es":function(){return ""},
 		"boolean":function(val){return !!val},
 		"pass":function(a){return a},
-		"scope":function(){return this}
+		"scope":function(){return this},
+		"same":function (a,b){return a===b}
 	};
 
 	/** Modules
@@ -980,6 +981,133 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
 	//SC=SC({});
+	
+	let getAsyncIterator=async function*(iterable)
+	{
+		yield* iterable;
+	};
+
+	/**
+	 * relays asynchronous operations for a reversion of control
+	 * Instead of calculating every entry and iterating over results
+	 * on every iteration the value will be calculated on demand.
+	 *
+	 * Relayer is also an asyncIterator.
+	 *
+	 * @param {Iterable} (iterable=[])
+	 */
+	µ.Relayer=µ.Class({
+		constructor:function(iterable=[])
+		{
+			this.inputIterator=µ.Relayer.refillableIterator(iterable);
+			this.actionIterator=this.inputIterator;
+		},
+		/** iterator protocol */
+		async next()
+		{
+			return this.actionIterator.next();
+		},
+		[Symbol.asyncIterator](){
+			return this;
+		},
+		/** peforms a asynchronous operation on an entry */
+		map(fn)
+		{
+			this.actionIterator=µ.Relayer.actions.map(this.actionIterator,fn);
+			return this;
+		},
+		/** all results of the operation become new entries */
+		flatMap(fn)
+		{
+			this.actionIterator=µ.Relayer.actions.flatMap(this.actionIterator,fn);
+			return this;
+		},
+		filter(fn)
+		{
+			this.actionIterator=µ.Relayer.actions.filter(this.actionIterator,fn);
+			return this;
+		},
+		refill(...data)
+		{
+			this.inputIterator.refill(...data);
+			return this;
+		}
+	});
+
+	µ.Relayer.actions={
+		map(iterator,fn)
+		{
+			return {
+				async next()
+				{
+					let input=await iterator.next();
+					if(input.done) return input;
+					return {value:await fn(input.value),done:false};
+				}
+			};
+		},
+		filter(iterator,fn)
+		{
+			return {
+				async next()
+				{
+					while(true)
+					{
+						let input=await iterator.next();
+						if(input.done||fn(input.value)) return input;
+					}
+				}
+			}
+		},
+		flatMap(iterator,fn)
+		{
+			let resultIterator=null;
+			return {
+				async next()
+				{
+					while(true)
+					{
+						if(!resultIterator)
+						{
+							let input=await iterator.next();
+							if(input.done) return input;
+							resultIterator=getAsyncIterator(await fn(input.value));
+						}
+						let result=await resultIterator.next();
+						if(result.done)
+						{
+							resultIterator=null;
+						}
+						else
+						{
+							return result;
+						}
+					}
+				}
+			}
+		}
+	};
+
+	µ.Relayer.refillableIterator=function(input=[])
+	{
+		input=Array.from(input); //dereference and normalize parameter
+		return {
+			next()
+			{
+				if(input.length<=0) return {value:undefined,done:true};
+				return {value:input.shift(),done:false};
+			},
+			refill:input.push.bind(input)
+		};
+	}
+
+	SMOD("Relayer",µ.Relayer);
+
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	//SC=SC({});
 
 	µ.signature=
 `
@@ -1385,12 +1513,17 @@
 
 	//SC=SC({});
 
+	/**
+	 * ensures that 'value' is an array
+	 * @param {*|Array.<*>}value
+	 * @return {Array.<*>}
+	 */
 	array.encase=function(value)
 	{
 		if(Array.isArray(value)) return value;
 		if(value==null) return [];
 		return [value];
-	}
+	};
 
 	SMOD("encase",array.encase);
 
@@ -1699,14 +1832,14 @@
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){
 
-	var util=µ.util=µ.util||{};
-	var utilArray=util.array=util.array||{};
+	let util=µ.util=µ.util||{};
+	let utilArray=util.array=util.array||{};
 
 	//SC=SC({});
 
 	utilArray.remove=function(array,item)
 	{
-		var index=array.indexOf(item);
+		let index=array.indexOf(item);
 		if(index!=-1) array.splice(index,1);
 		return index;
 	};
@@ -1717,7 +1850,7 @@
 		let count=0;
 		if(all)
 		{
-			for(var i=array.length-1;i>=0;i--)
+			for(let i=array.length-1;i>=0;i--)
 			{
 				if(predicate.call(scope,array[i],i,array))
 				{
@@ -1728,7 +1861,7 @@
 		}
 		else
 		{
-			var index=array.findIndex(predicate,scope);
+			let index=array.findIndex(predicate,scope);
 			if(index!=-1)
 			{
 				array.splice(index,1);
@@ -2968,6 +3101,7 @@
 			return new PROM(fn,{args:vArgs,scope:scope});
 		}
 	};
+	/** wraps thenable and provides the µ.Promise API */
 	PROM.pledgeAll=function(scope,keys)
 	{
 		keys=keys||Object.keys(scope);
@@ -4196,6 +4330,66 @@
 		return REQ(param,scope);
 	};
 	SMOD("request.json",REQ.json);
+})(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
+/********************/
+(function(µ,SMOD,GMOD,HMOD,SC){
+
+	let util=µ.util=µ.util||{};
+	let uFn=util.function=util.function||{};
+
+	SC=SC({
+		"Promise":"Promise"
+	});
+
+	/**
+	 * limits parallel calls of fn
+	 * @param {Function} fn
+	 */
+	uFn.queue=function(fn,{limit=3,scope}={})
+	{
+		let running=new Set();
+		let queue=[];
+		let start=function()
+		{
+			while(running.size<limit&&queue.length>0)
+			{
+				let entry=queue.shift();
+				try
+				{
+					entry.openPromise.resolve(fn.apply(scope,entry.args));
+				}
+				catch(e)
+				{
+					entry.openPromise.reject(e);
+				}
+				running.add(entry);
+				entry.openPromise.always(()=>
+				{
+					running.delete(entry);
+					start();
+				});
+			}
+		};
+		let limited=async function(...args)
+		{
+			let openPromise=SC.Promise.open();
+			queue.push({args,openPromise});
+			start();
+			return openPromise;
+		};
+		limited.setLimit=function(newLimit)
+		{
+			if(isNaN(+newLimit)) return;
+			limit=Math.max(0,newLimit);
+			start();
+		};
+		limited.getLimit=()=>limit;
+
+		return limited;
+	};
+
+	SMOD("queue",uFn.queue);
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
 /********************/
 (function(µ,SMOD,GMOD,HMOD,SC){

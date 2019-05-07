@@ -59,6 +59,10 @@
 			"util/function/rescope.js"
 		]
 	},
+	"Relayer.js": {
+		"deps": [],
+		"uses": []
+	},
 	"signature.js": {
 		"deps": [],
 		"uses": []
@@ -180,6 +184,12 @@
 	"util/function/proxy.js": {
 		"deps": [],
 		"uses": []
+	},
+	"util/function/queue.js": {
+		"deps": [],
+		"uses": [
+			"Promise.js"
+		]
 	},
 	"util/function/rescope.js": {
 		"deps": [],
