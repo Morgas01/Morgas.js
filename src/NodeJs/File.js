@@ -68,7 +68,6 @@
 		},
 		changePath: function (...path)
 		{
-			if (path instanceof FILE) path = path.getAbsolutePath();
 			this.filePath = PATH.resolve(this.filePath, ...path);
 			return this;
 		},
@@ -207,7 +206,7 @@
 		},
 		equals: function (other)
 		{
-			return (other instanceof FILE) && other.getAbsolutePath() === this.getAbsolutePath();
+			return FILE.isFile(other) && other.getAbsolutePath() === this.getAbsolutePath();
 		}
 	});
 	FILE.isFile = function (file)
