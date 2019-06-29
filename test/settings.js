@@ -16,16 +16,12 @@
 			{path:"util/array/remove.js",nodeJs:true,web:true},
 			{path:"util/array/flatten.js",nodeJs:true,web:true},
 			{path:"util/array/repeat.js",nodeJs:true,web:true},
+			{path:"util/array/encase.js",nodeJs:true,web:true},
 			{path:"util/function/rescope.js",nodeJs:true,web:true},
-			{path:"Patch.js",nodeJs:true,web:true},
-			{path:"Event.js",nodeJs:true,web:true},
-			{path:"Config.js",nodeJs:true,web:true},
 			{path:"util/fuzzySearch.js",nodeJs:true,web:true},
 			{path:"util/object/uniquify.js",nodeJs:true,web:true},
 			{path:"util/object/register.js",nodeJs:true,web:true},
-			{path:"DependencyResolver.js",nodeJs:true,web:true},
 			{path:"util/object/adopt.js",nodeJs:true,web:true},
-			{path:"Promise.js",nodeJs:true,web:true},
 			{path:"util/crc32.js",nodeJs:true,web:true},
 			{path:"util/function/proxy.js",nodeJs:true,web:true},
 			{path:"util/function/queue.js",nodeJs:true,web:true},
@@ -36,8 +32,16 @@
 			{path:"util/request.js",nodeJs:false,web:true},
 			{path:"util/converter/csv.js",nodeJs:true,web:true},
 			{path:"util/converter/metricUnit.js",nodeJs:true,web:true},
+			{path:"util/converter/date.js",nodeJs:true,web:true},
+			{path:"DependencyResolver.js",nodeJs:true,web:true},
+			{path:"Config.js",nodeJs:true,web:true},
+			{path:"Transmuter.js",nodeJs:true,web:true},
+			{path:"Relayer.js",nodeJs:true,web:true},
+			{path:"Promise.js",nodeJs:true,web:true},
 			{path:"SortedArray.js",nodeJs:true,web:true},
 			{path:"Organizer.js",nodeJs:true,web:true},
+			{path:"Patch.js",nodeJs:true,web:true},
+			{path:"Event.js",nodeJs:true,web:true},
 			{path:"NodePatch.js",nodeJs:true,web:true},
 			{path:"NodePatch/Compare.js",nodeJs:true,web:true},
 			{path:"AbstractWorker.js",nodeJs:true,web:true},
@@ -45,10 +49,8 @@
 			{path:"DB.js",nodeJs:true,web:true},
 			{path:"DB/ObjectConnector.js",nodeJs:true,web:true},
 			{path:"DB/IndexedDBConnector.js",nodeJs:false,web:true},
-			{path:"Transmuter.js",nodeJs:true,web:true},
-			{path:"Relayer.js",nodeJs:true,web:true},
 
 			{path:"NodeJs/nodeWorker.js",nodeJs:true,web:false}
 		]
 	};
-})()
+})();

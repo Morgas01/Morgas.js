@@ -5,6 +5,7 @@
 
 	//SC=SC({});
 
+	/** converts Date instances into UTC string representation and vice versa */
 	uCon.date={
 		to(date)
 		{
