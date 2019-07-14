@@ -61,7 +61,7 @@
 			switch(this.type)
 			{
 				case "select":
-					this.values=param.values;
+					this.values=param.values||[];
 					this.multiple=param.multiple||false;
 					break;
 				case "number":
