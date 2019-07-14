@@ -17,6 +17,24 @@ QUnit.module("SortedArray",function()
 		sArr.clear();
 		assert.deepEqual(sArr.get("ASC"),[],"clear");
 	});
+
+	QUnit.test("dirty numbers",function(assert)
+	{
+		var sArr=new µ.SortedArray()
+		.sort("ASC",µ.SortedArray.naturalOrder(false))
+		.sort("DESC",µ.SortedArray.naturalOrder(true));
+
+		sArr.add([6,undefined,9,NaN,1]);
+		sArr.add(7,5,null,0,8);
+
+		assert.deepEqual(sArr.get("ASC"),[undefined,NaN,null,0,1,5,6,7,8,9],"asc");
+		assert.deepEqual(sArr.get("DESC"),[9,8,7,6,5,1,0,undefined,NaN,null],"desc");
+		sArr.remove([0,undefined,null,6,8]);
+		assert.deepEqual(sArr.get("ASC"),[NaN,1,5,7,9],"asc deleted");
+		assert.deepEqual(sArr.get("DESC"),[9,7,5,1,NaN],"desc deleted");
+		sArr.clear();
+		assert.deepEqual(sArr.get("ASC"),[],"clear");
+	});
 	
 	QUnit.test("strings",function(assert)
 	{

@@ -1807,10 +1807,21 @@
 	 */
 	SA.naturalOrder=function(DESC)
 	{
-		return DESC ? SA.naturalOrder.DESC : SA.naturalOrder.ASC;
+		return DESC ? sortDESC : sortASC;
 	};
-		SA.naturalOrder.ASC=(a,b)=>(a>b) ? 1 : (a<b) ? -1 : 0;
-	SA.naturalOrder.DESC=(a,b)=>(a>b) ? -1 : (a<b) ? 1 : 0;
+	let isInvalid=a=>a==null||Number.isNaN(a);
+	let sortASC=SA.naturalOrder.ASC=function(a,b)
+	{
+		if(a==b) return 0;
+		let invalid_a=isInvalid(a);
+		let invalid_b=isInvalid(b);
+		if(invalid_a&&invalid_b) return 0;
+		if(invalid_a) return -1;
+		if(invalid_b) return 1;
+		if (a>b) return 1;
+		return -1;
+	};
+	let sortDESC=SA.naturalOrder.DESC=(a,b)=>sortASC(b,a);
 
 	/**
 	 * sort the values returned by getter simply by using > or < 
@@ -5512,6 +5523,7 @@
 	ORG.attributeSort=function(paths,DESC)
 	{
 		paths=SC.encase(paths);
+		let sort=ORG.naturalOrder(DESC);
 		return function(obj,obj2)
 		{
 			let rtn=0,a,b;
@@ -5519,7 +5531,7 @@
 			{
 				a=SC.goPath(obj,paths[i]);
 				b=SC.goPath(obj2,paths[i]);
-				rtn=(DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0)
+				rtn=sort(a,b);
 			}
 			return rtn;
 		}

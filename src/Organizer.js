@@ -372,6 +372,7 @@
 	ORG.attributeSort=function(paths,DESC)
 	{
 		paths=SC.encase(paths);
+		let sort=ORG.naturalOrder(DESC);
 		return function(obj,obj2)
 		{
 			let rtn=0,a,b;
@@ -379,7 +380,7 @@
 			{
 				a=SC.goPath(obj,paths[i]);
 				b=SC.goPath(obj2,paths[i]);
-				rtn=(DESC?-1:1)*( (a>b) ? 1 : (a<b) ? -1 : 0)
+				rtn=sort(a,b);
 			}
 			return rtn;
 		}
