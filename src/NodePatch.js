@@ -153,13 +153,13 @@
 		return childrenGetter;
 	};
 
-	NODE.traverse=function(root,func,{childrenGetter,filter}={})
+	NODE.traverse=function(root,func,{childrenGetter,filter,initial}={})
 	{
 		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
 		let todo=[{
 			node:root,
 			parent:null,
-			parentResult:null,
+			parentResult:initial,
 			siblingResults:[],
 			index:null,
 			depth:0

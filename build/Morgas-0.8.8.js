@@ -373,7 +373,7 @@
 			switch(this.type)
 			{
 				case "select":
-					this.values=param.values;
+					this.values=param.values||[];
 					this.multiple=param.multiple||false;
 					break;
 				case "number":
@@ -2891,13 +2891,13 @@
 		return childrenGetter;
 	};
 
-	NODE.traverse=function(root,func,{childrenGetter,filter}={})
+	NODE.traverse=function(root,func,{childrenGetter,filter,initial}={})
 	{
 		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
 		let todo=[{
 			node:root,
 			parent:null,
-			parentResult:null,
+			parentResult:initial,
 			siblingResults:[],
 			index:null,
 			depth:0
