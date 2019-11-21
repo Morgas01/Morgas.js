@@ -225,6 +225,7 @@
 	{
 		return FILE.isFile(file) ? file.getAbsolutePath() : PATH.resolve(file);
 	};
+	FILE.separator=PATH.sep;
 
 	SMOD("File", FILE);
 

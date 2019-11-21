@@ -2930,10 +2930,18 @@
 		return todo[0].siblingResults[0];
 	};
 
-	NODE.traverseTo=function(root,path,{childrenGetter}={})
+	NODE.traverseTo=function(root,path,{
+		childrenGetter,
+		separator=".",
+		
+		identifier=function(node,index)
+		{
+
+		}
+	}={})
 	{
 		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
-		if(typeof path=="string") path=path.split(".");
+		if(typeof path=="string") path=path.split(separator);
 		for(let key of path)
 		{
 			root=childrenGetter(root)[key];
