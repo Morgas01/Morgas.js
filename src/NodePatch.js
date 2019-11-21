@@ -192,13 +192,23 @@
 		return todo[0].siblingResults[0];
 	};
 
-	NODE.traverseTo=function(root,path,{childrenGetter}={})
+	NODE.traverseTo=function(root,path,{
+		childrenGetter,
+		separator=".",
+		key,
+		identifier=function(node,pathPart,index)
+		{
+			if(key) return node[key]==pathPart;
+			return index==pathPart;
+		}
+	}={})
 	{
 		childrenGetter=NODE.normalizeChildrenGetter(childrenGetter);
-		if(typeof path=="string") path=path.split(".");
-		for(let key of path)
+		if(typeof path=="string") path=path.split(separator);
+		for(let pathPart of path)
 		{
-			root=childrenGetter(root)[key];
+			let children=Array.from(childrenGetter(root));
+			root=children.find((node,index)=>identifier(node,pathPart,index));
 			if(!root) return null;
 		}
 		return root;

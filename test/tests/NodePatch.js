@@ -149,4 +149,41 @@ QUnit.module("NodePatch",function()
 		result.sort();
 		assert.deepEqual(result,["child1","child2","grandchild","root"],"all traversed");
 	});
+
+	QUnit.test("traverseTo",function(assert)
+	{
+		let root={
+			name:"root",
+			children:[
+				{
+					name:"child1"
+					//no children
+				},
+				{
+					name:"child2",
+					children:[
+						{
+							name:"grandchild",
+							children:[] //empty children
+						}
+					]
+				}
+			]
+		};
+
+		let result=µ.NodePatch.traverseTo(root,["child2","grandchild"],{key:"name"});
+		assert.strictEqual(result.name,"grandchild","key & array");
+
+		result=µ.NodePatch.traverseTo(root,[0]);
+		assert.strictEqual(result.name,"child1","index");
+
+		result=µ.NodePatch.traverseTo(root,"2|d",{
+			separator:"|",
+			identifier:function(node,pathPart)
+			{
+				return node.name.endsWith(pathPart);
+			}
+		});
+		assert.strictEqual(result.name,"grandchild","custom & split");
+	});
 });
