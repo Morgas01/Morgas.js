@@ -154,6 +154,8 @@
 				target=new SC.File(this.getCWD()).changePath(filename);
 				await SC.util.findUnusedName(target);
 			}
+			await SC.util.enshureDir(target.getDir());
+			let writeStream=await target.writeStream();
 			let date=new Date(0);
 			let startTime=Date.now();
 			let size=0;
@@ -175,16 +177,13 @@
 					let message=getTimeString(date);
 					resolve(getTimeString(date)+" complete");
 				});
-				target.writeStream()
-				.then(function(dest)
+
+				response.pipe(writeStream);
+				response.on("data",function(data)
 				{
-					response.pipe(dest);
-					response.on("data",function(data)
-					{
-						size+=data.length;
-					});
-					dest.on("error",reject);
-				},reject);
+					size+=data.length;
+				});
+				writeStream.on("error",reject);
 			});
 		},
 		downloadList:async function(source)
