@@ -1,7 +1,8 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
 
+	let Event=GMOD("Event");
+
 	SC=SC({
-		Event:"Event",
 		Reporter:"EventReporterPatch",
 		ErrorEvent:"ErrorEvent",
 		StateEvent:"StateEvent",
@@ -212,7 +213,7 @@
 	};
 	SMOD("AbstractWorker",AbstractWorker);
 
-	let WorkerMessageEvent=AbstractWorker.WorkerMessageEvent=µ.Class(SC.Event,{
+	let WorkerMessageEvent=AbstractWorker.WorkerMessageEvent=µ.Class(Event,{
 		name:"workerMessage",
 		constructor:function(message)
 		{
