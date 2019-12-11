@@ -1,8 +1,9 @@
 {
 	"AbstractWorker.js": {
-		"deps": [],
+		"deps": [
+			"Event.js"
+		],
 		"uses": [
-			"Event.js",
 			"Promise.js"
 		]
 	},
@@ -28,6 +29,12 @@
 		"uses": [
 			"util/array/remove.js"
 		]
+	},
+	"LiveDataSource.js": {
+		"deps": [
+			"Event.js"
+		],
+		"uses": []
 	},
 	"NodePatch.js": {
 		"deps": [

@@ -1,8 +1,9 @@
 {
 	"AbstractWorker": {
-		"deps": [],
+		"deps": [
+			"Event"
+		],
 		"uses": [
-			"Event",
 			"EventReporterPatch",
 			"ErrorEvent",
 			"StateEvent",
@@ -102,6 +103,14 @@
 		],
 		"uses": [
 			"array.removeIf"
+		]
+	},
+	"LiveDataSource": {
+		"deps": [
+			"Event"
+		],
+		"uses": [
+			"EventReporterPatch"
 		]
 	},
 	"NodePatch": {

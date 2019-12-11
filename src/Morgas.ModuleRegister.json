@@ -14,6 +14,7 @@
 	"ErrorEvent": "Event.js",
 	"EventReporterPatch": "Event.js",
 	"EventListenerPatch": "Event.js",
+	"LiveDataSource": "LiveDataSource.js",
 	"NodePatch": "NodePatch.js",
 	"Organizer": "Organizer.js",
 	"Patch": "Patch.js",
