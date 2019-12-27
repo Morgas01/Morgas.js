@@ -11,7 +11,7 @@
 		{
 			this.name=name;
 			this.parent=null;
-			this.children=new Set();
+			this.children=[];
 
             this.composeInstance(composeKeys);
 		},
@@ -35,14 +35,15 @@
 		},
 		addChild:function(child,...args)
 		{
-			if(this.children.has(child)) return true;
+			let index=this.children.indexOf(child);
+			if(index!==-1) return true;
 			let childNode=this._getNode(child);
             if(this.check("addChild",child,args))
 			{
-				this.children.add(child);
+				this.children.push(child);
 				if(!childNode.setParent(this.instance,...args))
 				{
-					this.children.delete(child);
+					this.children.splice(index,1);
 					return false;
 				}
 				return true;
@@ -51,14 +52,15 @@
 		},
 		removeChild:function(child,...args)
 		{
-			if(!this.children.has(child)) return true;
+			let index=this.children.indexOf(child);
+			if(index===-1) return true;
 			let childNode=this._getNode(child);
             if(this.check("removeChild",child,args))
 			{
-				this.children.delete(child);
+				this.children.splice(index,1);
 				if(!childNode.setParent(null,...args))
 				{
-					this.children.add(child);
+					this.children.push(child);
 					return false;
 				}
 				return true;
