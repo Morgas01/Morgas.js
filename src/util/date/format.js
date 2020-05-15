@@ -24,28 +24,28 @@
 	 * @param {Date} date
 	 * @param {String} format
 	 */
-	uDate.format=function(date,format)
+	uDate.format=function(date,format,utc=false)
 	{
 		return format.replace(/([YMDhmstz])/g,function(match, group)
 		{
 			switch(group)
 			{
 				case "Y":
-					return date.getFullYear();
+					return utc?date.getUTCFullYear():date.getFullYear();
                 case "M":
-                	return leftPad(date.getMonth()+1,2);
+                	return leftPad(utc?date.getUTCMonth():date.getMonth()+1,2);
                 case "D":
-                	return leftPad(date.getDate(),2);
+                	return leftPad(utc?date.getUTCDate():date.getDate(),2);
                 case "h":
-                	return leftPad(date.getHours(),2);
+                	return leftPad(utc?date.getUTCHours():date.getHours(),2);
                 case "m":
-                	return leftPad(date.getMinutes(),2);
+                	return leftPad(utc?date.getUTCMinutes():date.getMinutes(),2);
                 case "s":
-                	return leftPad(date.getSeconds(),2);
+                	return leftPad(utc?date.getUTCSeconds():date.getSeconds(),2);
                 case "t":
-                	return leftPad(date.getMilliseconds(),3);
+                	return leftPad(utc?date.getUTCMilliseconds():date.getMilliseconds(),3);
                 case "z":
-                	return date.getTimezoneOffset()/60;
+                	return utc?"":date.getTimezoneOffset()/60;
 			}
 		});
 	};
