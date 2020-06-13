@@ -5,7 +5,9 @@
 	SC=SC({
 		File:"File",
 		util:"File/util",
-		FileCmd:"CommandPackage/file"
+		FileCmd:"CommandPackage/file",
+		DateFormat:"date/format",
+		metricUnit:"metricUnit"
 	});
 
 	let URL=require("url");
@@ -161,21 +163,30 @@
 			let size=0;
 			let timer=setInterval(()=>
 			{
-				date.setTime(Date.now()-startTime);
-				let message=getTimeString(date);
-				if(filesize) message+=" "+(size*100/filesize).toFixed(2)+"%";
+				let duration=Date.now()-startTime;
+				date.setTime(duration);
+				let message=SC.DateFormat(date,SC.DateFormat.time,true);
+				let speed=SC.metricUnit.to(size*1000/duration,{base:"B/S",factor:1024});
+				if(filesize) message+=" "+(size*100/filesize).toFixed(2)+"%\t"+speed+"   ";
 				this.progressOutput(message);
 			},250);
 
-			return await new Promise(function(resolve,reject)
+			return new Promise(function(resolve,reject)
 			{
-				response.on("error",reject)
+				let errorHandle=e=>
+				{
+					clearInterval(timer);
+					reject(e)
+				};
+				response.on("error",errorHandle)
 				.on("end",()=>
 				{
 					clearInterval(timer);
-					date.setTime(Date.now()-startTime);
-					let message=getTimeString(date);
-					resolve(getTimeString(date)+" complete");
+					let duration=Date.now()-startTime;
+					date.setTime(duration);
+					let speed=SC.metricUnit.to(size*1000/duration,{base:"B/S",factor:1024});
+					let message=SC.DateFormat(date,SC.DateFormat.time,true)+" complete  "+speed+"          ";
+					resolve(message);
 				});
 
 				response.pipe(writeStream);
@@ -183,7 +194,7 @@
 				{
 					size+=data.length;
 				});
-				writeStream.on("error",reject);
+				writeStream.on("error",errorHandle);
 			});
 		},
 		downloadList:async function(source)
@@ -209,7 +220,15 @@
 					url=entry;
 				}
 				this.out(`${i+1}/${list.length}	${url}	${filename||""}`);
-				this.out(await this.download(url,filename));
+				try
+				{
+					this.out(await this.download(url,filename));
+				}
+				catch(error)
+				{
+					this.out(error);
+					stop=true;
+				}
 			}
 			this.commander.rl.removeListener("SIGINT",stopFn);
 			return getTimeString(new Date(Date.now()-startTime))+(stop?" stopped":" all complete");
