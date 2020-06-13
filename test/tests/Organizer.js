@@ -185,4 +185,44 @@ QUnit.module("Organizer",function()
 		assert.deepEqual([c.get(false),c.get(true)],[[0,2,4,5,6,7,8,9],[1,3]],"sort some combine filter group");
 	});
 
+	QUnit.test("combine insances",function(assert)
+	{
+		let org=new µ.Organizer([8,2,7,1,6,5,9,4,3,0])
+		.sort("ASC",µ.Organizer.naturalOrder(false))
+		.group("%2",function(a){return a%2==0?"even":"odd"})
+		.filter(">=5",function(a){return a>=5});
+
+		let even=org.combine(false,"ASC").group("%2","even");
+		let greater5=org.combine().filter(">=5");
+
+		let sorted=org.combine(true,"ASC").combine(greater5).combine(even);
+		assert.deepEqual(sorted.get(),[0,2,4,5,6,7,8,9],"sorted some");
+
+		let unsorted=org.combine().combine(greater5).combine(even);
+		assert.deepEqual(unsorted.get(),[8,6],"unsorted");
+
+		even.combine(greater5);
+		assert.deepEqual(even.get(),unsorted.get().sort(),"mutable");
+	});
+
+	QUnit.test("combine invert",function(assert)
+	{
+		let org=new µ.Organizer([8,2,7,1,6,5,9,4,3,0])
+		.sort("ASC",µ.Organizer.naturalOrder(false))
+		.group("%2",function(a){return a%2==0?"even":"odd"})
+		.filter(">=5",function(a){return a>=5});
+
+		let even=org.combine(false,"ASC").group("%2","even");
+		let lower5=org.combine().filter(">=5").invert();
+
+		let sorted=org.combine(true,"ASC").combine(lower5).combine(even);
+		assert.deepEqual(sorted.get(),[0,1,2,3,4,6,8],"sorted some");
+
+		let unsorted=org.combine().combine(lower5).combine(even);
+		assert.deepEqual(unsorted.get(),[2,4,0],"unsorted");
+
+		even.combine(lower5);
+		assert.deepEqual(even.get(),unsorted.get().sort(),"mutable");
+	});
+
 });

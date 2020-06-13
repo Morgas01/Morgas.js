@@ -336,7 +336,14 @@
 					}
 					return rtn;
 				},
-				_getOrigin:()=>this
+				_getOrigin:()=>this,
+				invert:()=>
+				{
+					let swap=inside;
+					inside=outside;
+					outside=swap;
+					return rtn;
+				}
 			};
 			return rtn;
 		},
