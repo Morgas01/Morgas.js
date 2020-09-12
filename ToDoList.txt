@@ -31,6 +31,7 @@ NodeJs/Commander:
 	- help command
 	- command in new process (multithread patch ?)
 	- command options ( -c )
+	- revise plugin/commandPackage system
 
 
 NEW:
@@ -40,4 +41,4 @@ NEW:
 	- service worker - resource handler (server push?)
 	- translations
 	- translated resources
-	- object.util.sort
+	- util.[object/array/function].sort
