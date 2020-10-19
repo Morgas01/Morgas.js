@@ -14,11 +14,17 @@
 	},
 	"scripts": {
 		"build": "node lib/build",
-		"test": "node test/run | tap-difflet -p"
+		"test": "node test/run | tap-difflet -p",
+		"debug": "karma start"
 	},
 	"devDependencies": {
 		"concat-with-sourcemaps": "^1.1.0",
-		"qunit": "^2.9.2",
+		"eslint": "^7.11.0",
+		"gulp": "^4.0.2",
+		"karma": "^5.2.3",
+		"karma-qunit": "^4.1.1",
+		"karma-tap-reporter": "0.0.6",
+		"qunit": "^2.11.3",
 		"qunit-tap": "^1.5.1",
 		"tap-difflet": "^0.7.1",
 		"uglify-js": "^3.4.9"

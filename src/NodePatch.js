@@ -109,12 +109,12 @@
 		{
 			let inst=this.instance;
 
-			let it=item
+			let it=item;
 			let me=inst;
 			while (item!=null&&me!=null)
 			{
-				if(it==inst) return 1
-				else if (me==item) return -1;
+				if(it===inst) return 1;
+				else if (me===item) return -1;
 				it=this._getNode(it).parent;
 				me=this._getNode(me).parent;
 			}

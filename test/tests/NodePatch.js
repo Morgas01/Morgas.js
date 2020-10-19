@@ -10,14 +10,14 @@ QUnit.module("NodePatch",function()
 		parent.addChild(child1);
 		child2.setParent(parent);
 
-		assert.ok(parent===child1.parent&&parent.children.has(child1),"child1 connected");
-		assert.ok(parent===child2.parent&&parent.children.has(child2),"child2 connected");
+		assert.ok(parent===child1.parent&&parent.children.includes(child1),"child1 connected");
+		assert.ok(parent===child2.parent&&parent.children.includes(child2),"child2 connected");
 
 		parent.removeChild(child1);
 		child2.remove();
 
-		assert.ok(parent!==child1.parent&&!parent.children.has(child1),"child1 removed");
-		assert.ok(parent!==child2.parent&&!parent.children.has(child2),"child2 removed");
+		assert.ok(parent!==child1.parent&&!parent.children.includes(child1),"child1 removed");
+		assert.ok(parent!==child2.parent&&!parent.children.includes(child2),"child2 removed");
 
 	});
 
@@ -37,8 +37,8 @@ QUnit.module("NodePatch",function()
 			return error.message.startsWith("#NodePatch:001 ");
 		},"false name");
 		foo.addBar(bar);
-		assert.ok(foo.bars.has(bar),"added bar");
-		assert.notOk(foo.foos.has(bar),"not added foo");
+		assert.ok(foo.bars.includes(bar),"added bar");
+		assert.notOk(foo.foos.includes(bar),"not added foo");
 		assert.equal(bar.parent,foo);
 	});
 
@@ -51,14 +51,14 @@ QUnit.module("NodePatch",function()
 		parent.add(child1);
 		child2.fuse(parent);
 
-		assert.ok(parent===child1.up&&parent.children.has(child1),"child1 connected");
-		assert.ok(parent===child2.parent&&parent.children.has(child2),"child2 connected");
+		assert.ok(parent===child1.up&&parent.children.includes(child1),"child1 connected");
+		assert.ok(parent===child2.parent&&parent.children.includes(child2),"child2 connected");
 
 		parent.remove(child1);
 		child2.explode();
 
-		assert.ok(parent!==child1.up&&!parent.children.has(child1),"child1 removed");
-		assert.ok(parent!==child2.parent&&!parent.children.has(child2),"child2 removed");
+		assert.ok(parent!==child1.up&&!parent.children.includes(child1),"child1 removed");
+		assert.ok(parent!==child2.parent&&!parent.children.includes(child2),"child2 removed");
 
 	});
 
@@ -92,18 +92,18 @@ QUnit.module("NodePatch",function()
 		parent.addChild(child1,true);
 		child2.setParent(parent);
 
-		assert.ok(parent===child1.parent&&parent.children.has(child1),"child1 connected");
-		assert.ok(parent!==child2.parent&&!parent.children.has(child2),"child2 not connected");
+		assert.ok(parent===child1.parent&&parent.children.includes(child1),"child1 connected");
+		assert.ok(parent!==child2.parent&&!parent.children.includes(child2),"child2 not connected");
 		parent.addChild(child2,true);
-		assert.ok(parent==child2.parent&&parent.children.has(child2),"child2 connected");
+		assert.ok(parent==child2.parent&&parent.children.includes(child2),"child2 connected");
 
 		parent.removeChild(child1);
 		child2.remove();
 
-		assert.ok(parent===child1.parent&&parent.children.has(child1),"child1 not removed");
+		assert.ok(parent===child1.parent&&parent.children.includes(child1),"child1 not removed");
 		child1.remove(true);
-		assert.ok(parent!==child1.parent&&!parent.children.has(child1),"child1 removed");
-		assert.ok(parent!==child2.parent&&!parent.children.has(child2),"child2 removed");
+		assert.ok(parent!==child1.parent&&!parent.children.includes(child1),"child1 removed");
+		assert.ok(parent!==child2.parent&&!parent.children.includes(child2),"child2 removed");
 
 	});
 
@@ -115,13 +115,13 @@ QUnit.module("NodePatch",function()
 
 		parent1.addChild(child);
 
-		assert.ok(parent1===child.parent&&parent1.children.has(child),"parent1 connected");
-		assert.ok(parent2!==child.parent&&!parent2.children.has(child),"parent2 not connected");
+		assert.ok(parent1===child.parent&&parent1.children.includes(child),"parent1 connected");
+		assert.ok(parent2!==child.parent&&!parent2.children.includes(child),"parent2 not connected");
 
 		parent2.addChild(child);
 
-		assert.ok(parent1!==child.parent&&!parent1.children.has(child),"parent1 not connected");
-		assert.ok(parent2===child.parent&&parent2.children.has(child),"parent2 connected");
+		assert.ok(parent1!==child.parent&&!parent1.children.includes(child),"parent1 not connected");
+		assert.ok(parent2===child.parent&&parent2.children.includes(child),"parent2 connected");
 	});
 
 	QUnit.test("traverse",function(assert)

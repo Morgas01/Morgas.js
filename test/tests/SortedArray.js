@@ -108,7 +108,7 @@ QUnit.module("SortedArray",function()
 
 	QUnit.test("library",function(assert)
 	{
-		var library={
+		let library={
 			first:1,
 			second:2,
 			third:3,
@@ -117,11 +117,11 @@ QUnit.module("SortedArray",function()
 			sixth:6
 		};
 
-		var sArr=new µ.SortedArray(["fifth","second","third","sixth","first","nothing"],library)
+		let sArr=new µ.SortedArray(["fifth","second","third","sixth","first","nothing"],library)
 			.sort("ASC",µ.SortedArray.naturalOrder(false))
 			.sort("DESC",µ.SortedArray.naturalOrder(true));
 
-		assert.deepEqual(sArr.get("ASC"),[1,2,3,5,6,undefined],"asc");
+		assert.deepEqual(sArr.get("ASC"),[undefined,1,2,3,5,6],"asc");
 		assert.deepEqual(sArr.get("DESC"),[6,5,3,2,1,undefined],"desc");
 		library.nothing=0;
 		library.first=7;

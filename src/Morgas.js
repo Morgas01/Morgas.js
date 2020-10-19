@@ -47,7 +47,7 @@
 			if(!modules[key]) throw new Error("#getModule:001 "+key+" is not defined");
 			return modules[key];
 		};
-	};
+	}
 
 	/**
 	 * log message if it's verbose is >= the current verbose.
