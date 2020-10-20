@@ -1,13 +1,13 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	var DBObj=GMOD("DBObj"),
-	FIELD=GMOD("DBField"),
-	REL=GMOD("DBRel");
-	var testObject=µ.Class(DBObj,{
+	let DBObj=GMOD("DBObj"),
+		FIELD=GMOD("DBField"),
+		REL=GMOD("DBRel");
+	let testObject=µ.Class(DBObj,{
 		objectType:"testObject",
 		constructor:function(param={})
 		{
 			this.mega(param);
-			
+
 			this.addField("testInt",	FIELD.TYPES.INT		,param.testInt		);
 			this.addField("testDouble",	FIELD.TYPES.DOUBLE	,param.testDouble	);
 			this.addField("testBool",	FIELD.TYPES.BOOL	,param.testBool		);
@@ -23,25 +23,25 @@
 	});
 	DBTest=function(dbConn,extra)
 	{
-		var parent=new testObject({
-			testInt:10,
-			testDouble:1.1,
-			testBool:true,
-			testString:"testString",
-			testJSON:{test:"json",success:true,score:10},
-			testDate:new Date()
-		}),
-		child=new testObject({
-			testInt:20,
-			testString:"testString",
-			testBool:true
-		}),
-		friend=new testObject({
-			testInt:30,
-			testString:"testString2",
-			testBool:true
-		});
-		
+		let parent=new testObject({
+				testInt:10,
+				testDouble:1.1,
+				testBool:true,
+				testString:"testString",
+				testJSON:{test:"json",success:true,score:10},
+				testDate:new Date()
+			}),
+			child=new testObject({
+				testInt:20,
+				testString:"testString",
+				testBool:true
+			}),
+			friend=new testObject({
+				testInt:30,
+				testString:"testString2",
+				testBool:true
+			});
+
 		parent.addChild("childRel",child);
 		child.addFriend("friendRel",friend);
 
@@ -58,20 +58,20 @@
 		{
 			parent.setValueOf("testDouble",1.2);
 			return dbConn.save([parent,child,friend])
-			.then(function()
-			{
-				assert.notEqual(child.ID,undefined,"ID generated");
-				assert.notEqual(parent.ID,undefined,"ID generated");
-				assert.notEqual(friend.ID,undefined,"ID generated");
-			});
+				.then(function()
+				{
+					assert.notEqual(child.ID,undefined,"ID generated");
+					assert.notEqual(parent.ID,undefined,"ID generated");
+					assert.notEqual(friend.ID,undefined,"ID generated");
+				});
 		});
 		QUnit.test("save friendships",function(assert)
 		{
 			return dbConn.saveFriendships(child,"friendRel")
-			.then(function()
-			{
-				assert.ok(true);
-			});
+				.then(function()
+				{
+					assert.ok(true);
+				});
 		});
 		QUnit.test("load single via int",function(assert)
 		{
@@ -93,61 +93,61 @@
 		QUnit.test("load parent",function(assert)
 		{
 			return dbConn.loadParent(child,"parentRel")
-			.then(function(result)
-			{
-				assert.deepEqual(parent.toJSON(),result.toJSON(),"load parent");
-			});
+				.then(function(result)
+				{
+					assert.deepEqual(parent.toJSON(),result.toJSON(),"load parent");
+				});
 		});
 		QUnit.test("load children",function(assert)
 		{
 			return dbConn.loadChildren(parent,"childRel")
-			.then(function(result)
-			{
-				result=result[0];
-				assert.deepEqual(child.toJSON(),result.toJSON(),"load friend");
-			});
+				.then(function(result)
+				{
+					result=result[0];
+					assert.deepEqual(child.toJSON(),result.toJSON(),"load friend");
+				});
 		});
 		QUnit.test("load friends",function(assert)
 		{
 			return dbConn.loadFriends(child,"friendRel")
-			.then(function(result)
-			{
-				result=result[0];
-				assert.deepEqual(friend.toJSON(),result.toJSON(),"load friend");
-			});
+				.then(function(result)
+				{
+					result=result[0];
+					assert.deepEqual(friend.toJSON(),result.toJSON(),"load friend");
+				});
 		});
 		QUnit.test("deleteFriendships",function(assert)
 		{
 			return dbConn.deleteFriendships(child,"friendRel")
-			.then(function()
-			{
-				return dbConn.loadFriends(friend,"friendRel",{testInt:20});
-			})
-			.then(function(result)
-			{
-				assert.strictEqual(result.length,0,"firendship deleted");
-			});
+				.then(function()
+				{
+					return dbConn.loadFriends(friend,"friendRel",{testInt:20});
+				})
+				.then(function(result)
+				{
+					assert.strictEqual(result.length,0,"firendship deleted");
+				});
 		});
 		QUnit.test("delete",function(assert)
 		{
 			return dbConn["delete"](testObject,parent)
-			.then(function()
-			{
-				return dbConn.load(testObject,{testInt:10});
-			})
-			.then(function(result)
-			{
-				assert.strictEqual(result.length,0,"deleted Object");
-				return dbConn["delete"](testObject,{testBool:true});
-			})
-			.then(function()
-			{
-				return dbConn.load(testObject,{testBool:true});
-			})
-			.then(function(result)
-			{
-				assert.strictEqual(result.length,0,"deleted pattern");
-			});
+				.then(function()
+				{
+					return dbConn.load(testObject,{testInt:10});
+				})
+				.then(function(result)
+				{
+					assert.strictEqual(result.length,0,"deleted Object");
+					return dbConn["delete"](testObject,{testBool:true});
+				})
+				.then(function()
+				{
+					return dbConn.load(testObject,{testBool:true});
+				})
+				.then(function(result)
+				{
+					assert.strictEqual(result.length,0,"deleted pattern");
+				});
 		});
 		if(extra)
 		{

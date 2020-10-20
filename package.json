@@ -14,7 +14,7 @@
 	},
 	"scripts": {
 		"build": "node lib/build",
-		"test": "node test/run | tap-difflet -p",
+		"test": "gulp test | tap-difflet -p",
 		"debug": "karma start"
 	},
 	"devDependencies": {

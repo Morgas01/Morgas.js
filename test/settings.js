@@ -3,7 +3,7 @@
 	let globalScope=this;
 	let globalKeys=Object.keys(globalScope);
 
-	globalKeys.push("Morgas","µ","DBTest","testSettings","WorkerTest");
+	globalKeys.push("Morgas","µ","DBTest","WorkerTest");
 
 	testSettings={
 		checkGlobals:function()

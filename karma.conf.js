@@ -14,6 +14,9 @@ module.exports = function (config)
 		files: [
 			'src/test/test-main.js',
 			'build/Morgas-*.js',
+			"test/checkGlobals.js",
+			"test/DBTest.js",
+			"test/WorkerTest.js",
 			'test/tests/*',
 			'test/tests/!(NodeJs|Worker)/*',
 			{pattern: 'test/tests/Worker/**/*', included: false},
