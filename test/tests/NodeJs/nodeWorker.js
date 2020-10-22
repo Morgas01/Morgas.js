@@ -4,7 +4,7 @@ WorkerTest("nodeWorker",function(loadScripts,autoStart)
 	let NodeWorker=µ.getModule("nodeWorker");
 	return new NodeWorker({
 		startTimeout:5000,
-		loadScripts:loadScripts,
+		initScripts:loadScripts,
 		cwd:path.resolve(__dirname,"../../../src"),
 		autoStart:autoStart
 	});

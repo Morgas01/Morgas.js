@@ -2,27 +2,22 @@
 
 	µ.NodeJs=µ.NodeJs||{};
 
-	var fork=require("child_process").fork;
-	var AbstractWorker=GMOD("AbstractWorker");
+	let fork=require("child_process").fork;
+	let AbstractWorker=GMOD("AbstractWorker");
 
-	SC=SC({
-		Promise:"Promise"
-	});
+	//SC=SC({});
 
-	var path=require("path");
+	let path=require("path");
 
-	var NODEWORKER=µ.NodeJs.Worker=µ.Class(AbstractWorker,{
-		constructor:function(argParam={})
+	let NODEWORKER=µ.NodeJs.Worker=µ.Class(AbstractWorker,{
+		constructor:function(param={})
 		{
 			({
 				script:this.script=NODEWORKER.defaults.SCRIPT,
 				cwd:this.cwd=path.dirname(this.script),
-				param:this.param
-			}=argParam);
+			}=param);
 
-			SC.Promise.pledgeAll(this,["stop"]);
-
-			this.mega(argParam);
+			this.mega(param);
 		},
 		_start:function()
 		{
@@ -33,35 +28,10 @@
 				this.state=AbstractWorker.states.CLOSE;
 			});
 			this.worker.on("message",msg=>this._onMessage(msg));
-
-			this._send({
-				id:this.id,
-				param:this.param
-			});
 		},
 		_send:function(payload)
 		{
 			this.worker.send(payload);
-		},
-		stop:function(signal,timeout=AbstractWorker.defaults.TIMEOUT)
-		{
-			this.send("stop");
-			let timer;
-			let onClose=(event)=>
-			{
-				if(event.state===AbstractWorker.states.CLOSE)
-				{
-					clearTimeout(timer);
-					this.removeEventListener(null,onClose);
-					signal.resolve();
-				}
-			};
-			timer=setTimeout(()=>
-			{
-				this.removeEventListener(null,onClose);
-				signal.reject("timeout");
-			},timeout);
-			this.addEventListener("workerState",null,onClose);
 		},
 		destroy:function()
 		{
@@ -69,6 +39,7 @@
 			this.worker.removeAllListeners("error");
 			this.worker.removeAllListeners("exit");
 			this.worker.removeAllListeners("message");
+			this.worker.unref();
 			this.state=AbstractWorker.states.CLOSE;
 			this.mega();
 		}

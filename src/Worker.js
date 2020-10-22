@@ -20,13 +20,12 @@
 		{
 			this.worker=new Worker(this.basePath+this.workerScript);
 			this.worker.onmessage = msg=>this._onMessage(msg.data);
-			this.worker.onerror = error=>this._onMessage({error:error});
+			this.worker.onerror = error=>this._onMessage({type:MESSAGE_TYPES.ERROR,error:error});
 
-			this._send({
-				id:this.id,
+			return {
 				basePath:this.workerBasePath,
 				morgasPath:this.morgasPath
-			});
+			};
 		},
 		_send(payload)
 		{
@@ -35,6 +34,7 @@
 		stop:function()
 		{
 			this.mega();
+			//TODO wait for gracefull shutdown then terminate
 			this.state=AbstractWorker.states.CLOSE;
 		},
 		destroy:function()

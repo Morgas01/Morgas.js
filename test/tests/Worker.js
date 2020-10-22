@@ -1,9 +1,9 @@
-WorkerTest("Worker",function(loadScripts,autoStart)
+WorkerTest("Worker",function(initScripts,autoStart)
 {
 	return new µ.Worker({
 		basePath:"base/src/",
 		startTimeout:5000,
-		loadScripts:loadScripts,
+		initScripts:initScripts,
 		autoStart:autoStart
 	});
 },"../test/tests/Worker/testWorker.js");

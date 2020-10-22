@@ -1,16 +1,20 @@
-worker.increment=function(n)
+worker.methods.increment=function(n)
 {
 	return n+1;
 };
-worker.timeout=function()
+worker.methods.timeout=function()
 {
 	return new Promise(function(){});
 };
-worker.error=function()
+worker.methods.error=function()
 {
 	return Promise.reject("test error");
 };
-worker.exception=function()
+worker.methods.exception=function()
 {
 	throw "test exception";
+};
+worker.methods.feedback=function(data)
+{
+	return worker.feedback(data)
 };

@@ -1,55 +1,95 @@
 
+const MESSAGE_TYPES={
+	MESSAGE:"message",
+	REQUEST:"request",
+	FEEDBACK:"feedback",
+	ERROR:"error"
+};
+const INIT_REQUEST_ID="init";
+
 let FEEDBACK_COUNTER=0;
 let FEEDBACK_MAP=new Map();
 
 let setInitialized;
-let initialize=new Promise(function(resolve){setInitialized=resolve});
+let initialize=new Promise((resolve)=>setInitialized=resolve);
 
 worker={
-	//out (worker -> main)
-/*	webWorker defaults defined later
-	importScripts:function(scripts),
-	send:function(payload){},
-	stop:function(){},
-*/
-	// in (main to worker)
+	defualts:{
+		TIMEOUT:6e4,
+	},
+	id:null,
+	initialize:initialize,
+	config:null,
+	_init: function (message)
+	{
+		let config=worker.config = message.config;
+		worker.id = config.id;
+
+		if(config.loadMorgas!==false)
+		{
+				worker._loadMorgas();
+		}
+
+		if(config.initScripts&&config.initScripts.length>0)
+		{
+			worker.methods.loadScripts(config.initScripts);
+		}
+
+		setInitialized(config);
+
+		//respond the init request
+		worker._send({
+			type: MESSAGE_TYPES.REQUEST,
+			id: INIT_REQUEST_ID,
+			data: config
+		});
+	},
+	/* "abstract" methods
+		_send:function(payload){},
+		stop:function(){},
+		importScripts:function(scripts),
+		_loadMorgas:function(){}
+	*/
+	// incoming (main to worker)
 	handleMessage:function(message)
 	{
 		if(worker.id===null) // not initialized
 		{
-			if(message.id==null) throw new Error("worker id is not defined");
-
-			worker.config=message;
-			worker.id=message.id;
-
-			setInitialized(message.param);
-
-			//respond the init request
-			worker.send({request:"init",data:message});
+			if(message.type===MESSAGE_TYPES.REQUEST&&message.id===INIT_REQUEST_ID)
+			{
+				try
+				{
+					worker._init(message);
+				}
+				catch (e)
+				{
+					worker.error(e);
+				}
+			}
 		}
 		else
 		{
-			if("feedback" in message)
+			if(message.type===MESSAGE_TYPES.FEEDBACK)
 			{
-				if(!FEEDBACK_MAP.has(message.feedback))
+				if(!FEEDBACK_MAP.has(message.id))
 				{
-					worker.error({message:"no such feedback",feedback:message.feedback,data:message.data});
+					worker.error({message:"no such feedback",id:message.id,data:message.data});
 				}
 				else
 				{
-					if(message.error) FEEDBACK_MAP.get(message.feedback).reject(message.error);
-					else FEEDBACK_MAP.get(message.feedback).resolve(message.data);
+					let feedback=FEEDBACK_MAP.get(message.id);
+					if(message.error) feedback.reject(message.error);
+					else feedback.resolve(message.data);
 				}
 				return;
 			}
 
 			let callPromise;
-			if(message.method in worker)
+			if(message.method in worker.methods)
 			{
 				try
 				{
-					callPromise=worker[message.method](...message.args);
-					if(!callPromise||typeof callPromise.then!="function") callPromise=Promise.resolve(callPromise);
+					callPromise=Promise.resolve(worker.methods[message.method](...message.args));
 				}
 				catch(e)
 				{
@@ -60,69 +100,88 @@ worker={
 			{
 				callPromise=Promise.reject(`method ${message.method} is not defined in worker ${worker.id}`);
 			}
-			if("request" in message)
+			if(message.type===MESSAGE_TYPES.REQUEST)
 			{
-				callPromise.then(result=>worker.send({request:message.request,data:result}))
+				callPromise.then(result=>worker._send({
+					type:MESSAGE_TYPES.REQUEST,
+					id:message.id,
+					data:result
+				}))
 				.catch(error=>
 				{
 					if(error instanceof Error) error=error.message+"\n"+error.stack;
-					worker.send({request:message.request,error:error})
+					worker._send({
+						type:MESSAGE_TYPES.REQUEST,
+						id:message.id,
+						error:error
+					});
 				});
 			}
-			else callPromise.catch(error=>worker.error(error));
+			else
+			{
+				callPromise.catch(error => worker.error(error));
+			}
 		}
 	},
-
-	//api
-	id:null,
-	initialize:initialize,
-	config:null,
-	loadScripts:function(scripts)
+	send:function(data)
 	{
-		worker.importScripts([].concat(scripts));
-	},
-	message:function(data)
-	{
-		worker.send({data:data});
+		worker._send({
+			type:MESSAGE_TYPES.MESSAGE,
+			data:data
+		});
 	},
 	error:function(error)
 	{
 		if(error instanceof Error) error=error.message+"\n"+error.stack;
-		worker.send({error:error});
+		worker._send({
+			type:MESSAGE_TYPES.ERROR,
+			error:error
+		});
 	},
-	feedback:function(data,timeout=60000)
+	feedback:function(data,timeout=worker.defualts.TIMEOUT)
 	{
-		let payload={
-			feedback:FEEDBACK_COUNTER++,
+		let feedbackMessage={
+			type:MESSAGE_TYPES.FEEDBACK,
+			id:"F"+FEEDBACK_COUNTER++,
 			data:data
 		};
 		let timer;
 		let feedbackPromise=new Promise(function(resolve,reject)
 		{
 			let signal={resolve:resolve,reject:reject};
-			FEEDBACK_MAP.set(payload.feedback,signal);
+			FEEDBACK_MAP.set(feedbackMessage.id,signal);
 			timer=setTimeout(function()
 			{
 				reject("timeout");
 			},timeout);
-			worker.send(payload);
+			worker._send(feedbackMessage);
 		});
 		feedbackPromise.catch(a=>a).then(function()
 		{
-			FEEDBACK_MAP.delete(payload.feedback);
+			FEEDBACK_MAP.delete(feedbackMessage.id);
 			clearTimeout(timer);
 		});
 		return feedbackPromise;
 	},
-	util:function(module,...args)
-	{
-		if(µ.hasModule(module))
+	methods: {
+		stop:function()
 		{
-			return µ.getModule(module)(...args);
-		}
-		else
+			worker.stop();
+		},
+		loadScripts:function(scripts)
 		{
-			return Promise.reject("module not loaded");
+			worker.importScripts([].concat(scripts));
+		},
+		util: function (module, ...args)
+		{
+			if (µ.hasModule(module))
+			{
+				return µ.getModule(module)(...args);
+			}
+			else
+			{
+				return Promise.reject("module not loaded");
+			}
 		}
 	}
 };
@@ -130,7 +189,7 @@ worker={
 //webWorker specifics
 if(typeof self!=="undefined")
 {
-	worker.send=function(payload)
+	worker._send=function(payload)
 	{
 		self.postMessage(payload);
 	};
@@ -142,12 +201,11 @@ if(typeof self!=="undefined")
 	{
 		self.importScripts(scripts.map(s=>worker.config.basePath+s));
 	};
-	worker.initialize.then(function()
+	worker._loadMorgas=function()
 	{
 		//load Morgas.js
-		worker.loadScripts(worker.config.morgasPath);
-	})
-	.catch(worker.error);
+		worker.methods.loadScripts(worker.config.morgasPath);
+	};
 	self.onmessage=function init(event)
 	{
 		worker.handleMessage(event.data);

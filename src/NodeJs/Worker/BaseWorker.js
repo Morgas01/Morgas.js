@@ -8,7 +8,7 @@ let SC=µ.shortcut({
 });
 
 // necessities
-worker.send=function(payload)
+worker._send=function(payload)
 {
 	process.send(payload);
 };
@@ -20,11 +20,15 @@ worker.importScripts=function(scripts)
 {
 	for(let script of scripts) require(path.resolve(process.cwd(),script));
 };
+worker._loadMorgas=function(){};// TODO always loaded
 
 //override and improve
 worker.error=function(error)
 {
-	worker.send({error:SC.es(error)});
+	worker._send({
+		type:MESSAGE_TYPES.ERROR,
+		error:SC.es(error)
+	});
 };
 
 

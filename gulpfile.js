@@ -15,7 +15,7 @@ module.exports={
 		require("qunit-tap")(QUnit,console.log);
 
 		let glob = require("glob").sync;
-		let tests=[...glob("test/tests/*.js"),...glob("test/tests/*/*.js")]
+		let tests=[...glob("test/tests/**/*.js")]
 		.map(f=>f.replace(/\\/g,"\/"))
 		.filter(f=>!nodeTestExcludes.includes(f));
 
