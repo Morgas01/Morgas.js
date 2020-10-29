@@ -1,5 +1,5 @@
 
-const MESSAGE_TYPES={
+/*const*/ MESSAGE_TYPES={
 	MESSAGE:"message",
 	REQUEST:"request",
 	FEEDBACK:"feedback",
@@ -41,7 +41,7 @@ worker={
 		worker._send({
 			type: MESSAGE_TYPES.REQUEST,
 			id: INIT_REQUEST_ID,
-			data: config
+			data: worker.config
 		});
 	},
 	/* "abstract" methods
