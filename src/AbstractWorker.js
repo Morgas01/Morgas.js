@@ -20,7 +20,7 @@
 			if(typeof sub.prototype._send!="function") throw new SyntaxError("#AbstractWorker:001 _send() is not defined");
 			if(typeof sub.prototype._start!="function") throw new SyntaxError("#AbstractWorker:002 _start() is not defined");
 		},
-		constructor:function({initScripts=[],autoStart=true,startTimeout=AbstractWorker.defaults.TIMEOUT,loadMorgas=true}={})
+		constructor:function({initScripts=[],autoStart=true,startTimeout=AbstractWorker.defaults.TIMEOUT,loadMorgas=true,onFeedback=this.onFeedback||null}={})
 		{
 			this.requestMap=new Map();
 			this.id=ID_COUNTER++;
@@ -28,7 +28,7 @@
 			this.loadMorgas=loadMorgas;
 			this.startTimeout=startTimeout;
 			this.ready=null;
-			this.onFeedback=null;
+			this.onFeedback=onFeedback;
 
 			let reporter=new SC.Reporter(this,[WorkerStateEvent,WorkerMessageEvent,SC.ErrorEvent]);
 
