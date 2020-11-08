@@ -212,11 +212,11 @@
 				clearTimeout(timer);
 			});
 
-			let config=Object.assign({
+			let config=Object.assign({},await this._start(),{
 				id:this.id,
 				loadMorgas:this.loadMorgas,
 				initScripts:this.initScripts
-			},await this._start());
+			});
 
 			this._send({
 				type:AbstractWorker.messageTypes.REQUEST,
