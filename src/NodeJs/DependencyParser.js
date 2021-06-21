@@ -11,7 +11,8 @@
 
 	let morgasJsFile=new SC.File(µ.dirname).changePath("Morgas.js");
 
-	let dependencyParser=µ.Class({
+	/** @type DependencyParser */
+	let DependencyParser=µ.Class({
 		constructor:function()
 		{
 			/** paths to files and folders to parse */
@@ -35,55 +36,11 @@
 			this.sources.push(source);
 			return this;
 		},
-		addModuleRegister(moduleRegister,relativeTarget)
-		{
-			for(let module in moduleRegister)
-			{
-				let file=moduleRegister[module];
-				this.addModule(module,file,relativeTarget);
-			}
-			return this;
-		},
-    	addModule(module,file,relativeTarget)
-		{
-			addModuleToRegister(this.moduleRegister,module,file,relativeTarget);
-			return this;
-		},
-		addModuleDependencies(moduleDependencies)
-		{
-			for (let file in moduleDependencies)
-			{
-				let dependencies=moduleDependencies[file];
-				this.addModuleDependency(file,dependencies);
-			}
-			return this;
-		},
-		addModuleDependency(module,dependencies)
-		{
-			addDependencyToRegister(this.moduleDependencies,module,dependencies);
-			return this;
-		},
-		addFileDependencies(fileDependencies,relativeTarget)
-		{
-			for (let file in fileDependencies)
-			{
-				let dependencies=fileDependencies[file];
-				this.addFileDependency(file,dependencies,relativeTarget);
-			}
-			return this;
-		},
-		addFileDependency(file,dependencies,relativeTo)
-		{
-			if(relativeTarget)
-			{
-				relativeTarget=SC.File.stringToFile(relativeTarget);
-				file=relativeTarget.clone().changePath(file).getAbsolutePath();
-				dependencies.deps=dependencies.deps.map(d=>relativeTarget.clone().changePath(d).getAbsolutePath);
-				dependencies.uses=dependencies.uses.map(u=>relativeTarget.clone().changePath(u).getAbsolutePath);
-			}
-			addDependency(this.fileDependencies,file,dependencies);
-			return this;
-		},
+		/**
+		 * adds Provided modules ( suppresses module not found warning )
+		 * @param {String[]}providedModules
+		 * @returns {DependencyParser} this
+		 */
 		addProvidedModules(providedModules)
 		{
 			for(let module of providedModules) this.providedModules.add(module);
@@ -91,17 +48,12 @@
 		},
     	async parse(relativeTo)
 		{
-			rtn={
+			let rtn={
 				moduleRegister:{},
 				moduleDependencies:{},
 				fileDependencies:{},
 				consumingDependencies:{}
 			};
-
-			//set provided data
-			for(let module in this.moduleRegister) addModuleToRegister(rtn.moduleRegister,module,this.moduleRegister[module],relativeTo);
-			for(let module in this.moduleDependencies) addDependencyToRegister(rtn.moduleDependencies,module,this.moduleDependencies[module]);
-			for(let file in this.fileDependencies) addDependencyToRegister(rtn.fileDependencies,file,this.fileDependencies[file]);
 
 			let parsedFiles=await this._parseFiles(relativeTo);
 
@@ -183,7 +135,7 @@
 		}
 	});
 
-    module.exports=dependencyParser;
+    module.exports=DependencyParser;
 
     let addModuleToRegister=function(moduleRegister,module,file,relativeTarget)
     {
