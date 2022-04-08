@@ -126,7 +126,14 @@
 				let packageName = allModulesRegister[module].package;
 				let path = allModulesRegister[module].path;
 				let url = normalizePath(SC.PATH.join(packageName, path));
-				urlToPath[url]=SC.PATH.join(this.packages[packageName].basePath,path);
+				if(packageName==="")//source package
+				{
+					urlToPath[url]=path;
+				}
+				else
+				{
+					urlToPath[url] = SC.PATH.join(this.packages[packageName].basePath, path);
+				}
 				return url;
 			};
 			this.packages[""]={ //source "package"

@@ -6,23 +6,23 @@
 	//SC=SC({});
 
 	/**
-	 * @param {Any} obj
-	 * @param {Any} pattern
+	 * @param {*} obj
+	 * @param {*} pattern
 	 * @Returns {Boolean}
 	 *
 	 * @summary Matches {obj} against {pattern}.
 	 * @description
 	 *	check order:
 	 *
-	 * 1. match strictly (===) and check NaN
-	 * 2 of pattern is null (or undefined): false
-	 * 3. if Pattern is a RegExp: pattern.test(obj)
-	 * 3.1 if object is instance of RegExp match string representation
-	 * 4. if Pattern is a Function and obj isn't: pattern(obj)
-	 * 5. if pattern is an Array: check if it includes obj then check every sub pattern
-	 * 6. if obj is null: false
-	 * 7. if obj has a .equals Function: obj.equals(pattern)
-	 * 8. if pattern is an Object: recurse for every key in pattern
+	 * 1.	match strictly (===) and check NaN
+	 * 2  	pattern is null (or undefined): false
+	 * 3.	pattern is a RegExp: pattern.test(obj)
+	 * 3.1	object is instance of RegExp match string representation
+	 * 4.	pattern is a Function and obj isn't: pattern(obj)
+	 * 5.	pattern is an Array: check if it includes obj then check every sub pattern
+	 * 6.	obj is null: false
+	 * 7.	obj has a .equals Function: obj.equals(pattern)
+	 * 8.	pattern is an Object: recurse for every key in pattern
 	 *
 	 */
 	uObj.equals=function(obj,pattern)
@@ -35,7 +35,7 @@
 		if(pattern instanceof RegExp)
 		{
 			if( typeof obj==="string") return pattern.test(obj);
-			else if(obj instanceof RegExp) return obj.toString()==pattern.toString();
+			else if(obj instanceof RegExp) return obj.toString()===pattern.toString();
 			return false;
 		}
 		if(typeof pattern==="function")
@@ -49,7 +49,7 @@
 			{
 				return true;
 			}
-			return pattern.findIndex(p=>uObj.equals(obj,p))!=-1;
+			return pattern.findIndex(p=>uObj.equals(obj,p))!==-1;
 		}
 		if(obj==null) return false;
 		if(typeof obj.equals==="function")
@@ -180,7 +180,7 @@
 		{
 			if(!value||!(Symbol.iterator in value)) return false;
 			let valueLength=value.size||value.length||0;
-			if(valueLength!=length) return false;
+			if(valueLength!==length) return false;
 			let iterator=value[Symbol.iterator]();
 			for(let pattern of iterablePattern)
 			{

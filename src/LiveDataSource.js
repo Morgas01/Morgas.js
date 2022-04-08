@@ -108,7 +108,7 @@
 				let index=this.data.findIndex(d=>this.key(d)===id);
 				if(index!==-1)
 				{
-					this.data.splice(index,1);
+					let data=this.data.splice(index,1);
 					this.reportEvent(new LiveDataEvent({type:"remove",data}));
 				}
 				else µ.logger.warn(`LiveDataSource [${this.url}] unknown data removed [${id}]`);

@@ -21,9 +21,9 @@
 			factor=1000
 		}={})
 		{
-			if(value==0) return value.toFixed(decimalPlaces)+base;
+			if(value===0) return value.toFixed(decimalPlaces)+base;
 			let index=stages.indexOf(currentStage);
-			if(index==-1) return value.toFixed(decimalPlaces)+currentStage+base;
+			if(index===-1) return value.toFixed(decimalPlaces)+currentStage+base;
 			while(value>factor&&index<stages.length)
 			{
 				value/=factor;
@@ -49,9 +49,9 @@
 				if(Number.isNaN(value)) return NaN;
 				let modifier=match[2];
 				let index=stages.indexOf(modifier);
-				if(index==-1) return NaN;
+				if(index===-1) return NaN;
 				let toIndex=stages.indexOf(toStage);
-				if(toIndex==-1) return NaN;
+				if(toIndex===-1) return NaN;
 				return value*(factor**(index-toIndex));
 			}
 			return NaN;

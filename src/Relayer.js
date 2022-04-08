@@ -27,7 +27,8 @@
 		{
 			return this.actionIterator.next();
 		},
-		[Symbol.asyncIterator](){
+		[Symbol.asyncIterator]()
+		{
 			return this;
 		},
 		/** peforms a asynchronous operation on an entry */
