@@ -75,7 +75,7 @@
 				toSave=[];
 			if (rel.relatedClass===fRel.relatedClass)
 			{
-				fidName+=2;
+				fidName+="2";
 			}
 			let friendship=DBFRIEND.implement(obj,relationName);
 			for(let i=0;i<fids.length;i++)
@@ -165,14 +165,14 @@
 				friends=obj.friends[relationName];
 			if(!friends)
 			{
-				SC.debug("no friends in relation "+relationName+" found",2);
+				µ.logger.debug("no friends in relation "+relationName+" found");
 				return new SC.prom.resolve(false,this);
 			}
 			let fRel=friends[0].relations[rel.targetRelationName],
 				id=obj.ID;
 			if(id==null)
 			{
-				µ.logger.warn("object's id is null",2);
+				µ.logger.warn("object's id is null");
 				return new SC.prom.resolve(false,this);
 			}
 			let fids=[];
@@ -264,6 +264,8 @@
 		{
 			if(sub.prototype.objectType==null) throw new SyntaxError("#DB.Object:001 objectType is not defined");
 			if(DBOBJECT.classesMap.has(sub.prototype.objectType)) throw new RangeError("#DB.Object:002 objectType mut be unique");
+
+			DBOBJECT.classesMap.set(sub.prototype.objectType,sub.prototype.constructor);
 		},
 		[µ.Class.symbols.abstract]:true,
 		constructor:function(param={})
@@ -416,7 +418,7 @@
 		},
 		toJSON:function()
 		{
-			let rtn={};
+			let rtn={objectType:this.objectType};
 			for(let f in this.fields)
 			{
 				let value=this.fields[f].toJSON();
@@ -440,6 +442,19 @@
 			return JSON.stringify(this);
 		}
 	});
+	DBOBJECT.fromJSON=function(objects=[])
+	{
+		objects=[].concat(objects);
+		let rtn=[];
+		for(let obj of objects)
+		{
+			let dbClass=DBOBJECT.classesMap.get(obj.objectType);
+			if(dbClass) rtn.push(new dbClass().fromJSON(obj));
+			else µ.logger.warn("#DBObject: no such DBObject "+obj.objectType);
+
+		}
+		return rtn;
+	};
 	DBOBJECT.connectObjects=function(dbObjects)
 	{
 		for(let i=0;i<dbObjects.length;i++)
@@ -468,7 +483,7 @@
 
 			if (objClass===friendClass)
 			{
-				friendFieldname+=2;
+				friendFieldname+="2";
 			}
 
 			return {

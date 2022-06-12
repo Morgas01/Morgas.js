@@ -166,7 +166,7 @@
 			this.mega();
 			this.checkListeners=[];
 		},
-		add(scope=null,fn,checkPhase)
+		add(scope=null,fn,checkPhase=false)
 		{
 			if(checkPhase)
 			{
@@ -246,7 +246,8 @@
 			}
 			return this;
 		},
-		add(eventName,scope=null,fn,checkPhase)
+		//TODO refactor to (name,fn,options{scope,checkPhase})
+		add(eventName,fn,{scope=null,checkPhase=false}={})
 		{
 			let eventClass=eventClassesMap.get(eventName);
 			if(!eventClass) throw new ReferenceError(`#ReporterPatch:001 Event class with name ${eventName} does not exist`);
@@ -254,15 +255,15 @@
 			if(typeof fn!=="function") throw new TypeError("#ReporterPatch:003 fn is not a function");
 			this.eventMap.get(eventClass).add(scope,fn,checkPhase);
 
-			if(scope!=null&&scope!=globalScope) checkListenerPatch(scope,this);
+			if(scope instanceof µ.BaseClass) checkListenerPatch(scope,this);
 		},
-		remove(eventName,scope,fn,checkPhase)
+		remove(eventName,fn,{scope=null,checkPhase=false}={})
 		{
 			let eventClass=eventClassesMap.get(eventName);
 			if(!eventClass||!this.eventMap.has(eventClass)) return;
 			this.eventMap.get(eventClass).remove(scope,fn,checkPhase);
-			if(scope!=null&&scope!=globalScope)
-			{// removed && not global
+			if(scope instanceof µ.BaseClass)
+			{// scope should have listenerPatch
 				for(let eventRegister of this.eventMap.values()) if (eventRegister.has(scope)) return ;
 				
 				let listenerPatch=getListenerPatch(scope);
