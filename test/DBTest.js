@@ -68,9 +68,9 @@
 		QUnit.test("save friendships",function(assert)
 		{
 			return dbConn.saveFriendships(child,"friendRel")
-				.then(function()
+				.then(function(result)
 				{
-					assert.ok(true);
+					assert.ok(result!==false);
 				});
 		});
 		QUnit.test("load single via int",function(assert)

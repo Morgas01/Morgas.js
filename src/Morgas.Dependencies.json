@@ -42,6 +42,10 @@
 		],
 		"uses": []
 	},
+	"Orchestrator.js": {
+		"deps": [],
+		"uses": []
+	},
 	"Organizer.js": {
 		"deps": [
 			"SortedArray.js"

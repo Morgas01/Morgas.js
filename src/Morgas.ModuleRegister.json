@@ -16,6 +16,7 @@
 	"EventListenerPatch": "Event.js",
 	"LiveDataSource": "LiveDataSource.js",
 	"NodePatch": "NodePatch.js",
+	"Orchestrator": "Orchestrator.js",
 	"Organizer": "Organizer.js",
 	"Patch": "Patch.js",
 	"Promise": "Promise.js",

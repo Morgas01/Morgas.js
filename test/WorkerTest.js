@@ -13,7 +13,7 @@
 				let worker=generator();
 				return worker.ready.then(function(initData)
 				{
-					worker.addEventListener("error",null,function(event)
+					worker.addEventListener("error",function(event)
 					{
 						console.error(event);
 						assert.ok(false,event.reason);
@@ -105,7 +105,7 @@
 				let worker = generator([testWorkerScript]);
 				return worker.ready.then(function()
 				{
-					worker.addEventListener("error",null,function(event)
+					worker.addEventListener("error",function(event)
 					{
 						console.error(event);
 						assert.ok(false,event.reason);
@@ -137,7 +137,7 @@
 				let worker = generator();
 				return worker.ready.then(function()
 				{
-					worker.addEventListener("error",null,function(event)
+					worker.addEventListener("error",function(event)
 					{
 						console.error(event);
 						assert.ok(false,event.reason);

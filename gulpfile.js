@@ -23,7 +23,7 @@ module.exports={
 		require("./test/DBTest");
 		require("./test/WorkerTest");
 
-		require("qunit/src/cli/run")(tests,{requires:[],reporter:require( "js-reporters" ).TapReporter});
+		require("qunit/src/cli/run")(tests,{requires:[],reporter:"tap"});
 		checkGlobals();
 	}
 };
