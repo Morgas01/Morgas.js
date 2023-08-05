@@ -40,7 +40,7 @@
 		},
 		out(...msg)
 		{
-			this.commander.out(...msg);
+			return this.commander.out(...msg);
 		},
 		pause()
 		{

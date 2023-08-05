@@ -25,7 +25,7 @@
 			this.maxRunning=Math.max(maxRunning,1)||1;
 			this._check();
 		},
-		add(fn,scope,args=[])
+		add(fn,args=[],scope)
 		{
 			/** @type µ.Orchestrator~Task **/
 			let task=fn.bind(scope,...args);
@@ -38,6 +38,10 @@
 			this.pending.push({task,rs,rj});
 			this._check();
 			return promise;
+		},
+		map(fn,argsList,scope)
+		{
+			return argsList.map(args=>this.add(fn,args,scope));
 		},
 		removePending(reason)
 		{

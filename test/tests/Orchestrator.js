@@ -39,7 +39,7 @@ QUnit.module("Orchestrator",function()
 		let task=createTask(assert);
 		let orchestrator=new µ.Orchestrator({maxRunning:2});
 
-		await Promise.all([orchestrator.add(task),orchestrator.add(task,null,["slow",200]),orchestrator.add(task,null,["2"]),orchestrator.add(task,null,["3"])]);
+		await Promise.all([orchestrator.add(task),orchestrator.add(task,["slow",200]),orchestrator.add(task,["2"]),orchestrator.add(task,["3"])]);
 
 		assert.verifySteps(["start 0","start slow","end 0","start 2","end 2","start 3","end 3","end slow"]);
 	});
@@ -48,7 +48,7 @@ QUnit.module("Orchestrator",function()
 		let task=createTask(assert);
 		let orchestrator=new µ.Orchestrator({maxRunning:2});
 
-		await Promise.all([orchestrator.add(task).then(()=>{orchestrator.setMaxRunning(3)}),orchestrator.add(task,null,["slow",200]),orchestrator.add(task,null,["2"]),orchestrator.add(task,null,["3"])]);
+		await Promise.all([orchestrator.add(task).then(()=>{orchestrator.setMaxRunning(3)}),orchestrator.add(task,["slow",200]),orchestrator.add(task,["2"]),orchestrator.add(task,["3"])]);
 
 		assert.verifySteps(["start 0","start slow","end 0","start 2","start 3","end 2","end 3","end slow"]);
 	});

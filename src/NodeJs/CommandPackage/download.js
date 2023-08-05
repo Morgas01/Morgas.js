@@ -7,7 +7,8 @@
 		util:"File/util",
 		FileCmd:"CommandPackage/file",
 		DateFormat:"date/format",
-		metricUnit:"metricUnit"
+		metricUnit:"metricUnit",
+		Orchestrator:"Orchestrator"
 	});
 
 	let URL=require("url");
@@ -59,7 +60,7 @@
 						default:
 							reject("status :"+response.statusCode);
 					}
-				});
+				}).on("error",reject);
 			})(url);
 		});
 	}
@@ -97,16 +98,46 @@
 			downloadList:CommandPackage.createCommand(
 				function(source)
 				{
-					this.pause();
-					(async ()=>
+					let options={
+						delay:0,
+						bulk:1,
+						ignoreErrors:false
+					};
+
+					let [range,filename,optionString]= source.match(/\s*((?:\S|\s(?!--|$))+)(?:\s--(.+))?/);
+					if(optionString)
 					{
-						return this.downloadList(source);
-					})()
+						for (let optionEntry of optionString.split(/\s--/))
+						{
+							let [range, key, value] = optionEntry.match(/(\S+)(?:\s+|\s*=\s*)(.+)\s*/);
+							switch (key)
+							{
+								case "delay":
+								{
+									let delay = parseInt(value, 10);
+									if (delay) options.delay = delay;
+									break;
+								}
+								case "bulk":
+								{
+									let bulk = parseInt(value, 10);
+									if (bulk) options.bulk = bulk;
+									break;
+								}
+								case "ignoreErrors":
+								{
+									options.ignoreErrors = value!=="false";
+									break;
+								}
+							}
+						}
+					}
+
+					return this.downloadList(filename,options)
 					.catch(µ.constantFunctions.pass)
 					.then(result=>
 					{
 						this.out(result);
-						this.resume();
 					});
 				},
 				function(line)
@@ -118,7 +149,7 @@
 				}
 			)
 		},
-		download:async function(url,filename)
+		download:async function(url,filename,lineIndex)
 		{
 			let target;
 
@@ -146,7 +177,7 @@
 					if(match)
 					{
 						filename=match[1];
-						this.out("as "+filename);
+						await this.out("as "+filename);
 					}
 				}
 				if(!filename)
@@ -166,10 +197,11 @@
 				let duration=Date.now()-startTime;
 				date.setTime(duration);
 				let message=SC.DateFormat(date,SC.DateFormat.time,true);
+				if(filesize) message+=" "+(size*100/filesize).toFixed(2)+"%";
 				let speed=SC.metricUnit.to(size*1000/duration,{base:"B/S",factor:1024});
-				if(filesize) message+=" "+(size*100/filesize).toFixed(2)+"%\t"+speed+"   ";
-				this.progressOutput(message);
-			},250);
+				message+="\t"+speed;
+				this.out(lineIndex,message);
+			},500);
 
 			return new Promise(function(resolve,reject)
 			{
@@ -197,17 +229,28 @@
 				writeStream.on("error",errorHandle);
 			});
 		},
-		downloadList:async function(source)
+		downloadList:async function(source,{delay=0,bulk=1,ignoreErrors=false}={})
 		{
+			this.resume();
 			let startTime=Date.now();
 			source=new SC.File(this.getCWD()).changePath(source);
 			let list=JSON.parse(await source.read());
+			let orchestrator=new SC.Orchestrator({maxRunning:bulk,delay});
 			let stop=false;
-			let stopFn=()=>stop=true;
-			this.commander.rl.on("SIGINT",stopFn);
-			for(let i=0;!stop&&i<list.length;i++)
+			let stopFn=()=>
 			{
-				let entry=list[i];
+				if(!stop)
+				{
+					orchestrator.removePending("stopped");
+					stop = true;
+					this.out(this.commander.lineIndex+2,"stopping");
+				}
+			};
+			this.commander.rl.on("SIGINT",stopFn);
+
+			let lineIndex=this.commander.lineIndex;
+			await Promise.allSettled(list.map((entry,i)=>
+			{
 				let url=null;
 				let filename=null;
 				if(Array.isArray(entry))
@@ -219,18 +262,25 @@
 				{
 					url=entry;
 				}
-				this.out(`${i+1}/${list.length}	${url}	${filename||""}`);
-				try
+				let index=lineIndex=lineIndex+=2;
+				return orchestrator.add(async ()=>
 				{
-					this.out(await this.download(url,filename));
-				}
-				catch(error)
+					await this.out(index-1,`${i+1}/${list.length}	${url}	${filename||""}`);
+					return this.download(url,filename,index).then(async (result)=>
+					{
+						await this.out(index,result);
+					},
+					error=>
+					{
+						if(error!=="stopped")this.out(index,"error",error.message);
+						if(!ignoreErrors) stopFn();
+					});
+				}).catch(error=>
 				{
-					this.out(error);
-					stop=true;
-				}
-			}
-			this.commander.rl.removeListener("SIGINT",stopFn);
+					if(error!=="stopped")this.out(index,error);
+					if(!ignoreErrors) stopFn();
+				});
+			}));
 			return getTimeString(new Date(Date.now()-startTime))+(stop?" stopped":" all complete");
 		},
 		progressOutput:function(message)

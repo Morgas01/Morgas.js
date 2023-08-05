@@ -26,15 +26,19 @@
 			this.prompt=prompt;
 			this.isClosed=false;
 			this.isPaused=false;
+			this.lineIndex=0;
+			this.packageLines=[];
+			this._outPromise=Promise.resolve();
 			this.rl = readline.createInterface({
 				input: input,
 				output: output,
-				completer:this.completeLine.bind(this)
+				completer:this.completeLine.bind(this),
+				tabSize:4
 			});
 			this.rl.on("line",this.onLine.bind(this))
 			.on("close",()=>this.isClosed=true)
-			.on("pause",()=>this.isPaused=true)
-			.on("resume",()=>this.isPaused=false);
+			.on("pause", () =>this.isPaused = true)
+			.on("resume", () =>this.isPaused = false);
 			
 			this.addCommandPackage(...commandPackages);
 			this.loadCommandModule(...commandModules);
@@ -100,6 +104,8 @@
 				}
 				let package=this.packages.get(packages[0]);
 				this.pause();
+				this.lineIndex=0;
+				this.packageLines.length=0;
 				new SC.Promise(package.executeCommand,{scope:package,args:[commandName,argumentString],simple:true})
 				.catch(e=>
 				{
@@ -107,7 +113,7 @@
 				})
 				.then(result=>
 				{
-					if(result!=null) this.out(result);
+					if(result!=null) console.log(result);
 					this.resume();
 				});
 			}
@@ -116,7 +122,11 @@
 				//TODO
 				let cmd=match&&match[1]||line;
 				this.out("unknown command "+cmd);
-				if(!(this.isClosed&&!this.isPaused)){this.rl.setPrompt(this.prompt);this.rl.prompt()};
+				if (!(this.isClosed && !this.isPaused))
+				{
+					this.rl.setPrompt(this.prompt);
+					this.rl.prompt();
+				}
 			}
 		},
 		loadCommandModule(...modules)
@@ -165,7 +175,7 @@
 			this.prompt=prompt
 			if(!this.isClosed&&!this.isPaused)this.rl.setPrompt(this.prompt);
 		},
-		out(...msg)
+		async out(lineIndex,...msg)
 		{
 			/* TODO
 			this.rl.write(UTIL.inspect(msg,{
@@ -175,7 +185,51 @@
 			})+"\n");
 			this.rl.prompt();
 			/*/
-			console.log(...msg);
+			this._outPromise=this._outPromise.then(async()=>
+			{
+				if (typeof lineIndex === "number" && msg.length > 0)
+				{
+					let text = msg.join(" ");
+					this.packageLines[lineIndex] = text;
+					try
+					{
+						if (lineIndex >= this.lineIndex)
+						{
+							await new Promise((resolve) => this.rl.output.write("\n".repeat(lineIndex-this.lineIndex), null, resolve));
+							this.lineIndex = lineIndex
+						}
+						else
+						{
+							await new Promise((resolve) => this.rl.output.moveCursor(0, lineIndex - this.lineIndex, resolve));
+							await new Promise((resolve) => this.rl.output.clearLine(0, resolve));
+							await new Promise((resolve) => this.rl.output.cursorTo(0, undefined, resolve));
+						}
+						await new Promise((resolve) => this.rl.output.write(text, null, resolve));
+						if(lineIndex===this.lineIndex)
+						{
+							await new Promise((resolve) => this.rl.output.write("\n", null, resolve));
+							this.lineIndex++;
+						}
+						else
+						{
+							await new Promise((resolve) => this.rl.output.moveCursor(0, this.lineIndex - lineIndex, resolve));
+							await new Promise((resolve) => this.rl.output.cursorTo(0, undefined, resolve));
+						}
+					}
+					catch (e)
+					{
+						await new Promise((resolve) => this.rl.output.clearScreenDown(resolve));
+						console.log(e);
+						console.log(this.packageLines.join("\n"));
+					}
+				}
+				else
+				{
+					console.log(lineIndex, ...msg);
+					this.packageLines.push(msg.join(""));
+					this.lineIndex++;
+				}
+			});
 			//*/
 		},
 		pause()
@@ -188,7 +242,7 @@
 			{
 				this.rl.resume();
 				this.rl.setPrompt(this.prompt);
-				this.rl.prompt()
+				this.rl.prompt();
 			}
 		},
 		close()
