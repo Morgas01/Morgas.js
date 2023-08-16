@@ -163,7 +163,7 @@
 					if(cb) cb(result);
 					return result;
 				}
-				return SC.util.calcCRC(this.file.clone().changePath(filename),progress)
+				return SC.util.calcCRC(this.file.clone().changePath(filename),(c,m)=>progress(c,m,filename))
 				.then(crc=>
 				{
 					let result=[filename,crc===match[1].toUpperCase(),crc];

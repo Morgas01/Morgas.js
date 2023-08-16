@@ -117,7 +117,7 @@
 			},
 			checkCRC:function()
 			{
-				return this.fh.checkCRC(a=>this.out((a[2]==null?"NONE\t\t":a[1]==false?"DIFFERENT\t"+a[2]:"OK\t\t")+"\t"+a[0]),this.progressOutput).then(o=>"");
+				return this.fh.checkCRC(a=>this.out((a[2]==null?"NONE\t\t":a[1]==false?"DIFFERENT    "+a[2]:"OK     \t\t")+"\t"+a[0]),this.progressOutput).then(o=>"");
 			},
 			appendCRC:function()
 			{
@@ -153,10 +153,10 @@
 		{
 			return this.fh.getAbsolutePath();
 		},
-		progressOutput:function(value,max)
+		progressOutput:function(value,max,name="")
 		{
 			this.commander.rl.output.cursorTo(0);
-			this.commander.rl.write((value*100/max).toFixed(2)+"%");
+			this.commander.rl.write((value*100/max).toFixed(2)+"%\t\t\t"+name);
 			this.commander.rl.clearLine(1);
 			this.commander.rl.output.moveCursor(0,-1);
 		},
