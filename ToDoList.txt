@@ -1,5 +1,6 @@
 Morgas.js:
 	- loadedModules
+	- remove mega()
 
 rename metricUnit into symentricUnit
 create asymetricUnit
@@ -21,12 +22,10 @@ build:
 	- custom result objects (views)
 	- select functions ( count, sum, ... )
 	- constraints
+	- custom upgrade sequence ( like liquibase )
 
 µ.DB.Object:
 	- update(current,updated) updates array of loaded instances with freshly loaded ( or upgrade connectObjects )
-
-µ.DB.Connector.IndexedDBConnector:
-	- custom upgrade sequence ( like liquibase )
 
 NodeJs/Commander:
 	- help command

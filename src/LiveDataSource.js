@@ -16,7 +16,7 @@
 	/**
 	 * Parses the raw data and returns an array of parsed entries
 	 * @callback LiveDataSource~parser
-	 * @param {LiveDataSource~rawEntry} entries
+	 * @param {LiveDataSource~rawEntry[]} entries
 	 * @returns {LiveDataSource~parsedEntry|LiveDataSource~parsedEntry[]}
 	 */
 
@@ -39,7 +39,7 @@
 		 * @param {number} retryDelay
 		 * @param {LiveDataSource~parser} parser
 		 * @param {number} flattenParsed depth to flatten the parse results to in case the parser returns arrays
-		 * @param {LiveDataSource~onUpdate} onUpdate if provided entries won't be replaced
+		 * @param {LiveDataSource~onUpdate} onChange callback to merge the change into the existing entry. If not provided entries will be replaced
 		 * @param {Object<String,function>} events object map of custom events and/or custom handlers
 		 */
 		constructor:function({
@@ -50,7 +50,7 @@
 			retryDelay=20E3,
 			parser,
 			flattenParsed=0,
-			onUpdate,
+			onChange,
 			events
 		}={})
 		{
@@ -68,7 +68,7 @@
             this.retryDelay=retryDelay;
             this.parser=parser;
 			this.flattenParsed=flattenParsed;
-			this.onUpdate=onUpdate;
+			this.onChange=onChange;
 
             this.data=undefined;
 
@@ -144,23 +144,31 @@
 				let data=JSON.parse(event.data);
 				if(this.parser)data=this.parser(data).flat(this.flattenParsed);
 
-				let id=this.key(data);
-				let index=this.data.findIndex(d=>this.key(d)===id);
-				if(index!==-1)
+				let changed=[];
+				for(let updateData of data)
 				{
-					if(this.onUpdate!=null)
+					let id=this.key(updateData);
+					let index=this.data.findIndex(d=>this.key(d)===id);
+					if (index!== -1)
 					{
-						let old=this.data[index];
-						this.onUpdate(data,old);
-						data=old;
+						if (this.onChange!=null)
+						{
+							let old=this.data[index];
+							this.onChange(updateData, old); //updates old entry
+							changed.push(old);
+						}
+						else
+						{
+							this.data.splice(index, 1, updateData);
+							changed.push(updateData);
+						}
 					}
 					else
 					{
-						this.data.splice(index,1,data);
+						µ.logger.warn(`LiveDataSource [${this.url}] unknown data changed [${id}]`);
 					}
-					this.reportEvent(new LiveDataEvent({type:"change",data}));
 				}
-				else µ.logger.warn(`LiveDataSource [${this.url}] unknown data changed [${id}]`);
+				this.reportEvent(new LiveDataEvent({type: "change", data:changed}));
 			},
 			remove(event)
 			{

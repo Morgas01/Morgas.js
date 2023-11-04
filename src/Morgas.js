@@ -231,10 +231,13 @@
 	 */
 	µ.BaseClass=µ.Class({
 		/**
+		 * TODO remove or function key as parameter
+		 * @deprecated
 		 * calls same function from prototype chain as the caller
 		 */
 		mega:function mega()
 		{
+			//µ.logger.warn(".mega() is deprecated use prototype[].call() instead");
 			let isFirstCall=false,rtn;
 			// check if it is the same as the las one
 			if(this[megaSymbol]!==undefined&&this.mega.caller!==this[megaSymbol].prot[this[megaSymbol].key])
