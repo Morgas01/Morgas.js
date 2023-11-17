@@ -136,7 +136,7 @@
 			{
 				let data=JSON.parse(event.data);
 				if(this.parser)data=this.parser(data).flat(this.flattenParsed);
-				this.data.push(data);
+				this.data.push(...data);
 				this.reportEvent(new LiveDataEvent({type:"add",data}));
 			},
 			change(event)

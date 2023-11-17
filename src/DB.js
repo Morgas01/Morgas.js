@@ -17,20 +17,18 @@
 			if(typeof sub.prototype.save!="function") throw new Error("#DB.Connector:002 save() is not defined");
 			if(typeof sub.prototype.delete!="function") throw new Error("#DB.Connector:003 delete() is not defined");
 		},
-		constructor:function()
-		{
-			SC.prom.pledgeAll(this,["save","load","delete","destroy"]);
-		},
+		constructor:function(){},
 		/*
-		save:function(signal,objs)
+		// changes ID in objs if it was not set
+		 async save:function(signal,objs)
 		{
 			objs=[].concat(objs);
 			let sortedObjs=DBC.sortObjs(objs);
 		},
-		load:function(signal,objClass,pattern)
+		 async load:function(signal,objClass,pattern)
 		{
 		},
-		"delete":function(signal,objClass,toDelete)
+		async "delete":function(signal,objClass,toDelete)
 		{
 			let toDelete=DBC.getDeletePattern(objClass,toDelete);
 		},

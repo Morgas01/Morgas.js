@@ -17,16 +17,16 @@
 	
 	let OCON=DBC.ObjectConnector=µ.Class(DBC,
 	{
-		constructor:function(global)
+		constructor:function()
 		{
-			this.mega();
+			DBC.prototype.constructor.call(this);
 			this.db=getDb();
 		},
-		save:function(signal,objs)
+		async save(objs)
 		{
 			objs=[].concat(objs);
 			let sortedObjs=DBC.sortObjs(objs);
-			
+
 			for(let objectType in sortedObjs.fresh)
 			{
 				let objs=sortedObjs.fresh[objectType],
@@ -42,8 +42,8 @@
 			let updates=[];
 			for(let objectType in sortedObjs.preserved)
 			{
-				let objs=sortedObjs.preserved[objectType],
-				ids=this.db.getGroupPart("objectType",objectType).getMap("ID");
+				let objs=sortedObjs.preserved[objectType];
+				let ids=this.db.getGroupPart("objectType",objectType).getMap("ID");
 				for(let i=0;i<objs.length;i++)
 				{
 					let found=ids[objs[i].ID];
@@ -74,12 +74,11 @@
 				}
 				this.db.addAll(newFriends);
 			}
-			signal.resolve();
 		},
-		load:function(signal,objClass,pattern,sort)
+		async load(objClass,pattern,sort)
 		{
 			let tDb=this.db.getGroupPart("objectType",objClass.prototype.objectType);
-			if(!tDb) return signal.resolve([]);
+			if(!tDb) return [];
 
 			let pDb;
 			if(pattern!=null)
@@ -100,21 +99,21 @@
 			}
 			else rtn=pDb.getValues();
 			rtn=rtn.map(r=>new objClass().fromJSON(r.fields));
-			signal.resolve(rtn);
+			return rtn;
 		},
-		"delete":function(signal,objClass,toDelete)
+		async delete(objClass,toDelete)
 		{
 			toDelete=this.db.values.filter(SC.eq.test({objectType:objClass.prototype.objectType,fields:DBC.getDeletePattern(objClass,toDelete)}));
 			this.db.remove(toDelete);
-			signal.resolve(toDelete.map(d=>d.fields.ID));
+			return toDelete.map(d=>d.fields.ID);
 		},
-		destroy:function()
+		async destroy()
 		{
 			if(this.db!==OCON.prototype.db)
 			{
 				this.db.clear();
 			}
-			this.mega();
+			DBC.prototype.destroy.call(this);
 		},
 		_getNextID:function(objectType)
 		{
