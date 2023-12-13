@@ -30,7 +30,7 @@
 			if(!sProt.name.match(eventNamePattern)) throw new RangeError("#Event:002 Event name does not match pattern "+eventNamePattern);
 			if(eventClassesMap.has(sProt.name)) throw new RangeError("#Event:003 Event name must be unique");
 
-			sub.name=sProt.name;
+			//sub.name=sProt.name;
 
 			eventClassesMap.set(sProt.name,sProt.constructor);
 		},

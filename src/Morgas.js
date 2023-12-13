@@ -1,6 +1,6 @@
 ﻿(function MorgasInit(oldµ){
-	Morgas={version:"0.8.9"};
-	µ=Morgas;
+	globalThis.Morgas={version:"0.8.9"};
+	globalThis.µ=Morgas;
 	/**
 	 * revert "µ" to its old value
 	 */
@@ -310,4 +310,4 @@
 			Object.setPrototypeOf(this,null);
 		}
 	});
-})(this.µ);
+})(globalThis.µ);

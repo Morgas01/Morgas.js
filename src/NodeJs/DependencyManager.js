@@ -13,9 +13,14 @@
 
 	let normalizePath=function(path){return path.replace(/\\/g,"/");};
 
-	/**@type DependencyManager */
+	/**
+	 * Manages and resolves dependencies of sources including dependent packages.
+	 * A package comprises the combination of a modules dependencies, module register and base path.
+	 * URL representation of file paths consist of "[<package>/]<path from package basePath>"
+	 * @type DependencyManager
+	 */
 	let DependencyManager=µ.Class({
-		constructor:function({basePath=".",addMorgasModule=true}={})
+		constructor:function({basePath=".",addMorgasPackage=true}={})
 		{
 			this.sourcesBasePath=".";
 			this.sourcePaths=[];
@@ -24,7 +29,7 @@
 
 			this.setSourcesBasePath(basePath);
 
-			if(addMorgasModule)
+			if(addMorgasPackage)
 			{
 				this.addPackage({
 					name:"morgas",
@@ -213,6 +218,23 @@
 			{
 				throw `file '${file}' not found`;
 			}
+		},
+		async resolveAll({includePackages=true}={})
+		{
+			let allDependencies=await this.getAllDependencies();
+			let resolver=new SC.DependencyResolver(allDependencies.urlDependencies);
+			let bundleUrls;
+			if(includePackages)
+			{
+				bundleUrls=Object.keys(allDependencies.urlDependencies);
+			}
+			else
+			{
+				bundleUrls=Object.entries(allDependencies.allModulesRegister).map(([k,v])=>v.path);
+			}
+			let urls=resolver.resolve(bundleUrls);
+			let files=urls.map(url=>allDependencies.urlToPath[url]);
+			return {urls,files,allDependencies};
 		}
 	});
 	module.exports=DependencyManager;
