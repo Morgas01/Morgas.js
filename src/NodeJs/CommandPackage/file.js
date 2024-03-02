@@ -147,7 +147,7 @@
 			{
 				return this.fh.cleanNames().then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));
 			},
-			mergeParts:function(pattern){return this.fh.mergeParts(this.out).then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));}
+			mergeParts:function(pattern){return this.fh.mergeParts(this.out.bind(this)).then(r=>r.map(a=>a.join("\t=>\t")).join("\n"));}
 		},
 		getAbsolutePath:function()
 		{
